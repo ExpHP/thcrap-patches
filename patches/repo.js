@@ -10,7 +10,7 @@
 		"subseason_winter": "Use Winter subseason, even in Extra stage. (Not required to watch replays; TH16)"
 	},
 	"servers": [
-		"https://raw.githubusercontent.com/ExpHP/thcrap-patches/master/"
+		"https://raw.githubusercontent.com/ExpHP/thcrap-patches/master/patches"
 	],
 	"title": "Patches by ExpHP"
 }
