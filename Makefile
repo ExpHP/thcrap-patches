@@ -5,6 +5,10 @@ all: \
 
 REPO=patches
 
+.PHONY: update
+update:
+	cd $(REPO) && ./update.sh
+
 #================================================
 
 .PHONY: subseason-patches
