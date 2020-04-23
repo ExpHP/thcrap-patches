@@ -1,0 +1,50 @@
+
+binhacks:
+  # This is the branch my PC normally runs.
+  TH17 Split C and Control - Other Branch - C is not 0x200:
+    addr: "0x401d0f"
+    expected: "0bc8"
+    code: "66 90"
+
+  TH17 Split C and Control - Other Branch - C is 0x4:
+    addr: "0x401df3"
+    expected: "25a0000000"
+    codecave:
+      # original code
+      - "25 a0000000    " # and     eax, 0xa0
+      - "0bf0           " # or      esi, eax
+      - "0bfe           " # or      edi, esi
+
+      - "0fb64424 36    " # movzx   eax, byte [esp+0x36]
+      - "c1e8 05        " # shr     eax, 0x5   # move bit 0x80 to 0x04
+      - "09c7           " # or      edi, eax
+
+      # abs_jmp_hack 0x401dfc
+      - "E8 00000000       " # <1>  call %%next
+      - "C70424 FC1D4000   " # <1>  mov dword [esp], %1
+      - "C3                " # <1>  ret
+
+  # To test this branch, I just force off the 0x400 bit at 0x4b6210.
+  TH17 Split C and Control - GetKeyboardState branch - C is not 0x200:
+    addr: "0x401b7d"
+    expected: "0bc8"
+    code: "66 90"
+
+  TH17 Split C and Control - GetKeyboardState branch - C is 0x4:
+    addr: "0x401c57"
+    expected: "83e050 // e999010000"
+    codecave:
+      # original code
+      - "83e0 50        " # and     eax, 0x50
+      - "0bf0           " # or      esi, eax
+      - "0bfe           " # or      edi, esi
+
+      - "0fb64424 4b    " # movzx   eax, byte [esp+0x4b]
+      - "c1e8 05        " # shr     eax, 0x5   # move bit 0x80 to 0x4
+      - "09c7           " # or      edi, eax
+
+      # abs_jmp_hack 0x401dfc
+      - "E8 00000000       " # <1>  call %%next
+      - "C70424 FC1D4000   " # <1>  mov dword [esp], %1
+      - "C3                " # <1>  ret
+
