@@ -1,4 +1,4 @@
-# `ctrl-c` - Bringing back the C
+# `c-key` - Bringing back the C
 
 In past Touhou games, `Ctrl` mapped to bit `0x200` in the input mask, while `C` mapped to `0x04`.  In TH17, *both* of these keys map to `0x200`.
 

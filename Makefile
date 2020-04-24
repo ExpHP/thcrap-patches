@@ -2,7 +2,7 @@
 all: \
 	subseason-patches \
 	sp-resources \
-	ctrl-c \
+	c-key \
 
 REPO=patches
 
@@ -40,10 +40,10 @@ $(SP_RESOURCES_PATCH)/th%.js: $(SP_RESOURCES_PATCH)/th%.yaml
 
 #================================================
 
-CTRL_C_PATCH=$(REPO)/ctrl_c
+C_KEY_PATCH=$(REPO)/c_key
 
-.PHONY: ctrl-c
-ctrl-c: $(CTRL_C_PATCH)/$(TH17_VER).js
+.PHONY: c-key
+c-key: $(C_KEY_PATCH)/$(TH17_VER).js
 
-$(CTRL_C_PATCH)/th%.js: $(CTRL_C_PATCH)/th%.yaml
+$(C_KEY_PATCH)/th%.js: $(C_KEY_PATCH)/th%.yaml
 	scripts/convert-yaml.py $< -o $@
