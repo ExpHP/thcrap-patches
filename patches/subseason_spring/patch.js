@@ -6,5 +6,5 @@
 	"servers": [
 		"https://raw.githubusercontent.com/ExpHP/thcrap-patches/master/patches/subseason_spring/"
 	],
-	"title": "Use Spring subseason, even in Extra stage. (Not required to watch replays; TH16)"
+	"title": "(16) Use Spring subseason, even in Extra stage. (Not required to watch replays)"
 }

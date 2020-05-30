@@ -21,5 +21,3 @@ This requires only very basic experience with Cheat Engine.
 3. Once you find the address, right click on it and "Find out what writes to this address."
 4. Begin spell practice.  The instruction that writes the initial value should get logged.
 5. Add a binhack that changes the immediate operand to this instruction.
-
-Some games may require trickier fixes if the values stored aren't immediate operands.  A `"COMMENT"` field (ignored by `thcrap`) may be added to the binhack describing what it is doing.
