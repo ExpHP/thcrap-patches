@@ -6,5 +6,5 @@
 	"servers": [
 		"https://raw.githubusercontent.com/ExpHP/thcrap-patches/master/patches/sp_resources/"
 	],
-	"title": "Spell practice with lives, bombs and Max Season (TH13, TH14, TH16, TH17)"
+	"title": "(13, 14, 16, 17) Spell practice with lives, bombs and Max Season"
 }

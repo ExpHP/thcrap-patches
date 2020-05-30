@@ -1,8 +1,8 @@
 # `c-key` - Bringing back the C
 
-In past Touhou games, `Ctrl` mapped to bit `0x200` in the input mask, while `C` mapped to `0x04`.  In TH17, *both* of these keys map to `0x200`.
+In past Touhou games, `Ctrl` mapped to bit `0x200` in the input mask, while `C` mapped to `0x04`  (**correction:** actually that was just a brazen assumption and apparently it mapped to `0x200 | 0x800` in TH16, but I'm not going to change this patch since things may already be depending on it).  In TH17, *both* of these keys map to `0x200`.
 
-This moves the C key back to `0x04`, so that it can be easily detected and used by other patches.
+This moves the C key to `0x04`, so that it can be easily detected and used by other patches.
 
 ## How can I make use of this in my patch?
 
