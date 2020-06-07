@@ -1,0 +1,110 @@
+binhacks:
+  Numguide::disable arrow keys in input:
+    addr: "0x43b80d"
+    expected:
+      - "0fb705b8484d00"
+      - "a3d0494d00"
+    codecave:
+      - "0fb705b8484d00"  # mvzx   eax, word [HW_INPUT]
+      - "25 0fffffff"     # and    eax,0xffffff0f"
+      - "a3d0494d00"      # mv     dword [INPUT], eax
+      # restore the 'test' from earlier since our 'and' will have clobbered the flags
+      - "F7 05 E8EA4C00 00020000"  # test    dword [0x4ceae8], 0x200
+      - "b9 19b84300"     # mov    ecx,0x43b819
+      - "ff e1"           # jmp    ecx
+
+  Numguide::show numpad guides:
+    addr: "0x4131e8"
+    expected:
+      - "e893180500"
+    codecave:
+      - "837E0408          " # cmp     dword [esi+timer_current], 0x8
+      - "7505              " # jne     .nocall
+      - "E8 [codecave:ExpHP.numguide.make-all-numguide-anms]" # call
+
+      # .nocall:
+      # original code
+      - "B8804A4600        " # mov     eax, FUNC_TIMER_INCREMENT
+      - "FFD0              " # call    eax
+      # abs_jmp_hack 0x4131ed
+      - "E800000000        " # <1>  call %%next
+      # <1>  %%next:
+      - "C70424ED314100    " # <1>  mov dword [esp], %1
+      - "C3                " # <1>  ret
+
+codecaves:
+  # void __stdcall MakeAllNumguideAnms()
+  ExpHP.numguide.make-all-numguide-anms:
+    - "55 89E5 56 57     " # prologue w/ esi edi
+
+    - "680000C0C2        " # push    FLOAT_X0
+    - "E8 [codecave:ExpHP.numguide.make-all-numguide-anms-at-x]" # call
+    - "6A00              " # push    FLOAT_X1
+    - "E8 [codecave:ExpHP.numguide.make-all-numguide-anms-at-x]" # call
+    - "680000C042        " # push    FLOAT_X2
+    - "E8 [codecave:ExpHP.numguide.make-all-numguide-anms-at-x]" # call
+
+    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
+    - "C3                " # ret
+
+  # void __stdcall MakeAllNumguideAnmsAtX(float)
+  ExpHP.numguide.make-all-numguide-anms-at-x:
+    - "55 89E5 56 57     " # prologue w/ esi edi
+
+    - "6800005043        " # push   FLOAT_Y0
+    - "FF7508            " # push   dword [ebp+0x8]
+    - "E8 [codecave:ExpHP.numguide.make-numguide-anm]" # call
+    - "6800009843        " # push   FLOAT_Y1
+    - "FF7508            " # push   dword [ebp+0x8]
+    - "E8 [codecave:ExpHP.numguide.make-numguide-anm]" # call
+    - "680000C843        " # push   FLOAT_Y2
+    - "FF7508            " # push   dword [ebp+0x8]
+    - "E8 [codecave:ExpHP.numguide.make-numguide-anm]" # call
+
+    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
+    - "C20400            " # ret    0x4
+
+  # void __stdcall MakeNumguideAnm(float, float)
+  ExpHP.numguide.make-numguide-anm:
+    - "55 89E5 56 57     " # prologue w/ esi edi
+
+    - "A1C8434B00        " # mov    eax, dword [BULLET_MGR_PTR]
+    - "8BB0DCEB4D00      " # mov    esi, dword [eax+bmgr_bullet_anm]
+    - "FF8630010000      " # inc    dword [esi+anmld_counter]
+
+    - "B8C0214600        " # mov    eax, FUNC_ANM_ALLOC_VM
+    - "FFD0              " # call   eax
+    - "89C7              " # mov    edi, eax
+
+    # (adjust the position to account for the game world origin before writing)
+    - "D94508            " # fld    dword [ebp+0x08]
+    - "DC05703D4A00      " # fadd   qword [PTR_DOUBLE_32]
+    - "DC05283D4A00      " # fadd   qword [PTR_DOUBLE_192]
+    - "D99F30040000      " # fstp   dword [edi+anmvm_pos+0x0]
+    - "D9450C            " # fld    dword [ebp+0x0c]
+    - "DC05683D4A00      " # fadd   qword [PTR_DOUBLE_16]
+    - "D99F34040000      " # fstp   dword [edi+anmvm_pos+0x4]
+    - "31C0              " # xor    eax, eax
+    - "898738040000      " # mov    dword [edi+anmvm_pos+0x8], eax
+    - "C7472011000000    " # mov    dword [edi+anmvm_layer], NUMGUIDE_LAYER
+
+    - "6A2D              " # push   NUMGUIDE_SCRIPT_ID
+    - "57                " # push   edi
+    - "89F1              " # mov    ecx, esi
+    - "B8104D4500        " # mov    eax, FUNC_ANM_LOAD_SCRIPT
+    - "FFD0              " # call   eax
+
+    # args to this are:
+    #   - vm in ebx,
+    #   - output pointer for anm id in eax
+    - "83EC04            " # sub    esp, 0x4
+    - "8D0424            " # lea    eax, [esp]
+    - "89FB              " # mov    ebx, edi
+    - "BF50124600        " # mov    edi, FUNC_ANM_APPEND_TO_WORLD_LIST
+    - "FFD7              " # call   edi
+
+    # Don't bother saving the id anywhere; when BulletManager is destroyed, it
+    # signals the death of all anm VMs using bullet.anm, so "leaking" them is fine.
+
+    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
+    - "C20800            " # ret    0x8

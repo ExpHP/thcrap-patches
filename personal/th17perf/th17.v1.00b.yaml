@@ -1,0 +1,124 @@
+binhacks:
+  TH17Perf ~ Prepare compact array in AnmManager::on_tick_world:
+    addr: "0x47591d"
+    expected: "8b8c24d4000000"
+    codecave: 
+      - "E8 [codecave:ExpHP.TH17Perf.prepare-compact-array]" # call
+
+      # original code
+      - "8b8c24d4000000    " # mov    ecx, dword [esp+0xd4]
+      # abs_jmp_hack 0x475924
+      - "E800000000        " # <1>  call %%next
+      - "C7042424594700    " # <1>  mov dword [esp], %1
+      - "C3                " # <1>  ret
+
+  TH17Perf ~ Use compact array head:
+    addr: "0x475bc2"
+    expected:
+      - "8b86dc060000      " # mov    eax, dword [esi+am_world_list_head}]
+      - "8B5D08            " # mov    ebx, dword [ebp+0x8] ; layer
+      - "85C0              " # test   eax, eax
+    code:
+      # binhack_use_compact_array_head: ; 0x475bc2
+      - "E8 [codecave:ExpHP.TH17Perf.get-compact-array]" # call
+      - "8B5D08            " # mov    ebx, dword [ebp+0x8] ; layer
+      - "833800            " # cmp    dword [eax], 0
+
+  TH17Perf ~ Use compact array fields:
+    addr: "0x475bd0"
+    expected:
+      - "8b38              " # mov    edi, dword [eax {zAnmVmList::entry}]
+      - "8b5804            " # mov    ebx, dword [eax+0x4 {zAnmVmList::next}]
+      - "f6873405000060    " # test   byte [edi+vm_flags_hi], 0x60
+    code:
+      - "8B38              " # mov    edi, dword [eax+cpt_vm]
+      - "89C3              " # mov    ebx, eax
+      - "83C30C            " # add    ebx, CompactEntry_size
+      - "F6400860          " # test   byte [eax+cpt_flags_hi], 0x60
+      - "90                " # nop
+
+  TH17Perf ~ Advance to next in compact array:
+    addr: "0x475c00"
+    expected:
+      - "8b c3             " # mov   eax, ebx
+      - "85 db             " # test  ebx, ebx
+      - "75 ca             " # jne   0x475bd0
+    codecave:
+      - "89D8              " # mov    eax, ebx
+      - "8B1B              " # mov    ebx, [ebx+cpt_vm]
+      - "85DB              " # test   ebx, ebx
+      - "740D              " # jz     .nojmp
+      # abs_jmp_hack 0x475bd0
+      - "E800000000        " # <1>  call %%next
+      - "C70424D05B4700    " # <1>  mov dword [esp], %1
+      - "C3                " # <1>  ret
+      # .nojmp:
+      # abs_jmp_hack 0x475c06
+      - "E800000000        " # <1>  call %%next
+      - "C70424065C4700    " # <1>  mov dword [esp], %1
+      - "C3                " # <1>  ret
+  
+  TH17Perf ~ Use layer from compact array:
+    addr: "0x475bde"
+    expected: "8b5718" # mov edx, [edi+vm_layer]
+    code: "8B5004" # mov edx, [eax+cpt_layer]
+
+codecaves:
+  # Prepares a compact array of data about VMs for faster rendering.
+  # void __stdcall PrepareCompactArray();
+  ExpHP.TH17Perf.prepare-compact-array:
+    - "55 89E5 56 57     " # prologue w/ esi edi
+    - "8B35209A5000      " # mov    esi, [ANM_MANAGER_PTR]
+    - "89F7              " # mov    edi, esi
+
+    # Point to first world AnmVm's list node
+    - "8BBEDC060000      " # mov    edi, [esi+0x6dc]
+
+    - "E8 [codecave:ExpHP.TH17Perf.get-compact-array]" # call
+    - "89C6              " # mov    esi, eax
+
+    # .loop:
+    # esi holds compact array entry, edi holds original node.
+    - "85FF              " # test   edi, edi
+    - "741B              " # jz     .loopend
+
+    # Read data from the vm.
+    - "8B0F              " # mov    ecx, [edi]
+    - "890E              " # mov    [esi+cpt_vm], ecx
+    - "8B4118            " # mov    eax, [ecx+vm_layer]
+    - "894604            " # mov    [esi+cpt_layer], eax
+    - "8B8134050000      " # mov    eax, [ecx+vm_flags_hi]
+    - "894608            " # mov    [esi+cpt_flags_hi], eax
+
+    # Look at next entry.
+    - "8B7F04            " # mov    edi, [edi+0x4]
+    - "83C60C            " # add    esi, CompactEntry_size
+    - "EBE1              " # jmp    .loop
+
+    # .loopend:
+    - "C70600000000      " # mov    dword [esi+cpt_vm], 0x0
+    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
+    - "C3                " # ret
+
+  ExpHP.TH17Perf.get-compact-array:
+    - "55 89E5 56 57     " # prologue w/ esi edi
+    # Ensure compact array is allocated.
+    # We place it at the end of the layer list head array (unused as of TH17 1.00b).
+    # There's no need to deallocate it; the ANM manager lives forever.
+    - "8B0D209A5000      " # mov    ecx, [ANM_MANAGER_PTR]
+    - "8B81400AC901      " # mov    eax, [ecx+am_compact_arr_ptr]
+    - "85C0              " # test   eax, eax
+    - "751B              " # jnz    .noalloc
+
+    # Large enough to fit the max number of VMs the game can possibly create before
+    # it starts duplicating IDs. (yet still smaller than the AnmManager!)
+    - "6800003300        " # push   (0x44000) * CompactEntry_size
+    - "B850B24700        " # mov    eax, MALLOC
+    - "FFD0              " # call   eax
+    - "83C404            " # add    esp, 0x4
+    - "8B0D209A5000      " # mov    ecx, [ANM_MANAGER_PTR]
+    - "8981400AC901      " # mov    [ecx+am_compact_arr_ptr], eax
+
+    # .noalloc:
+    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
+    - "C3                " # ret

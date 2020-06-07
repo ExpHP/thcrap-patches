@@ -1,0 +1,111 @@
+binhacks:
+  # Playing the game over music would require tricks to save and restore
+  # the current position in the stage music.  Pause it instead.
+  continue patch::Remove game over music:
+    addr: "0x4337f4"
+    expected:
+      - "6834104a00"
+    codecave:
+      - "E8 [codecave:ExpHP.continue.pause-bgm]" # call
+      # abs_jmp_hack 0x43382c
+      - "E800000000        " # <1>  call %%next
+      - "C704242C384300    " # <1>  mov dword [esp], %1
+      - "C3                " # <1>  ret
+
+  continue patch::Fix the continue option:
+    addr: "0x4347e5"
+    expected:
+      - "33c0"
+      - "3985f4010000"
+    codecave:
+      - "833DB00C4B0007    " # cmp    dword [CURRENT_STAGE], 0x7
+      - "7402              " # je     .retry
+      - "EB15              " # jmp    .continue
+
+      # .retry:
+      # original code
+      - "31C0              " # xor     eax, eax
+      - "3985F4010000      " # cmp     dword [ebp+0x1f4], eax
+      # abs_jmp_hack 0x4347ed
+      - "E800000000        " # <1>  call %%next
+      - "C70424ED474300    " # <1>  mov dword [esp], %1
+      - "C3                " # <1>  ret
+
+      # .continue:
+      - "55                " # push   ebp
+      - "E8 [codecave:ExpHP.continue.do-continue]" # call
+      # original code, skipping stuff related to restarting stage
+      - "5F                " # pop    edi
+      - "5E                " # pop    esi
+      - "5B                " # pop    ebx
+      - "5D                " # pop    ebp
+      # abs_jmp_hack 0x434800
+      - "E800000000        " # <1>  call %%next
+      - "C7042400484300    " # <1>  mov dword [esp], %1
+      - "C3                " # <1>  ret
+
+codecaves:
+  # void __stdcall PauseBgm()
+  ExpHP.continue.pause-bgm:
+    - "55 89E5 56 57     " # prologue w/ esi edi
+
+    - "6A00              " # push    0
+    - "6A06              " # push    6
+    - "BF44104A00        " # mov     edi, 0x4a1044  ; Pause
+    - "B8E8F44C00        " # mov     eax, SOUND_MANAGER_START
+    - "B960494500        " # mov     ecx, FUNC_MODIFY_BGM
+    - "FFD1              " # call    ecx
+
+    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
+    - "C3                " # ret
+
+  # void __stdcall DoContinue(PauseMenu*)
+  ExpHP.continue.do-continue:
+    - "55 89E5 56 57     " # prologue w/ esi edi
+
+    - "C705 980C4B00 02000000" # mov    dword [CURRENT_LIVES], 2
+    - "C705 A00C4B00 02000000" # mov    dword [CURRENT_BOMBS], 2
+    - "C705 9C0C4B00 00000000" # mov    dword [CURRENT_LIFE_FRAGMENTS], 0
+    - "C705 A40C4B00 00000000" # mov    dword [CURRENT_BOMB_FRAGMENTS], 0
+
+    - "FF35 9C0C4B00     " # push   dword [CURRENT_LIFE_FRAGMENTS]
+    - "FF35 980C4B00     " # push   dword [CURRENT_LIVES]
+    - "FF35 E4434B00     " # push   dword [GUI_PTR]
+    - "B8 60CE4100       " # mov    eax, FUNC_GUI_UPDATE_LIVES
+    - "FFD0              " # call   eax
+
+    - "FF35 A40C4B00     " # push   dword [CURRENT_BOMB_FRAGMENTS]
+    - "FF35 A00C4B00     " # push   dword [CURRENT_BOMBS]
+    - "FF35 E4434B00     " # push   dword [GUI_PTR]
+    - "B8 40CF4100       " # mov    eax, FUNC_GUI_UPDATE_BOMBS
+    - "FFD0              " # call   eax
+
+    - "C705 440C4B00 00000000" # mov    dword [CURRENT_SCORE], 0x0
+    - "C705 480C4B00 00000000" # mov    dword [CURRENT_POWER], 0x0
+
+    - "8B1DD00C4B00      " # mov    ebx, dword [MAXIMUM_POWER]
+    - "B8 400C4B00       " # mov    eax, GLOBALS_START
+    - "B9 702D4200       " # mov    ecx, FUNC_COLLECT_BIG_POWER
+    - "FFD1              " # call   ecx
+
+    - "FF35 14454B00     " # push   dword [PLAYER_PTR]
+    - "B8 B0854300       " # mov    eax, FUNC_PLAYER_REGEN_OPTIONS
+    - "FFD0              " # call   eax
+
+    - "8B0D C40C4B00     " # mov    ecx, dword [CONTINUES_USED]
+    - "41                " # inc    ecx
+    - "BA 09000000       " # mov    edx, 0x9
+    - "39D1              " # cmp    ecx, edx
+    - "0F4FCA            " # cmovg  ecx, edx
+    - "89 0DC40C4B00     " # mov    dword [CONTINUES_USED], ecx
+
+    # fix state so that Esc works
+    - "8B7508            " # mov    esi, dword [ebp+0x8]
+    - "C7460400000000    " # mov    dword [esi+pmenu_state], 0
+
+    - "8B7508            " # mov    esi, dword [ebp+0x8] ; PauseMenu*
+    - "B8 60294300       " # mov    eax, FUNC_DO_UNPAUSE
+    - "FFD0              " # call   eax
+
+    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
+    - "C20400            " # ret    0x4

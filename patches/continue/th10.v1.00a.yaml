@@ -1,0 +1,96 @@
+binhacks:
+  # Playing the game over music would require tricks to save and restore
+  # the current position in the stage music.  Pause it instead.
+  continue patch::Remove game over music:
+    addr: "0x4232f8"
+    expected:
+      - "68d8e04600"
+    codecave:
+      # a line of important ANM code embedded in the block we're skipping
+      - "8987D4010000      " # mov     dword [edi+0x1d4], eax
+
+      - "E8 [codecave:ExpHP.continue.pause-bgm]" # call
+
+      # cleanup that's awkwardly embedded in the block we're skipping
+      - "5E                " # pop    esi
+      - "5D                " # pop    ebp
+      - "5B                " # pop    ebx
+      # abs_jmp_hack 0x42333c
+      - "E800000000        " # <1>  call %%next
+      - "C704243C334200    " # <1>  mov dword [esp], %1
+      - "C3                " # <1>  ret
+
+  continue patch::Fix the continue option:
+    addr: "0x424360"
+    expected:
+      - "8b95e4010000"
+    codecave:
+      - "833D7C4C470007    " # cmp    dword [CURRENT_STAGE], 0x7
+      - "7402              " # je     .retry
+      - "EB13              " # jmp    .continue
+
+      # .retry:
+      # original code
+      - "8B95E4010000      " # mov    edx, dword [ebp+0x1e4]
+      # abs_jmp_hack 0x424366
+      - "E800000000        " # <1>  call %%next
+      - "C7042466434200    " # <1>  mov dword [esp], %1
+      - "C3                " # <1>  ret
+
+      # .continue:
+      - "55                " # push   ebp
+      - "E8 [codecave:ExpHP.continue.do-continue]" # call
+      # abs_jmp_hack 0x424376
+      - "E800000000        " # <1>  call %%next
+      - "C7042476434200    " # <1>  mov dword [esp], %1
+      - "C3                " # <1>  ret
+
+codecaves:
+  # void __stdcall PauseBgm()
+  ExpHP.continue.pause-bgm:
+    - "55 89E5 56 57     " # prologue w/ esi edi
+
+    - "6A00              " # push    0
+    - "6A06              " # push    6
+    - "BAC0E04600        " # mov     edx, CSTR_BGM_PAUSE  ; "Pause"
+    - "B890254900        " # mov     eax, SOUND_MANAGER_START
+    - "B960E44300        " # mov     ecx, FUNC_MODIFY_BGM
+    - "FFD1              " # call    ecx
+
+    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
+    - "C3                " # ret
+
+  # void __stdcall DoContinue(PauseMenu*)
+  ExpHP.continue.do-continue:
+    - "55 89E5 56 57     " # prologue w/ esi edi
+
+    - "C705704C470002000000" # mov    dword [CURRENT_LIVES], 2
+
+    - "8B0D704C4700      " # mov    ecx, dword [CURRENT_LIVES]
+    - "A10C774700        " # mov    eax, dword [GUI_PTR]
+    - "BA90374100        " # mov    edx, FUNC_GUI_UPDATE_LIVES
+    - "FFD2              " # call   edx
+
+    - "C705444C470000000000" # mov    dword [CURRENT_SCORE], 0
+
+    # don't even bother messing with power in MoF since power is so
+    # easy to get back (and I'm, uh, not sure how to update the GUI...)
+
+    - "FF3534784700      " # push   dword [PLAYER_PTR]
+    - "B8706F4200        " # mov    eax, FUNC_PLAYER_REGEN_OPTIONS
+    - "FFD0              " # call   eax
+
+    - "B8404C4700        " # mov    eax, GLOBALS_START
+    - "B9908A4100        " # mov    ecx, FUNC_INC_CONTINUES_USED
+    - "FFD1              " # call   ecx
+
+    # fix state so that Esc works
+    - "8B7508            " # mov    esi, dword [ebp+0x8]
+    - "C7460400000000    " # mov    dword [esi+pmenu_state], 0
+
+    - "8B7508            " # mov    esi, dword [ebp+0x8] ; PauseMenu*
+    - "B8302C4200        " # mov    eax, FUNC_DO_UNPAUSE
+    - "FFD0              " # call   eax
+
+    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
+    - "C20400            " # ret    0x4
