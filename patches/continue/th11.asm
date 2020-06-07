@@ -11,47 +11,48 @@
 
 %include "util.asm"
 
-%define CURRENT_LIVES     0x4b0c98
-%define CURRENT_LIFE_FRAGMENTS  0x4b0c9c
-%define CURRENT_BOMBS     0x4b0ca0
-%define CURRENT_BOMB_FRAGMENTS  0x4b0ca4
-%define POWER_PER_LEVEL   0x4b0cd4
-%define CURRENT_SCORE     0x4b0c44
-%define CURRENT_POWER     0x4b0c48
-%define CURRENT_STAGE     0x4b0cb0
-%define MAXIMUM_POWER     0x4b0cd0
-%define CONTINUES_USED    0x4b0cc4
+%define CURRENT_LIVES     0x4a5718
+%define CURRENT_LIFE_FRAGMENTS  0x4a571c
+%define POWER_PER_LEVEL   0x4a574c
+%define CURRENT_SCORE     0x4a56e4
+%define CURRENT_POWER     0x4a56e8
+%define CURRENT_STAGE     0x4a5728
+%define MAXIMUM_POWER     0x4a5748
+%define CONTINUES_USED    0x4a573c
 
-%define FUNC_GUI_UPDATE_LIVES  0x41ce60
-%define FUNC_GUI_UPDATE_BOMBS  0x41cf40
-%define FUNC_DO_UNPAUSE        0x432960
-%define FUNC_PLAYER_REGEN_OPTIONS  0x4385b0
-%define FUNC_MODIFY_BGM         0x454960
-%define FUNC_COLLECT_BIG_POWER  0x422d70
+%define FUNC_GUI_UPDATE_LIVES  0x41a060
+%define FUNC_DO_UNPAUSE        0x42c880
+%define FUNC_PLAYER_REGEN_OPTIONS  0x432cc0
+%define FUNC_MODIFY_BGM         0x44a9c0
+%define FUNC_COLLECT_POWER      0x420a00
 
-%define PLAYER_PTR   0x4b4514
-%define GUI_PTR      0x4b43e4
-%define SOUND_MANAGER_START    0x4cf4e8
-%define GLOBALS_START          0x4b0c40
+%define PLAYER_PTR   0x4a8eb4
+%define GUI_PTR      0x4a8d84
+%define SOUND_MANAGER_START    0x4c3e80
+%define GLOBALS_START          0x4a56e0
 
-%define CSTR_BGM_PAUSE 0x4a1044
+%define CSTR_BGM_PAUSE 0x494260
 
 %define pmenu_state  0x4
 
-bgm_pause_cave: ; 0x4337f4
-    call pause_bgm ; FIXUP
-    abs_jmp_hack 0x43382c
+bgm_pause_cave: ; 0x42d630
+    ; a line of important code embedded in the block we're skipping
+    mov     dword [ebp+0x2dc], edx
 
-continue_cave: ; 0x4347e5
+    call pause_bgm ; FIXUP
+
+    abs_jmp_hack 0x42d66e
+
+continue_cave: ; 0x42e5a5
     cmp    dword [CURRENT_STAGE], 0x7
     je     .retry
     jmp    .continue
 
 .retry:
     ; original code
-    xor     eax, eax
+    xor     edx, edx
     cmp     dword [ebp+0x1f4], eax
-    abs_jmp_hack 0x4347ed
+    abs_jmp_hack 0x42e5ad
 
 .continue:
     push   ebp ; PauseMenu*
@@ -61,38 +62,31 @@ continue_cave: ; 0x4347e5
     pop    esi
     pop    ebx
     pop    ebp
-    abs_jmp_hack 0x434800
+    abs_jmp_hack 0x42e5c1
 
 ; void __stdcall DoContinue(PauseMenu*)
 do_continue:
     prologue_sd
 
     mov    dword [CURRENT_LIVES], 2
-    mov    dword [CURRENT_BOMBS], 2
     mov    dword [CURRENT_LIFE_FRAGMENTS], 0
-    mov    dword [CURRENT_BOMB_FRAGMENTS], 0
 
     push   dword [CURRENT_LIFE_FRAGMENTS]
-    push   dword [CURRENT_LIVES]
-    push   dword [GUI_PTR]
+    mov    edx, dword [CURRENT_LIVES]
+    mov    edi, dword [GUI_PTR]
     mov    eax, FUNC_GUI_UPDATE_LIVES
     call   eax
 
-    push   dword [CURRENT_BOMB_FRAGMENTS]
-    push   dword [CURRENT_BOMBS]
-    push   dword [GUI_PTR]
-    mov    eax, FUNC_GUI_UPDATE_BOMBS
-    call   eax
-
     mov    dword [CURRENT_SCORE], 0x0
-    mov    dword [CURRENT_POWER], 0x0
 
-    mov    ebx, dword [MAXIMUM_POWER]
-    mov    eax, GLOBALS_START
-    mov    ecx, FUNC_COLLECT_BIG_POWER
+    ; In SA you spawn so many power items on death (often including an F) that
+    ; we won't even worry about power.
+
+    mov    eax, dword [MAXIMUM_POWER]
+    mov    ecx, FUNC_COLLECT_POWER
     call   ecx
     
-    push   dword [PLAYER_PTR]
+    mov    ebx, dword [PLAYER_PTR]
     mov    eax, FUNC_PLAYER_REGEN_OPTIONS
     call   eax
 

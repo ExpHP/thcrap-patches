@@ -1,0 +1,104 @@
+binhacks:
+  # Playing the game over music would require tricks to save and restore
+  # the current position in the stage music.  Pause it instead.
+  continue patch::Remove game over music:
+    addr: "0x42d630"
+    expected:
+      - "6894534900"
+    codecave:
+      # a line of important code embedded in the block we're skipping
+      - "8995DC020000      " # mov     dword [ebp+0x2dc], edx
+
+      - "E8 [codecave:ExpHP.continue.pause-bgm]" # call
+
+      # abs_jmp_hack 0x42d66e
+      - "E800000000        " # <1>  call %%next
+      - "C704246ED64200    " # <1>  mov dword [esp], %1
+      - "C3                " # <1>  ret
+
+  continue patch::Fix the continue option:
+    addr: "0x42e5a5"
+    expected:
+      - "33d2"
+      - "3995f4010000"
+    codecave:
+      - "833D28574A0007    " # cmp    dword [CURRENT_STAGE], 0x7
+      - "7402              " # je     .retry
+      - "EB15              " # jmp    .continue
+
+      # .retry:
+      # original code
+      - "31D2              " # xor     edx, edx
+      - "3985F4010000      " # cmp     dword [ebp+0x1f4], eax
+      # abs_jmp_hack 0x42e5ad
+      - "E800000000        " # <1>  call %%next
+      - "C70424ADE54200    " # <1>  mov dword [esp], %1
+      - "C3                " # <1>  ret
+
+      # .continue:
+      - "55                " # push   ebp ; PauseMenu*
+      - "E8 [codecave:ExpHP.continue.do-continue]" # call
+      # original code, skipping stuff related to restarting stage
+      - "5F                " # pop    edi
+      - "5E                " # pop    esi
+      - "5B                " # pop    ebx
+      - "5D                " # pop    ebp
+      # abs_jmp_hack 0x42e5c1
+      - "E800000000        " # <1>  call %%next
+      - "C70424C1E54200    " # <1>  mov dword [esp], %1
+      - "C3                " # <1>  ret
+
+codecaves:
+  # void __stdcall PauseBgm()
+  ExpHP.continue.pause-bgm:
+    - "55 89E5 56 57     " # prologue w/ esi edi
+
+    - "6A00              " # push    0
+    - "6A06              " # push    6
+    - "BF60424900        " # mov     edi, CSTR_BGM_PAUSE  ; "Pause"
+    - "B8803E4C00        " # mov     eax, SOUND_MANAGER_START
+    - "B9C0A94400        " # mov     ecx, FUNC_MODIFY_BGM
+    - "FFD1              " # call    ecx
+
+    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
+    - "C3                " # ret
+
+  # void __stdcall DoContinue(PauseMenu*)
+  ExpHP.continue.do-continue:
+    - "55 89E5 56 57     " # prologue w/ esi edi
+
+    - "C70518574A0002000000" # mov    dword [CURRENT_LIVES], 2
+    - "C7051C574A0000000000" # mov    dword [CURRENT_LIFE_FRAGMENTS], 0
+
+    - "FF351C574A00      " # push   dword [CURRENT_LIFE_FRAGMENTS]
+    - "8B1518574A00      " # mov    edx, dword [CURRENT_LIVES]
+    - "8B3D848D4A00      " # mov    edi, dword [GUI_PTR]
+    - "B860A04100        " # mov    eax, FUNC_GUI_UPDATE_LIVES
+    - "FFD0              " # call   eax
+
+    - "C705E4564A0000000000" # mov    dword [CURRENT_SCORE], 0x0
+  
+    # In SA you spawn so many power items on death (often including an F) that
+    # we won't even worry about power.
+
+    - "8B1DB48E4A00      " # mov    ebx, dword [PLAYER_PTR]
+    - "B8C02C4300        " # mov    eax, FUNC_PLAYER_REGEN_OPTIONS
+    - "FFD0              " # call   eax
+
+    - "8B0D3C574A00      " # mov    ecx, dword [CONTINUES_USED]
+    - "41                " # inc    ecx
+    - "BA09000000        " # mov    edx, 0x9
+    - "39D1              " # cmp    ecx, edx
+    - "0F4FCA            " # cmovg  ecx, edx
+    - "890D3C574A00      " # mov    dword [CONTINUES_USED], ecx
+
+    # fix state so that Esc works
+    - "8B7508            " # mov    esi, dword [ebp+0x8]
+    - "C7460400000000    " # mov    dword [esi+pmenu_state], 0
+
+    - "8B7508            " # mov    esi, dword [ebp+0x8] ; PauseMenu*
+    - "B880C84200        " # mov    eax, FUNC_DO_UNPAUSE
+    - "FFD0              " # call   eax
+
+    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
+    - "C20400            " # ret    0x4

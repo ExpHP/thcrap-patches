@@ -94,6 +94,7 @@ CONTINUE_PATCH=$(REPO)/continue
 .PHONY: continue
 continue: \
 	$(CONTINUE_PATCH)/$(TH10_VER).js \
+	$(CONTINUE_PATCH)/$(TH11_VER).js \
 	$(CONTINUE_PATCH)/$(TH12_VER).js \
 
 $(CONTINUE_PATCH)/th%.js: $(CONTINUE_PATCH)/th%.yaml
