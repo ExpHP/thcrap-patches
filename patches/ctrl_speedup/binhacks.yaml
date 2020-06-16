@@ -1,0 +1,80 @@
+binhacks:
+  ctrl_speedup::Make ctrl speedup work outside of replays:
+    # nop out the conditional jump on ReplayManager's "playback mode" field
+    # in ReplayManager's second on_tick method
+    code: "66 90"
+    /fields-if(th10):
+      addr: "0x42a3f7"
+      expected: "7524"
+    /fields-if(th11):
+      addr: "0x436d53"
+      expected: "7520"
+    /fields-if(th12):
+      addr: "0x43c543"
+      expected: "7520"
+    /fields-if(th128):
+      addr: "0x442043"
+      expected: "7520"
+    /fields-if(th13):
+      addr: "0x448e63"
+      expected: "7529"
+    /fields-if(th14):
+      addr: "0x455e76"
+      expected: "7529"
+    /fields-if(th15):
+      addr: "0x45cec6"
+      expected: "7529"
+    /fields-if(th16):
+      addr: "0x448e56"
+      expected: "7525"
+    /fields-if(th17):
+      addr: "0x44e627"
+      expected: "7568"
+
+  # In TH128 and TH13+, the C key also speeds up replays.
+  # In TH13 and beyond, this further extends to the Z key, making all of the games
+  # basically unplayable with the patch. Geez!
+
+  # The C key does this by toggling the bit for Ctrl in low level IO code.  This is a PITA
+  # to fix and test, so I'll only bother with the games that actually use C.
+  # Basically you must find the function that calls GetKeyboardState, find where key `0x11`
+  # is tested, find the nearby `or` instruction that puts key `0x43` in the same bit, and
+  # nop that out.  Then locate the same instruction in the other branch.
+  #
+  # I don't know how the game actually decides which branch to enter, so in order to
+  # test them both in-game I just use CE to hack the branching instruction >_>.
+  /fields-if(any(th13,th16)):
+    ctrl_speedup::Don't speed up on C key:
+      code: "66 90"  # they're all 2-byte 'or' instructions
+      addr:
+        - /item-if(th13): "0x471717" # GetKeyboardState branch
+        - /item-if(th13): "0x4718fa" # other branch
+        # Too lazy to test this
+        # - /item-if(th14): "0x401dbf" # GetKeyboardState branch
+        # - /item-if(th14): "0x401f76" # other branch
+        # - /item-if(th15): "0x402214" # GetKeyboardState branch
+        # - /item-if(th15): "0x40203f" # other branch
+        - /item-if(th16): "0x401e3f" # GetKeyboardState branch
+        - /item-if(th16): "0x402014" # other branch
+
+    # FIXME: TH128 also conflates C and Ctrl but it does it in a way that's tougher
+    #        to fix. (both C and Ctrl map to both bits!)
+
+  # These have an instruction like:  test al, 0x01
+  /fields-if(any(th13,th14,th15)):
+    ctrl_speedup::Don't speed up on shoot key:
+      addr:
+        /value-if(th13): "0x448e72"
+        /value-if(th14): "0x455e85"
+        /value-if(th15): "0x45ced5"
+      expected: "01"
+      code: "00"
+
+  # These have an instruction like:  test dword [INPUT], 0x201
+  /fields-if(any(th16,th17)):
+    ctrl_speedup::Don't speed up on shoot key:
+      addr:
+        /value-if(th16): "0x448e5e"
+        /value-if(th17): "0x44e62f"
+      expected: "01020000"
+      code: "00020000"

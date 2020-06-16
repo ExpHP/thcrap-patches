@@ -6,6 +6,7 @@ all: \
 	numguide \
 	continue \
 	th17perf \
+	ctrl-speedup \
 
 REPO=patches
 PERSONAL=personal
@@ -53,7 +54,7 @@ SP_RESOURCES_PATCH=$(REPO)/sp_resources
 sp-resources: $(SP_RESOURCES_PATCH)/$(TH13_VER).js
 
 $(SP_RESOURCES_PATCH)/th%.js: $(SP_RESOURCES_PATCH)/th%.yaml
-	scripts/convert-yaml.py $< -o $@
+	scripts/convert-yaml.py $< >$@
 
 #================================================
 
@@ -63,7 +64,7 @@ C_KEY_PATCH=$(REPO)/c_key
 c-key: $(C_KEY_PATCH)/$(TH17_VER).js
 
 $(C_KEY_PATCH)/th%.js: $(C_KEY_PATCH)/th%.yaml
-	scripts/convert-yaml.py $< -o $@
+	scripts/convert-yaml.py $< >$@
 
 #================================================
 
@@ -74,7 +75,7 @@ th17perf: \
 	$(TH17_PERF_PATCH)/$(TH17_VER).js \
 
 $(TH17_PERF_PATCH)/th%.js: $(TH17_PERF_PATCH)/th%.yaml
-	scripts/convert-yaml.py $< -o $@
+	scripts/convert-yaml.py $< >$@
 
 #================================================
 
@@ -85,7 +86,7 @@ numguide: \
 	$(NUMGUIDE_PATCH)/$(TH12_VER).js \
 
 $(NUMGUIDE_PATCH)/th%.js: $(NUMGUIDE_PATCH)/th%.yaml
-	scripts/convert-yaml.py $< -o $@
+	scripts/convert-yaml.py $< >$@
 
 #================================================
 
@@ -98,4 +99,23 @@ continue: \
 	$(CONTINUE_PATCH)/$(TH12_VER).js \
 
 $(CONTINUE_PATCH)/th%.js: $(CONTINUE_PATCH)/th%.yaml
-	scripts/convert-yaml.py $< -o $@
+	scripts/convert-yaml.py $< >$@
+
+#================================================
+
+CTRL_SPEEDUP_PATCH=$(REPO)/ctrl_speedup
+
+.PHONY: ctrl-speedup
+ctrl-speedup: \
+	$(CTRL_SPEEDUP_PATCH)/$(TH10_VER).js \
+	$(CTRL_SPEEDUP_PATCH)/$(TH11_VER).js \
+	$(CTRL_SPEEDUP_PATCH)/$(TH12_VER).js \
+	$(CTRL_SPEEDUP_PATCH)/$(TH128_VER).js \
+	$(CTRL_SPEEDUP_PATCH)/$(TH13_VER).js \
+	$(CTRL_SPEEDUP_PATCH)/$(TH14_VER).js \
+	$(CTRL_SPEEDUP_PATCH)/$(TH15_VER).js \
+	$(CTRL_SPEEDUP_PATCH)/$(TH16_VER).js \
+	$(CTRL_SPEEDUP_PATCH)/$(TH17_VER).js \
+
+$(CTRL_SPEEDUP_PATCH)/th%.js: $(CTRL_SPEEDUP_PATCH)/binhacks.yaml
+	scripts/convert-yaml.py $< >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
