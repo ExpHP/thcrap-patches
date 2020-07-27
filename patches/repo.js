@@ -5,6 +5,7 @@
 		"c_key": "(17) Make Ctrl and C behave as separate keys internally, for use by other patches. (C maps to 0x4)",
 		"continue": "(10-12) Fixes the continue system. plz don't save cursed 3cc replays kthx",
 		"ctrl_speedup": "(10-17, 128) Makes Ctrl to speedup work outside of replays.",
+		"free_release": "(16) Makes season releases not consume season power. (Request.)",
 		"nopause_enm": "(11-17, 125) a.k.a. the Za Warudo mod.  Enemies don't stop when you pause.  nopauseblur recommended where available.",
 		"nopauseblur": "(15-17, 165) Disables blur on pause.  Not available yet for DDC and earlier due to technical difficulties.",
 		"sp_resources": "(13, 14, 16, 17) Spell practice with lives, bombs and Max Season",
