@@ -1,0 +1,24 @@
+
+binhacks:
+
+  ExpHP.ddc-gap.start-server:
+    addr: "0x408558"
+    expected: "8B3D688D4A00"
+    codecave:
+      - "E8[codecave:ExpHP.ddc-gap.start-stage-server]" # call start_stage_server
+      # original code
+      - "8B3D688D4A00      " # mov     edi, dword [0x4a8d68]
+      # abs_jmp_hack 0x40855e
+      - "E800000000        " # call %%next
+      # %%next:
+      - "C704245E854000    " # mov dword [esp], %1
+      - "C3                " # ret
+
+codecaves:
+  ExpHP.ddc-gap.corefuncs:
+    # These are pointers to IAT entries, but during initialization we'll replace
+    # them with pointers to the actual functions.
+    - "B8B14800          " # .GetLastError: dd 0x48b1b8
+    - "74B14800          " # .GetModuleHandleW: dd 0x48b174
+    - "70B14800          " # .GetProcAddress: dd 0x48b170
+    - "F0B04800          " # .WaitForSingleObject: dd 0x48b0f0

@@ -1,0 +1,165 @@
+
+binhacks:
+  ExpHP.mouse.binhack:
+    addr: "0x44d7a8"
+    expected: "81fa00a4ffff"
+    codecave:
+      - "56                " # push esi ; save
+
+      - "8DB7EC050000      " # lea  esi, [edi+PL_POS_SUBPIXEL]
+      - "56                " # push esi
+      - "E8[codecave:ExpHP.mouse.get-mouse-pos-subpixels]" # call get_mouse_pos_subpixels
+
+      # clipping code needs data in these registers
+      - "8B16              " # mov  edx, [esi+0x0] ; new x
+      - "8B4E04            " # mov  ecx, [esi+0x4] ; new y
+
+      - "5E                " # pop  esi ; restore
+
+      # original code
+      - "81FA00A4FFFF      " # cmp  edx, 0xffffa400
+      # abs_jmp_hack 0x44d7ae
+      - "E800000000        " # <1>  call %%next
+      - "C70424AED74400    " # <1>  mov dword [esp], %1
+      - "C3                " # <1>  ret
+
+codecaves:
+  protection: 64
+  ExpHP.mouse.data:
+    - "00000000          " # .ScreenToClient: dd 0  ; function pointer
+    - "00000000          " # .GetCursorPos: dd 0  ; function pointer
+
+  ExpHP.mouse.strings:
+    - "7500730065007200330032000000" # .user32: dw 'u', 's', 'e', 'r', '3', '2', 0
+    - "476574437572736F72506F7300" # .GetCursorPos: db "GetCursorPos", 0
+    - "53637265656E546F436C69656E7400" # .ScreenToClient: db "ScreenToClient", 0
+
+  ExpHP.mouse.res-data:
+    - "0000803F2000000010000000A0010000D0010000" # dd 1.0, 32, 16, 384+32, 448+16
+    - "0000C03F300000001800000070020000B8020000" # dd 1.5, 48, 24, 576+48, 672+24
+    - "00000040400000002000000040030000A0030000" # dd 2.0, 64, 32, 768+64, 896+32
+
+    # Gets the position of the mouse, in the integer-with-subpixel format that the
+    # game uses internally for player position.
+    #
+    # void GetMousePosSubpixels(POINT*);
+  ExpHP.mouse.get-mouse-pos-subpixels:
+    - "55 89E5 56 57     " # prologue w/ esi edi
+    - "53                " # push ebx
+
+    - "E8[codecave:ExpHP.mouse.initialize]" # call initialize
+    - "BB<codecave:ExpHP.mouse.data>" # mov  ebx, data
+
+    # lookup screen resolution.
+    # (in existing games I don't think this can change after startup, but this is
+    #  pretty cheap to do so might as well do it every frame)
+    - "BE<codecave:ExpHP.mouse.res-data>" # mov  esi, res_data
+    - "E8[codecave:ExpHP.mouse.get-resolution-index]" # call get_resolution_index
+    - "6BC014            " # imul eax, ResData_size
+    - "01C6              " # add  esi, eax
+
+    # screen coords
+    - "8B7D08            " # mov  edi, [ebp+0x8]
+    - "57                " # push edi
+    - "FF5304            " # call [ebx + data.GetCursorPos - data]
+
+    # ...to client coords (no titlebar, etc.)
+    - "57                " # push edi
+    - "FF35185A4F00      " # push dword [WINDOW]
+    - "FF13              " # call [ebx + data.ScreenToClient - data]
+
+    # ; clip to arcade region
+    # push edi
+    # lea  eax, [esi + ResData.rect]
+    # push eax
+    # call clip_rect ; FIXUP: [codecave:ExpHP.mouse.clip-rect]
+
+    # make 0,0 the top left of the arcade region
+    - "8B4604            " # mov  eax, [esi + ResData.rect + Rect.left]
+    - "2907              " # sub  [edi+0x0], eax
+    - "8B4608            " # mov  eax, [esi + ResData.rect + Rect.top]
+    - "294704            " # sub  [edi+0x4], eax
+
+    # unscale
+    - "F30F2A07          " # cvtsi2ss xmm0, [edi+0x0]
+    - "F30F2A4F04        " # cvtsi2ss xmm1, [edi+0x4]
+    - "F30F1016          " # movss  xmm2, [esi + ResData.scale]
+    - "F30F5EC2          " # divss  xmm0, xmm2
+    - "F30F5ECA          " # divss  xmm1, xmm2
+
+    # minus origin
+    - "B8C0000000        " # mov   eax, GAME_ORIGIN_X
+    - "F30F2AD0          " # cvtsi2ss xmm2, eax
+    - "F30F5CC2          " # subss xmm0, xmm2
+    - "B800000000        " # mov   eax, GAME_ORIGIN_Y
+    - "F30F2AD0          " # cvtsi2ss xmm2, eax
+    - "F30F5CCA          " # subss xmm1, xmm2
+
+    # subpixels
+    - "B880000000        " # mov   eax, SUBPIXELS_PER_PIXEL
+    - "F30F2AD0          " # cvtsi2ss xmm2, eax
+    - "F30F59C2          " # mulss xmm0, xmm2
+    - "F30F59CA          " # mulss xmm1, xmm2
+    - "F30F2DC0          " # cvtss2si eax, xmm0
+    - "8907              " # mov   [edi+0x0], eax
+    - "F30F2DC1          " # cvtss2si eax, xmm1
+    - "894704            " # mov   [edi+0x4], eax
+
+    - "5B                " # pop ebx
+    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
+    - "C20400            " # ret 0x4
+
+  ExpHP.mouse.initialize:
+    - "55 89E5 56 57     " # prologue w/ esi edi
+    - "53                " # push ebx
+
+    - "BE<codecave:ExpHP.mouse.strings>" # mov  esi, strings
+    - "BF<codecave:ExpHP.mouse.data>" # mov  edi, data
+
+    - "837F0400          " # cmp  dword [edi + data.GetCursorPos - data], 0x0
+    - "7526              " # jne  .alreadyinit
+
+    # good thing x86 16-bit operations don't care about alignment...
+    - "8D06              " # lea  eax, [esi + strings.user32 - strings]
+    - "50                " # push eax
+    - "FF1538114B00      " # call [IAT_GetModuleHandleW]
+    - "89C3              " # mov  ebx, eax
+
+    - "8D460E            " # lea  eax, [esi + strings.GetCursorPos - strings]
+    - "50                " # push eax
+    - "53                " # push ebx
+    - "FF15F8104B00      " # call [IAT_GetProcAddress]
+    - "894704            " # mov  [edi + data.GetCursorPos - data], eax
+
+    - "8D461B            " # lea  eax, [esi + strings.ScreenToClient - strings]
+    - "50                " # push eax
+    - "53                " # push ebx
+    - "FF15F8104B00      " # call [IAT_GetProcAddress]
+    - "8907              " # mov  [edi + data.ScreenToClient - data], eax
+
+    # .alreadyinit:
+    - "5B                " # pop ebx
+    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
+    - "C3                " # ret
+
+    # int GetResolutionIndex();
+    # Get the index into res_data for the current game resolution
+  ExpHP.mouse.get-resolution-index:
+    - "A158904D00        " # mov eax, [SUPERVISOR + SV_PRESENT_PARAMS + D3DPP_HEIGHT]
+
+    - "3DE0010000        " # cmp eax, 480
+    - "740E              " # je  .res_0
+    - "3DD0020000        " # cmp eax, 720
+    - "740D              " # je  .res_1
+    - "3DC0030000        " # cmp eax, 960
+    - "740C              " # je  .res_2
+
+    # .res_0:
+    - "B800000000        " # mov eax, 0
+    - "C3                " # ret
+    # .res_1:
+    - "B801000000        " # mov eax, 1
+    - "C3                " # ret
+    # .res_2:
+    - "B802000000        " # mov eax, 2
+    - "C3                " # ret

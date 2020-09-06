@@ -7,6 +7,8 @@ all: \
 	continue \
 	th17perf \
 	ctrl-speedup \
+	mouse \
+	ssa \
 
 REPO=patches
 PERSONAL=personal
@@ -119,3 +121,40 @@ ctrl-speedup: \
 
 $(CTRL_SPEEDUP_PATCH)/th%.js: $(CTRL_SPEEDUP_PATCH)/binhacks.yaml
 	scripts/convert-yaml.py $< >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
+
+#================================================
+
+MOUSE_PATCH=$(PERSONAL)/mouse
+
+.PHONY: mouse
+mouse: \
+	$(MOUSE_PATCH)/$(TH14_VER).js \
+	# $(MOUSE_PATCH)/$(TH10_VER).js \
+	# $(MOUSE_PATCH)/$(TH11_VER).js \
+	# $(MOUSE_PATCH)/$(TH12_VER).js \
+	# $(MOUSE_PATCH)/$(TH128_VER).js \
+	# $(MOUSE_PATCH)/$(TH13_VER).js \
+	# $(MOUSE_PATCH)/$(TH15_VER).js \
+	# $(MOUSE_PATCH)/$(TH16_VER).js \
+	# $(MOUSE_PATCH)/$(TH17_VER).js \
+
+$(MOUSE_PATCH)/th%.js: $(MOUSE_PATCH)/th%.yaml
+	scripts/convert-yaml.py $< >$@
+
+#================================================
+
+SSA_PATCH=$(PERSONAL)/ssa
+
+.PHONY: ssa
+ssa: \
+	$(SSA_PATCH)/$(TH11_VER).js \
+	$(SSA_PATCH)/$(TH14_VER).js \
+
+$(SSA_PATCH)/common.yaml: $(SSA_PATCH)/common.asm
+	echo "codecaves:" >$@
+	echo "  protection: 64" >>$@
+	scripts/list-asm $< >>$@
+
+$(SSA_PATCH)/th%.js: $(SSA_PATCH)/th%.yaml $(SSA_PATCH)/common.yaml
+	scripts/convert-yaml.py $^ >$@
+

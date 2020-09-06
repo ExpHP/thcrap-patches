@@ -25,7 +25,9 @@ def main():
 
     process_local_caves(y)
     if 'binhacks' in y:
-        for binhack in y['binhacks'].values():
+        for name, binhack in y['binhacks'].items():
+            if 'address' in binhack:
+                die(f'binhack {repr(name)} should have "addr", not "address"!')
             if 'code' in binhack:
                 binhack['code'] = concat_code_sequences(binhack['code'])
             if 'expected' in binhack:
