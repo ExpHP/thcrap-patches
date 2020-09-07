@@ -1,17 +1,36 @@
 
 binhacks:
+  ExpHP.ddc-gap.no-demoplay:
+    addr: "0x4399c8"
+    expected: "01355c574a00"
+    code:     "909090909090"
 
   ExpHP.ddc-gap.start-server:
     addr: "0x408558"
     expected: "8B3D688D4A00"
     codecave:
-      - "E8[codecave:ExpHP.ddc-gap.start-stage-server]" # call start_stage_server
+      - "E8[codecave:ExpHP.ddc-gap.server-start-stage]" # call server_start_stage 
       # original code
       - "8B3D688D4A00      " # mov     edi, dword [0x4a8d68]
       # abs_jmp_hack 0x40855e
       - "E800000000        " # call %%next
       # %%next:
       - "C704245E854000    " # mov dword [esp], %1
+      - "C3                " # ret
+
+  ExpHP.ddc-gap.send-input:
+    addr: "0x457a0b"
+    expected: "e840210000"
+    codecave:
+      - "E8[codecave:ExpHP.ddc-gap.server-send-input]" # call server_send_input
+      # original code
+      - "B9A8924C00        " # mov  ecx, 0x4c92a8
+      - "B8509B4500        " # mov  eax, 0x459b50
+      - "FFD0              " # call eax
+      # abs_jmp_hack 0x457a10
+      - "E800000000        " # call %%next
+      # %%next:
+      - "C70424107A4500    " # mov dword [esp], %1
       - "C3                " # ret
 
 codecaves:
@@ -22,3 +41,6 @@ codecaves:
     - "74B14800          " # .GetModuleHandleW: dd 0x48b174
     - "70B14800          " # .GetProcAddress: dd 0x48b170
     - "F0B04800          " # .WaitForSingleObject: dd 0x48b0f0
+  
+  ExpHP.ddc-gap.gamedata:
+    - "A8924C00          " # .HARDWARE_INPUT: dd 0x4c92a8

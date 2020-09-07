@@ -9,13 +9,29 @@ binhacks:
     addr: "0x41624d"
     expected: "8b3d30b54d00"
     codecave:
-      - "E8[codecave:ExpHP.ddc-gap.start-stage-client]" # call start_stage_client
+      - "E8[codecave:ExpHP.ddc-gap.client-start-stage]" # call client_start_stage
       # original code
       - "8B3D30B54D00      " # mov     edi, dword [0x4db530]
       # abs_jmp_hack 0x416253
-      - "E800000000        " # <1>  call %%next
-      - "C7042453624100    " # <1>  mov dword [esp], %1
-      - "C3                " # <1>  ret
+      - "E800000000        " # call %%next
+      # %%next:
+      - "C7042453624100    " # mov dword [esp], %1
+      - "C3                " # ret
+
+  ExpHP.ddc-gap.get-input:
+    addr: "0x402092"
+    expected: "e8a9540000"
+    codecave:
+      - "E8[codecave:ExpHP.ddc-gap.client-recv-input]" # call client_recv_input
+      # original code
+      - "B978684D00        " # mov  ecx, 0x4d6878
+      - "B840754000        " # mov  eax, 0x407540
+      - "FFD0              " # call eax
+      # abs_jmp_hack 0x402097
+      - "E800000000        " # call %%next
+      # %%next:
+      - "C7042497204000    " # mov dword [esp], %1
+      - "C3                " # ret
 
 codecaves:
   ExpHP.ddc-gap.corefuncs:
@@ -26,4 +42,5 @@ codecaves:
     - "F8104B00          " # .GetProcAddress: dd 0x4b10f8
     - "A0104B00          " # .WaitForSingleObject: dd 0x4b10a0
 
-    
+  ExpHP.ddc-gap.gamedata:
+    - "78684D00          " # .HARDWARE_INPUT: dd 0x4d6878

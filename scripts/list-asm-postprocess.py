@@ -136,11 +136,9 @@ def handle_headers(lines):
 
         yield line + '\n'
 
-
 def handle_deletes(lines):
     for line in lines:
-        pre_comment, comment = split_asm_comment(line)
-        if comment and comment.endswith(' DELETE'):
+        if line.rstrip().endswith(' DELETE'):
             continue
 
         yield line

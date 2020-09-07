@@ -11,11 +11,19 @@
 
 %include "util.asm"
 
-cave_start_server: ; 0x408558  ; HEADER: cave-start-client
-    call start_stage_server  ; REWRITE: [codecave:ExpHP.ddc-gap.start-stage-server]
+cave_start_server: ; 0x408558  ; HEADER: cave-start-server
+    call server_start_stage  ; REWRITE: [codecave:ExpHP.ddc-gap.server-start-stage]
     ; original code
     mov     edi, dword [0x4a8d68]
     abs_jmp_hack 0x40855e
+
+cave_send_input: ; 0x457a0b  ; HEADER: cave-send-input
+    call server_send_input  ; REWRITE: [codecave:ExpHP.ddc-gap.server-send-input]
+    ; original code
+    mov  ecx, 0x4c92a8
+    mov  eax, 0x459b50
+    call eax
+    abs_jmp_hack 0x457a10
 
 corefuncs:  ; HEADER: ExpHP.ddc-gap.corefuncs
 ; These are pointers to IAT entries, but during initialization we'll replace
@@ -25,4 +33,8 @@ corefuncs:  ; HEADER: ExpHP.ddc-gap.corefuncs
 .GetProcAddress: dd 0x48b170
 .WaitForSingleObject: dd 0x48b0f0
 
-start_stage_server:
+gamedata:  ; HEADER: ExpHP.ddc-gap.gamedata
+.HARDWARE_INPUT: dd 0x4c92a8
+
+server_start_stage:
+server_send_input:
