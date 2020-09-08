@@ -14,13 +14,14 @@ binhacks:
       - "8B3D688D4A00      " # mov     edi, dword [0x4a8d68]
       # abs_jmp_hack 0x40855e
       - "E800000000        " # call %%next
-      # %%next:
       - "C704245E854000    " # mov dword [esp], %1
       - "C3                " # ret
 
   ExpHP.ddc-gap.send-input:
     addr: "0x457a0b"
     expected: "e840210000"
+    # This is placed right after the game writes HARDWARE_INPUT and HARDWARE_INPUT_PREV,
+    # but before it calls the function that works out rising/falling edges and key repeats.
     codecave:
       - "E8[codecave:ExpHP.ddc-gap.server-send-input]" # call server_send_input
       # original code
@@ -29,8 +30,23 @@ binhacks:
       - "FFD0              " # call eax
       # abs_jmp_hack 0x457a10
       - "E800000000        " # call %%next
-      # %%next:
       - "C70424107A4500    " # mov dword [esp], %1
+      - "C3                " # ret
+
+  ExpHP.cave-recv-player-pos:
+    addr: "0x430853"
+    expected: "db8588080000"
+    codecave:
+      - "8D8588080000      " # lea  eax, [ebp+0x888]
+      - "50                " # push eax
+      - "E8[codecave:ExpHP.ddc-gap.recv-player-pos]" # call recv_player_pos
+
+      - "81858808000000CC0000" # add  dword [ebp+0x888], ORIGIN_TO_ORIGIN_SUBPIXELS
+
+      - "DB8588080000      " # fild dword [ebp+0x888]
+      # abs_jmp_hack 0x430859
+      - "E800000000        " # call %%next
+      - "C7042459084300    " # mov dword [esp], %1
       - "C3                " # ret
 
 codecaves:

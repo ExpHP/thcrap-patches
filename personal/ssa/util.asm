@@ -1,3 +1,7 @@
+%define SCREEN_WIDTH_SUBPIXELS     0xC000
+%define GAP_SIZE_SUBPIXELS          0xC00
+%define ORIGIN_TO_ORIGIN_SUBPIXELS SCREEN_WIDTH_SUBPIXELS + GAP_SIZE_SUBPIXELS
+
 %macro prologue_sd 0
     push ebp
     mov  ebp, esp

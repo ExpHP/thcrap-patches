@@ -21,6 +21,8 @@ binhacks:
   ExpHP.ddc-gap.get-input:
     addr: "0x402092"
     expected: "e8a9540000"
+    # This is placed right after the game writes HARDWARE_INPUT and HARDWARE_INPUT_PREV,
+    # but before it calls the function that works out rising/falling edges and key repeats.
     codecave:
       - "E8[codecave:ExpHP.ddc-gap.client-recv-input]" # call client_recv_input
       # original code
@@ -32,6 +34,20 @@ binhacks:
       # %%next:
       - "C7042497204000    " # mov dword [esp], %1
       - "C3                " # ret
+
+  ExpHP.cave-send-player-pos:
+    addr: "0x44d805"
+    expected: "660f6e87ec050000"
+    codecave:
+    - "8D87EC050000      " # lea  eax, [edi+0x5ec]
+    - "50                " # push eax
+    - "E8[codecave:ExpHP.ddc-gap.send-player-pos]" # call send_player_pos
+
+    - "660F6E87EC050000  " # movd xmm0, dword [edi+0x5ec]
+    # abs_jmp_hack 0x44d80d
+    - "E800000000        " # call %%next
+    - "C704240DD84400    " # mov dword [esp], %1
+    - "C3                " # ret
 
 codecaves:
   ExpHP.ddc-gap.corefuncs:

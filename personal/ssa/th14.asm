@@ -25,6 +25,14 @@ cave_get_input: ; 0x402092  ; HEADER: cave-get-input
     call eax
     abs_jmp_hack 0x402097
 
+cave_send_player_pos: ; 0x44d805  ; HEADER: cave-send-player-pos
+    lea  eax, [edi+0x5ec]
+    push eax
+    call send_player_pos  ; REWRITE: [codecave:ExpHP.ddc-gap.send-player-pos]
+
+    movd xmm0, dword [edi+0x5ec]
+    abs_jmp_hack 0x44d80d
+
 corefuncs:  ; HEADER: ExpHP.ddc-gap.corefuncs
 ; These are pointers to IAT entries, but during initialization we'll replace
 ; them with pointers to the actual functions.
@@ -35,6 +43,10 @@ corefuncs:  ; HEADER: ExpHP.ddc-gap.corefuncs
 
 gamedata:  ; HEADER: ExpHP.ddc-gap.gamedata
 .HARDWARE_INPUT: dd 0x4d6878
+.player_int_pos_offset: dd 0x5ec
 
 client_start_stage:
 client_recv_input:
+send_player_pos:
+recv_player_pos:
+

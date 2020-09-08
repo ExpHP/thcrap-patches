@@ -29,7 +29,7 @@ cat "$TEMPFILE" |
     sed -E '/# (pro|epi)logue_sd$/{n;N;N;N;d}' | # delete 4 lines following prologue_sd or epilogue_sd
     sed -e 's@# prologue_sd$@- "55 89E5 56 57     " # prologue w/ esi edi@' |
     sed -e 's@# epilogue_sd$@- "5F 5E 89EC 5D     " # epilogue w/ esi edi@' |
-    fgrep -v '# <1>  %%next:' |
+    fgrep -v '# %%next:' |
     
     # Alright, everything else is too hard to sed.
     python3 scripts/list-asm-postprocess.py
