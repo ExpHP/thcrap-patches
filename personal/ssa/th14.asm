@@ -28,7 +28,7 @@ cave_get_input: ; 0x402092  ; HEADER: cave-get-input
 cave_send_player_pos: ; 0x44d805  ; HEADER: cave-send-player-pos
     lea  eax, [edi+0x5ec]
     push eax
-    call send_player_pos  ; REWRITE: [codecave:ExpHP.ddc-gap.send-player-pos]
+    call client_communicate_player_pos  ; REWRITE: [codecave:ExpHP.ddc-gap.client-communicate-player-pos]
 
     movd xmm0, dword [edi+0x5ec]
     abs_jmp_hack 0x44d80d
@@ -47,6 +47,5 @@ gamedata:  ; HEADER: ExpHP.ddc-gap.gamedata
 
 client_start_stage:
 client_recv_input:
-send_player_pos:
-recv_player_pos:
+client_communicate_player_pos:
 

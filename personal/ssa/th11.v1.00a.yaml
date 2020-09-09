@@ -33,21 +33,57 @@ binhacks:
       - "C70424107A4500    " # mov dword [esp], %1
       - "C3                " # ret
 
-  ExpHP.cave-recv-player-pos:
+  ExpHP.ddc-gap.cave-recv-player-pos:
     addr: "0x430853"
     expected: "db8588080000"
     codecave:
+      - "FFB520090000      " # push dword [ebp+0x920]
+      - "E8[codecave:ExpHP.ddc-gap.set-server-control-if-gapping]" # call set_server_control_if_gapping
       - "8D8588080000      " # lea  eax, [ebp+0x888]
       - "50                " # push eax
-      - "E8[codecave:ExpHP.ddc-gap.recv-player-pos]" # call recv_player_pos
-
-      - "81858808000000CC0000" # add  dword [ebp+0x888], ORIGIN_TO_ORIGIN_SUBPIXELS
+      - "E8[codecave:ExpHP.ddc-gap.server-communicate-player-pos]" # call server_communicate_player_pos
 
       - "DB8588080000      " # fild dword [ebp+0x888]
       # abs_jmp_hack 0x430859
       - "E800000000        " # call %%next
       - "C7042459084300    " # mov dword [esp], %1
       - "C3                " # ret
+
+  ExpHP.ddc-gap.player-min-x:
+    code: "00700000"
+    addr:
+      - "0x4307c7"
+      - "0x4307f0"
+
+  ExpHP.ddc-gap.player-max-x:
+    code: "00280100"
+    addr:
+      - "0x4307f8"
+      - "0x430825"
+
+  ExpHP.ddc-gap.gap-left-x:
+    code: "00660000"
+    addr:
+      - "0x43373f"
+      - "0x430ff3"
+
+  ExpHP.ddc-gap.gap-right-x:
+    code: "00320100"
+    addr:
+      - "0x433764"
+      - "0x43100c"
+
+  ExpHP.ddc-gap.image-delta-neg:
+    code: "0034ffff"
+    addr:
+      - "0x43376b"
+      - "0x431013"
+
+  ExpHP.ddc-gap.image-delta-pos:
+    code: "00cc0000"
+    addr:
+      - "0x433752"
+      - "0x430ffa"
 
 codecaves:
   ExpHP.ddc-gap.corefuncs:

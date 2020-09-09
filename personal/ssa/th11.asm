@@ -26,11 +26,11 @@ cave_send_input: ; 0x457a0b  ; HEADER: cave-send-input
     abs_jmp_hack 0x457a10
 
 cave_recv_player_pos: ; 0x430853  ; HEADER: cave-recv-player-pos
+    push dword [ebp+0x920]
+    call set_server_control_if_gapping  ; REWRITE: [codecave:ExpHP.ddc-gap.set-server-control-if-gapping]
     lea  eax, [ebp+0x888]
     push eax
-    call recv_player_pos  ; REWRITE: [codecave:ExpHP.ddc-gap.recv-player-pos]
-
-    add  dword [ebp+0x888], ORIGIN_TO_ORIGIN_SUBPIXELS
+    call server_communicate_player_pos  ; REWRITE: [codecave:ExpHP.ddc-gap.server-communicate-player-pos]
 
     fild dword [ebp+0x888]
     abs_jmp_hack 0x430859
@@ -49,5 +49,5 @@ gamedata:  ; HEADER: ExpHP.ddc-gap.gamedata
 
 server_start_stage:
 server_send_input:
-send_player_pos:
-recv_player_pos:
+server_communicate_player_pos:
+set_server_control_if_gapping:

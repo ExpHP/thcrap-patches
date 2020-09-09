@@ -39,6 +39,7 @@ strings:
 .shmem_name: db "ExpHP-ssa.shmem", 0
 
 struc Shmem  ; DELETE
+    .client_controls_player: resd 1  ; DELETE
     .raw_input: resd 1  ; DELETE
     .player_pos: resd 2  ; DELETE
 endstruc  ; DELETE
@@ -127,6 +128,52 @@ client_recv_input:  ; HEADER: ExpHP.ddc-gap.client-recv-input
     epilogue_sd
     ret
 
+; ClientCommunicatePlayerPos(zInt2*)
+client_communicate_player_pos:  ; HEADER: ExpHP.ddc-gap.client-communicate-player-pos
+    prologue_sd
+    mov  esi, [ebp+0x8]
+
+    call is_client_controlling_player  ; REWRITE: [codecave:ExpHP.ddc-gap.is-client-controlling-player]
+    test eax, eax
+    jnz  .client_control
+
+.server_control:
+    push dword [ebp+0x8]
+    call recv_player_pos  ; REWRITE: [codecave:ExpHP.ddc-gap.recv-player-pos]
+    sub  dword [esi+0x0], ORIGIN_TO_ORIGIN_SUBPIXELS
+    jmp  .end
+
+.client_control:
+    push dword [ebp+0x8]
+    add  dword [esi+0x0], ORIGIN_TO_ORIGIN_SUBPIXELS
+    call send_player_pos  ; REWRITE: [codecave:ExpHP.ddc-gap.send-player-pos]
+    sub  dword [esi+0x0], ORIGIN_TO_ORIGIN_SUBPIXELS
+
+.end:
+    epilogue_sd
+    ret  4
+
+; ServerCommunicatePlayerPos(zInt2*)
+server_communicate_player_pos:  ; HEADER: ExpHP.ddc-gap.server-communicate-player-pos
+    prologue_sd
+
+    call is_client_controlling_player  ; REWRITE: [codecave:ExpHP.ddc-gap.is-client-controlling-player]
+    test eax, eax
+    jnz  .client_control
+
+.server_control:
+    push dword [ebp+0x8]
+    call send_player_pos  ; REWRITE: [codecave:ExpHP.ddc-gap.send-player-pos]
+    jmp  .end
+
+.client_control:
+    push dword [ebp+0x8]
+    call recv_player_pos  ; REWRITE: [codecave:ExpHP.ddc-gap.recv-player-pos]
+
+.end:
+    epilogue_sd
+    ret  4
+
 ; SendPlayerPos(zInt2*)
 send_player_pos:  ; HEADER: ExpHP.ddc-gap.send-player-pos
     prologue_sd
@@ -156,6 +203,36 @@ recv_player_pos:  ; HEADER: ExpHP.ddc-gap.recv-player-pos
 
     epilogue_sd
     ret  4
+
+; SetServerControlIfGapping(DWORD player_gap_state)
+set_server_control_if_gapping:  ; HEADER: ExpHP.ddc-gap.set-server-control-if-gapping
+    prologue_sd
+
+    mov  edi, data  ; REWRITE: <codecave:ExpHP.ddc-gap.data>
+    mov  edi, [edi + pointers.shmem_view - data]
+
+    mov  eax, [ebp+0x8]
+    cmp  eax, 99
+    je   .server_control
+    cmp  eax, 100
+    je   .server_control
+
+.client_control:
+    mov  dword [edi + Shmem.client_controls_player], 1
+    jmp  .end
+.server_control:
+    mov  dword [edi + Shmem.client_controls_player], 0
+.end:
+    epilogue_sd
+    ret  4
+
+is_client_controlling_player:  ;  HEADER: ExpHP.ddc-gap.is-client-controlling-player
+    prologue_sd
+    mov  edi, data  ; REWRITE: <codecave:ExpHP.ddc-gap.data>
+    mov  edi, [edi + pointers.shmem_view - data]
+    mov  eax, [edi + Shmem.client_controls_player]
+    epilogue_sd
+    ret
 
 initialize_corefuncs:  ; HEADER: ExpHP.ddc-gap.initialize-corefuncs
     ; Replace IAT pointers with dereferenced counterparts

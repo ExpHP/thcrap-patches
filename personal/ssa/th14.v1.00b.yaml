@@ -35,13 +35,13 @@ binhacks:
       - "C7042497204000    " # mov dword [esp], %1
       - "C3                " # ret
 
-  ExpHP.cave-send-player-pos:
+  ExpHP.ddc-gap.cave-send-player-pos:
     addr: "0x44d805"
     expected: "660f6e87ec050000"
     codecave:
     - "8D87EC050000      " # lea  eax, [edi+0x5ec]
     - "50                " # push eax
-    - "E8[codecave:ExpHP.ddc-gap.send-player-pos]" # call send_player_pos
+    - "E8[codecave:ExpHP.ddc-gap.client-communicate-player-pos]" # call client_communicate_player_pos
 
     - "660F6E87EC050000  " # movd xmm0, dword [edi+0x5ec]
     # abs_jmp_hack 0x44d80d
