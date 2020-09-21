@@ -9,6 +9,7 @@ all: \
 	ctrl-speedup \
 	mouse \
 	ssa \
+	bullet-cap \
 
 REPO=patches
 PERSONAL=personal
@@ -156,5 +157,20 @@ $(SSA_PATCH)/common.yaml: $(SSA_PATCH)/common.asm
 	scripts/list-asm $< >>$@
 
 $(SSA_PATCH)/th%.js: $(SSA_PATCH)/th%.yaml $(SSA_PATCH)/common.yaml
+	scripts/convert-yaml.py $^ >$@
+
+#================================================
+
+BULLET_CAP_PATCH=$(REPO)/bullet_cap
+
+.PHONY: bullet-cap
+bullet-cap: \
+	$(BULLET_CAP_PATCH)/$(TH11_VER).js \
+
+# $(BULLET_CAP_PATCH)/common.yaml: $(BULLET_CAP_PATCH)/common.asm
+# 	echo "codecaves:" >$@
+# 	scripts/list-asm $< >>$@
+
+$(BULLET_CAP_PATCH)/th%.js: $(BULLET_CAP_PATCH)/th%.yaml
 	scripts/convert-yaml.py $^ >$@
 
