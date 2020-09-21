@@ -24,6 +24,8 @@ The string (which must contain 8 hexadecimal characters) is a 4-byte integer enc
 
 To configure this on a per-game basis, you can put this in e.g. `<patch>/th11.v1.00a.js` instead.
 
+---
+
 ## How does it work?
 
 *Hoo boy.*  So, basically, bullets are stored in a big array on one of the game's global objects.  Because the array is in the middle of the object (and the object is used for other purposes), we can't just easily e.g. replace a pointer with our own allocation.
