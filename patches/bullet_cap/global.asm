@@ -23,8 +23,8 @@ bullet_data:  ; DELETE
 counts_to_replace:  ; DELETE
 offsets_to_replace:  ; DELETE
 
-new_bullet_cap:  ; HEADER: bullet-cap
-    dd 7
+new_bullet_cap_bigendian:  ; HEADER: bullet-cap
+    db 0x00, 0x00, 0x0f, 0xa0
 
 ; __stdcall Initialize()
 initialize:  ; HEADER: ExpHP.bullet-cap.initialize
@@ -113,7 +113,8 @@ adjust_integer_for_bullet_count:  ; HEADER: ExpHP.bullet-cap.adjust-integer-for-
     mov  eax, [eax + bullet_data.old_count - bullet_data]
     mov  [%$old_count], eax
 
-    mov  eax, [new_bullet_cap]  ; REWRITE: <codecave:bullet-cap>
+    mov  eax, [new_bullet_cap_bigendian]  ; REWRITE: <codecave:bullet-cap>
+    bswap eax  ; convert from big endian
     sub  eax, [%$old_count]
     imul eax, [%$scale]
     add  eax, [%$old_value]

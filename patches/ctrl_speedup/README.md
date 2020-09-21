@@ -1,6 +1,6 @@
 # `ctrl_speedup`
 
-**Supports:** TH10-TH17.
+**Supports:** TH10-TH17 integer games.
 **Partially supports:** TH128. (C key still speeds up though)
 
 Makes CTRL speed up normal game play just like it does on replays.  Basically this just nops out an `if ReplayManager.is_in_playback_mode` test.
