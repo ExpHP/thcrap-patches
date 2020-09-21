@@ -13,311 +13,46 @@ binhacks:
       - "C7042423A54200    " # mov dword [esp], %1
       - "C3                " # ret
 
-
 codecaves:
+  # Address range spanned by .text
+  ExpHP.bullet-cap.address-range:
+    - "00104000          " # dd 0x401000
+    - "15AE4800          " # dd 0x48ae15
+
+  ExpHP.bullet-cap.bullet-data:
+    - "D0070000          " # dd 0x7d0  ; old bullet count (not counting pre-TD dummy bullet)
+    - "10090000          " # dd 0x910  ; size of bullet
+
+  # Here we have a list of numbers related to bullet count, each followed by a blacklist.
+  # (i.e. addresses where this dword only appears incidentally and should not be replaced).
+  # Each one will be substituted as  value -> value + new_count - old_count.
+  ExpHP.bullet-cap.counts-to-replace:
+    - "D0070000          " # dd 0x7d0
+    - "90C34100          " # dd 0x41c390
+    - "53904500          " # dd 0x459053
+    - "08B84600          " # dd 0x46b808
+    - "00000000          " # dd 0 ; blacklist end
+
+    - "D1070000          " # dd 0x7d1
+    - "00000000          " # dd 0
+
+    - "00000000          " # dd 0 ; END
+
+  # Similar to counts_to_replace, but for BulletManager offsets that depend on the final bullet's offset.
+  # These will be substituted as  value -> value + bullet_size * (new_count - old_count)
+  ExpHP.bullet-cap.offsets-to-replace:
+    - "16D24600          " # dd 0x46d216  ; offset of dummy bullet state
+    - "00000000          " # dd 0
+    - "74D64600          " # dd 0x46d674  ; offset of bullet.anm
+    - "00000000          " # dd 0
+    - "78D64600          " # dd 0x46d678  ; size of bullet manager
+    - "00000000          " # dd 0
+    - "10D64600          " # dd 0x46d610  ; size of bullet array
+    - "00000000          " # dd 0
+
+    - "00000000          " # dd 0 ; END
+
   ExpHP.bullet-cap.iat-funcs:
     - "B8B14800          " # .GetLastError: dd 0x48b1b8
     - "74B14800          " # .GetModuleHandleW: dd 0x48b174
     - "70B14800          " # .GetProcAddress: dd 0x48b170
-
-  ExpHP.bullet-cap.bullet-count-blacklist:
-    - "90C34100          " # dd 0x41c390
-    - "53904500          " # dd 0x459053
-    - "08B84600          " # dd 0x46b808
-    - "00000000          " # dd 0  ; blacklist end
-
-  ExpHP.bullet-cap.offsets-to-adjust:
-    - "16D24600          " # dd 0x46d216  ; offset of dummy bullet state
-    - "00000000          " # dd 0  ; blacklist end
-    - "74D64600          " # dd 0x46d674  ; offset of bullet.anm
-    - "00000000          " # dd 0  ; blacklist end
-    - "78D64600          " # dd 0x46d678  ; size of bullet manager
-    - "00000000          " # dd 0  ; blacklist end
-    - "10D64600          " # dd 0x46d610  ; size of bullet array
-    - "00000000          " # dd 0  ; blacklist end
-    - "00000000          " # dd 0  ; end
-
-  ExpHP.bullet-cap.new-bullet-count:
-    - "B80B0000          " # dd 10
-
-  # List of places where a little-endian dword 0x7d1 appears (=2001) that is unrelated to bullet count.
-  ExpHP.bullet-cap.bullet-count-plusone-blacklist:
-    - "00000000          " # dd 0  ; blacklist end
-
-    # __stdcall Initialize()
-  ExpHP.bullet-cap.initialize:
-    # %push
-    - "55 89E5 56 57     " # prologue w/ esi edi
-
-    - "83EC18            " # sub  esp, 0x18
-    # %define %$new_count   ebp-0x04
-    # %define %$old_count   ebp-0x08
-    # %define %$offset_ptr  ebp-0x0c
-    # %define %$blacklist   ebp-0x10
-    # %define %$new_value   ebp-0x14
-    # %define %$old_value   ebp-0x18
-
-    - "A1<codecave:ExpHP.bullet-cap.new-bullet-count>" # mov  eax, [new_bullet_count]
-    - "8945FC            " # mov  dword [%$new_count], eax
-    - "C745F8D0070000    " # mov  dword [%$old_count], ORIGINAL_BULLET_COUNT
-
-    # Replace the integer 2000.
-    - "68<codecave:ExpHP.bullet-cap.bullet-count-blacklist>" # push bullet_count_blacklist
-    - "6A04              " # push 0x4  ; pattern_len
-    - "8D45FC            " # lea  eax, [%$new_count]
-    - "50                " # push eax  ; replacement
-    - "8D45F8            " # lea  eax, [%$old_count]
-    - "50                " # push eax  ; original
-    - "6815AE4800        " # push SECTION_TEXT_END
-    - "6800104000        " # push SECTION_TEXT_BEGIN
-    - "E8[codecave:ExpHP.bullet-cap.search-n-replace]" # call search_n_replace
-
-    # Replace the integer 2001.
-    - "8B45FC            " # mov  eax, [%$new_count]
-    - "8945EC            " # mov  [%$new_value], eax
-    - "8B45F8            " # mov  eax, [%$old_count]
-    - "8945E8            " # mov  [%$old_value], eax
-    - "FF45EC            " # inc  dword [%$new_value]
-    - "FF45E8            " # inc  dword [%$old_value]
-    - "68<codecave:ExpHP.bullet-cap.bullet-count-plusone-blacklist>" # push bullet_count_plusone_blacklist
-    - "6A04              " # push 0x4  ; pattern_len
-    - "8D45EC            " # lea  eax, [%$new_value]
-    - "50                " # push eax  ; replacement
-    - "8D45E8            " # lea  eax, [%$old_value]
-    - "50                " # push eax  ; original
-    - "6815AE4800        " # push SECTION_TEXT_END
-    - "6800104000        " # push SECTION_TEXT_BEGIN
-    - "E8[codecave:ExpHP.bullet-cap.search-n-replace]" # call search_n_replace
-
-    # Replace offsets into BulletManager that depend on bullet count.
-    - "B8<codecave:ExpHP.bullet-cap.offsets-to-adjust>" # mov  eax, offsets_to_adjust
-    - "8945F4            " # mov  [%$offset_ptr], eax
-    - "83C004            " # add  eax, 4
-    - "8945F0            " # mov  [%$blacklist], eax
-
-    # .iter:
-    - "8B45F4            " # mov  eax, [%$offset_ptr]
-    - "8B00              " # mov  eax, [eax]
-    - "85C0              " # test eax, eax
-    - "7428              " # jz   .end  ; offset list ends with a zero
-
-    - "FF75F0            " # push dword [%$blacklist]
-    - "50                " # push eax
-    - "FF75FC            " # push dword [%$new_count]
-    - "E8[codecave:ExpHP.bullet-cap.adjust-bullet-mgr-offset]" # call adjust_bullet_mgr_offset
-
-    # scan through blacklist to find next offset
-    - "8B4DF0            " # mov  ecx, [%$blacklist]
-    # .blacklist_iter:
-    - "8B01              " # mov  eax, [ecx]
-    - "85C0              " # test eax, eax
-    - "7405              " # jz   .blacklist_end
-
-    - "83C104            " # add  ecx, 0x4
-    - "EBF5              " # jmp  .blacklist_iter
-    # .blacklist_end:
-    - "83C104            " # add  ecx, 0x4
-    - "894DF4            " # mov  [%$offset_ptr], ecx
-    - "83C104            " # add  ecx, 0x4
-    - "894DF0            " # mov  [%$blacklist], ecx
-    - "EBCF              " # jmp  .iter
-    # .end:
-
-    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
-    - "C3                " # ret
-    # %pop
-
-
-    # Search and replace all instances in .text of a given offset into BulletManager.
-    #
-    # __stdcall AdjustBulletManagerOffset(new_bullet_count, offset, blacklist*)
-  ExpHP.bullet-cap.adjust-bullet-mgr-offset:
-    # %push
-    - "55 89E5 56 57     " # prologue w/ esi edi
-
-    # %define %$new_count   ebp+0x08
-    # %define %$old_offset  ebp+0x0c
-    # %define %$blacklist   ebp+0x10
-    - "83EC04            " # sub  esp, 0x4
-    # %define %$new_offset  ebp-0x04
-
-    - "8B4508            " # mov  eax, [%$new_count]
-    - "2DD0070000        " # sub  eax, ORIGINAL_BULLET_COUNT
-    - "69C010090000      " # imul eax, BULLET_STRUCT_SIZE
-    - "03450C            " # add  eax, [%$old_offset]
-    - "8945FC            " # mov  [%$new_offset], eax
-
-    - "FF7510            " # push dword [%$blacklist]
-    - "6A04              " # push 0x4  ; pattern_len
-    - "8D45FC            " # lea  eax, [%$new_offset]
-    - "50                " # push eax  ; replacement
-    - "8D450C            " # lea  eax, [%$old_offset]
-    - "50                " # push eax  ; original
-    - "6815AE4800        " # push SECTION_TEXT_END
-    - "6800104000        " # push SECTION_TEXT_BEGIN
-    - "E8[codecave:ExpHP.bullet-cap.search-n-replace]" # call search_n_replace
-
-    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
-    - "C20C00            " # ret  0xc
-    # %pop
-
-
-    # SearchNReplace(start*, end*, pattern*, replacement*, pattern_len, blacklist*)
-  ExpHP.bullet-cap.search-n-replace:
-    # %push
-    - "55 89E5 56 57     " # prologue w/ esi edi
-
-    # %define %$current   ebp+0x08
-    # %define %$end       ebp+0x0c
-    # %define %$pattern   ebp+0x10
-    # %define %$repl      ebp+0x14
-    # %define %$length    ebp+0x18
-    # %define %$blacklist ebp+0x1c
-
-    # .searchiter:
-    - "8B4508            " # mov  eax, [%$current]
-    - "034518            " # add  eax, [%$length]
-    - "3B450C            " # cmp  eax, [%$end]
-    - "7D35              " # jge  .searchend
-
-    - "FF7518            " # push dword [%$length]
-    - "FF7510            " # push dword [%$pattern]
-    - "FF7508            " # push dword [%$current]
-    - "E8[codecave:ExpHP.bullet-cap.mem-compare]" # call mem_compare
-    - "85C0              " # test eax, eax
-    - "751E              " # jnz  .searchnext
-
-    # match found
-    - "8B4508            " # mov  eax, [%$current]
-    - "8B4D1C            " # mov  ecx, [%$blacklist]
-    - "3B01              " # cmp  eax, [ecx]
-    - "7410              " # je   .blacklisted
-
-    # not blacklisted
-    - "FF7518            " # push dword [%$length]
-    - "FF7514            " # push dword [%$repl]
-    - "FF7508            " # push dword [%$current]
-    - "E8[codecave:ExpHP.bullet-cap.memcpy-or-bust]" # call memcpy_or_bust
-    - "EB04              " # jmp  .searchnext
-
-    # .blacklisted:
-    # since blacklist is in sorted order, start checking against the next entry
-    - "83451C04          " # add  dword [%$blacklist], 0x4
-
-    # .searchnext:
-    - "FF4508            " # inc  dword [%$current]
-    - "EBC0              " # jmp  .searchiter
-
-    # .searchend:
-    # make sure all blacklist entries matched; typos are too easy
-    - "8B451C            " # mov  eax, [%$blacklist]
-    - "8B00              " # mov  eax, [eax]
-    - "85C0              " # test eax, eax
-    - "7402              " # jz   .goodblacklist  ; at end of list?
-    - "CD03              " # int 3
-    # .goodblacklist:
-    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
-    - "C21800            " # ret 0x18
-    # %pop
-
-
-    # Returns 0 if data at `a` == data at `b`, nonzero otherwise.
-    # (sign of nonzero outputs is unspecified because I'm too lazy to verify whether it matches memcmp)
-    # __stdcall MemCompare(a*, b*, len)
-  ExpHP.bullet-cap.mem-compare:
-    - "55 89E5 56 57     " # prologue w/ esi edi
-    - "8B7D08            " # mov  edi, [ebp+0x08]
-    - "8B750C            " # mov  esi, [ebp+0x0c]
-    - "8B4D10            " # mov  ecx, [ebp+0x10]
-    - "31C0              " # xor  eax, eax
-    - "4E                " # dec  esi
-    - "4F                " # dec  edi
-    # .iter:
-    - "46                " # inc  esi
-    - "47                " # inc  edi
-    - "49                " # dec  ecx
-    - "7806              " # js   .ret
-    - "8A06              " # mov  al, [esi]
-    - "2A07              " # sub  al, [edi]
-    - "74F5              " # jz   .iter
-    # .ret:
-    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
-    - "C20C00            " # ret  0xc
-
-  ExpHP.bullet-cap.memcpy-or-bust:
-    # %push
-    - "55 89E5 56 57     " # prologue w/ esi edi
-
-    # %define %$dest           ebp+0x08
-    # %define %$source         ebp+0x0c
-    # %define %$length         ebp+0x10
-    - "83EC08            " # sub esp, 0x8
-    # %define %$VirtualProtect ebp-0x04
-    # %define %$old_protect    ebp-0x08
-
-    - "E8[codecave:ExpHP.bullet-cap.get-VirtualProtect]" # call get_VirtualProtect
-    - "8945FC            " # mov  [%$VirtualProtect], eax
-
-    # make sure we can write
-    - "8D45F8            " # lea  eax, [%$old_protect]
-    - "50                " # push eax
-    - "6A40              " # push PAGE_EXECUTE_READWRITE
-    - "FF7510            " # push dword [%$length]
-    - "FF7508            " # push dword [%$dest]
-    - "FF55FC            " # call [%$VirtualProtect]
-
-    # do the actual memcpy
-    - "8B4D10            " # mov  ecx, [%$length]
-    - "8B750C            " # mov  esi, [%$source]
-    - "8B7D08            " # mov  edi, [%$dest]
-    - "F3A4              " # rep movsb
-
-    # cleanup
-    - "8D45F8            " # lea  eax, [%$old_protect]
-    - "50                " # push eax
-    - "FF75F8            " # push dword [%$old_protect]
-    - "FF7510            " # push dword [%$length]
-    - "FF7508            " # push dword [%$dest]
-    - "FF55FC            " # call [%$VirtualProtect]
-
-    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
-    - "C20C00            " # ret  0xc
-    # %pop
-
-  ExpHP.bullet-cap.data:
-    # wstrings:
-    - "4B00650072006E0065006C00330032000000" # .kernel32: dw 'K', 'e', 'r', 'n', 'e', 'l', '3', '2', 0
-    # strings:
-    - "5669727475616C50726F7465637400" # .VirtualProtect: db "VirtualProtect", 0
-
-  ExpHP.bullet-cap.get-VirtualProtect:
-    - "55 89E5 56 57     " # prologue w/ esi edi
-
-    - "B8<codecave:ExpHP.bullet-cap.data>" # mov  eax, data
-    - "8D00              " # lea  eax, [eax + wstrings.kernel32 - data]
-    - "50                " # push eax
-    - "B8<codecave:ExpHP.bullet-cap.iat-funcs>" # mov  eax, iat_funcs
-    - "8B4004            " # mov  eax, [eax + iat_funcs.GetModuleHandleW - iat_funcs]
-    - "FF10              " # call [eax]
-    - "85C0              " # test eax, eax
-    - "7420              " # jz   .error
-
-    - "89C1              " # mov  ecx, eax
-    - "B8<codecave:ExpHP.bullet-cap.data>" # mov  eax, data
-    - "8D4012            " # lea  eax, [eax + strings.VirtualProtect - data]
-    - "50                " # push eax
-    - "51                " # push ecx
-    - "B8<codecave:ExpHP.bullet-cap.iat-funcs>" # mov  eax, iat_funcs
-    - "8B4008            " # mov  eax, [eax + iat_funcs.GetProcAddress - iat_funcs]
-    - "FF10              " # call [eax]
-    - "85C0              " # test eax, eax
-    - "7406              " # jz   .error
-
-    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
-    - "C3                " # ret
-
-    # .error:
-    - "B8<codecave:ExpHP.bullet-cap.iat-funcs>" # mov  eax, iat_funcs
-    - "8B00              " # mov  eax, [eax + iat_funcs.GetLastError - iat_funcs]
-    - "FF10              " # call [eax]
-    - "CD03              " # int 3

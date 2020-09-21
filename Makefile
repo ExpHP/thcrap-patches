@@ -152,7 +152,8 @@ ssa: \
 	$(SSA_PATCH)/$(TH14_VER).js \
 
 $(SSA_PATCH)/common.yaml: $(SSA_PATCH)/common.asm
-	echo "codecaves:" >$@
+	echo "# this yaml file is auto-generated" >$@
+	echo "codecaves:" >>$@
 	echo "  protection: 64" >>$@
 	scripts/list-asm $< >>$@
 
@@ -165,11 +166,16 @@ BULLET_CAP_PATCH=$(REPO)/bullet_cap
 
 .PHONY: bullet-cap
 bullet-cap: \
+	$(BULLET_CAP_PATCH)/global.js \
 	$(BULLET_CAP_PATCH)/$(TH11_VER).js \
 
-# $(BULLET_CAP_PATCH)/common.yaml: $(BULLET_CAP_PATCH)/common.asm
-# 	echo "codecaves:" >$@
-# 	scripts/list-asm $< >>$@
+$(BULLET_CAP_PATCH)/global.yaml: $(BULLET_CAP_PATCH)/global.asm
+	echo "# this yaml file is auto-generated" >$@
+	echo "codecaves:" >>$@
+	scripts/list-asm $< >>$@
+
+$(BULLET_CAP_PATCH)/global.js: $(BULLET_CAP_PATCH)/global.yaml
+	scripts/convert-yaml.py $^ >$@
 
 $(BULLET_CAP_PATCH)/th%.js: $(BULLET_CAP_PATCH)/th%.yaml
 	scripts/convert-yaml.py $^ >$@
