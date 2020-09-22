@@ -1,4 +1,4 @@
-%macro prologue_sd 0
+%macro prologue_sd 0-1  0
     push ebp
     mov  ebp, esp
     push esi

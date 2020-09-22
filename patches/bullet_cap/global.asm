@@ -9,6 +9,7 @@
 
 iat_funcs:  ; DELETE
 .GetLastError: dd 0  ; DELETE
+.GetModuleHandleA: dd 0  ; DELETE
 .GetModuleHandleW: dd 0  ; DELETE
 .GetProcAddress: dd 0  ; DELETE
 
@@ -24,71 +25,74 @@ counts_to_replace:  ; DELETE
 offsets_to_replace:  ; DELETE
 
 new_bullet_cap_bigendian:  ; HEADER: bullet-cap
-    db 0x00, 0x00, 0x0f, 0xa0
+    ; db 0x00, 0x04, 0x86, 0xa0  ; huge
+    db 0x00, 0x00, 0x0f, 0xa0  ; release
+    ; db 0x00, 0x00, 0x07, 0xd0  ; game default
+    ; db 0x00, 0x00, 0x00, 0x0a  ; debug
 
 ; __stdcall Initialize()
 initialize:  ; HEADER: ExpHP.bullet-cap.initialize
     %push
-    prologue_sd
 
-    sub  esp, 0x0c
+    enter 0x14, 0
     %define %$value_ptr   ebp-0x04
     %define %$blacklist   ebp-0x08
-    %define %$scale       ebp-0x0c
+    %define %$old_value   ebp-0x0c
+    %define %$scale       ebp-0x10
+    %define %$scale_divisor ebp-0x14
 
     ; Find and replace integers like 2000 and 2001.
-    mov  dword [%$scale], 1
-
-    mov  eax, counts_to_replace  ; REWRITE: <codecave:ExpHP.bullet-cap.counts-to-replace>
-    mov  [%$value_ptr], eax
-    add  eax, 4
-    mov  [%$blacklist], eax
+    mov  dword [%$value_ptr], counts_to_replace  ; REWRITE: <codecave:ExpHP.bullet-cap.counts-to-replace>
 
 .countiter:
-    mov  eax, [%$value_ptr]
-    mov  eax, [eax]
+    mov  ecx, [%$value_ptr]
+    mov  eax, [ecx]
     test eax, eax
     jz   .countend  ; list ends with a zero
+    mov  [%$old_value], eax
+    add  ecx, 0x4
+    mov  [%$blacklist], ecx
 
     push dword [%$blacklist]
-    push dword [%$scale]
-    push eax  ; old_value
+    push 1  ; scale
+    push dword [%$old_value]
     call adjust_integer_for_bullet_count  ; REWRITE: [codecave:ExpHP.bullet-cap.adjust-integer-for-bullet-count]
     ; return value is pointer to after blacklist
     mov  [%$value_ptr], eax
-    add  eax, 0x4
-    mov  [%$blacklist], eax
     jmp  .countiter
 .countend:
 
     ; Find and replace offsets into BulletManager that depend on bullet count.
-    ; These values are scaled by bullet size.
-    mov  eax, bullet_data  ; REWRITE:  <codecave:ExpHP.bullet-cap.bullet-data>
-    mov  eax, [eax + bullet_data.bullet_size - bullet_data]
-    mov  [%$scale], eax
-
-    mov  eax, offsets_to_replace  ; REWRITE: <codecave:ExpHP.bullet-cap.offsets-to-replace>
-    mov  [%$value_ptr], eax
-    add  eax, 4
-    mov  [%$blacklist], eax
+    ; These values are scaled by bullet size. (possibly divided by something)
+    mov  dword [%$value_ptr], offsets_to_replace ; REWRITE: <codecave:ExpHP.bullet-cap.offsets-to-replace>
 
 .offsetiter:
-    mov  eax, [%$value_ptr]
-    mov  eax, [eax]
+    mov  ecx, [%$value_ptr]
+    mov  eax, [ecx]
     test eax, eax
     jz   .offsetend  ; list ends with a zero
+    mov  [%$old_value], eax
+    add  ecx, 0x4
+    mov  eax, [ecx]
+    mov  [%$scale_divisor], eax
+    add  ecx, 0x4
+    mov  [%$blacklist], ecx
+
+    mov  eax, bullet_data  ; REWRITE:  <codecave:ExpHP.bullet-cap.bullet-data>
+    mov  eax, [eax + bullet_data.bullet_size - bullet_data]
+    xor  edx, edx
+    div  dword [%$scale_divisor]
+    mov  [%$scale], eax
 
     push dword [%$blacklist]
     push dword [%$scale]
-    push eax  ; old_value
+    push dword [%$old_value]
     call adjust_integer_for_bullet_count  ; REWRITE: [codecave:ExpHP.bullet-cap.adjust-integer-for-bullet-count]
     ; return value is pointer to after blacklist
     mov  [%$value_ptr], eax
-    add  eax, 0x4
-    mov  [%$blacklist], eax
     jmp  .offsetiter
 .offsetend:
-    epilogue_sd
+    leave
     ret
     %pop
 
@@ -100,12 +104,11 @@ initialize:  ; HEADER: ExpHP.bullet-cap.initialize
 ; __stdcall AdjustIntegerForBulletCount(old_value, scale, blacklist*)
 adjust_integer_for_bullet_count:  ; HEADER: ExpHP.bullet-cap.adjust-integer-for-bullet-count
     %push
-    prologue_sd
 
     %define %$old_value   ebp+0x08
     %define %$scale       ebp+0x0c
     %define %$blacklist   ebp+0x10
-    sub  esp, 0x8
+    enter 0x8, 0
     %define %$new_value   ebp-0x04
     %define %$old_count   ebp-0x08
 
@@ -132,7 +135,7 @@ adjust_integer_for_bullet_count:  ; HEADER: ExpHP.bullet-cap.adjust-integer-for-
     call search_n_replace  ; REWRITE: [codecave:ExpHP.bullet-cap.search-n-replace]
 
     ; keep eax for return value
-    epilogue_sd
+    leave
     ret  0xc
     %pop
 
@@ -230,12 +233,11 @@ mem_compare:  ; HEADER: ExpHP.bullet-cap.mem-compare
 
 memcpy_or_bust:  ; HEADER: ExpHP.bullet-cap.memcpy-or-bust
     %push
-    prologue_sd
 
     %define %$dest           ebp+0x08
     %define %$source         ebp+0x0c
     %define %$length         ebp+0x10
-    sub esp, 0x8
+    enter 0x8, 0
     %define %$VirtualProtect ebp-0x04
     %define %$old_protect    ebp-0x08
 
@@ -264,7 +266,7 @@ memcpy_or_bust:  ; HEADER: ExpHP.bullet-cap.memcpy-or-bust
     push dword [%$dest]
     call [%$VirtualProtect]
 
-    epilogue_sd
+    leave
     ret  0xc
     %pop
 
@@ -272,11 +274,30 @@ data:  ; HEADER: ExpHP.bullet-cap.data
 wstrings:
 .kernel32: dw 'K', 'e', 'r', 'n', 'e', 'l', '3', '2', 0
 strings:
+.kernel32: db "Kernel32", 0
 .VirtualProtect: db "VirtualProtect", 0
 
 get_VirtualProtect:  ; HEADER: ExpHP.bullet-cap.get-VirtualProtect
     prologue_sd
 
+    ; TH10 only has GetModuleHandleA.  Some recent games only have GetModuleHandleW.  Use whatever we've got.
+    mov  eax, iat_funcs  ; REWRITE: <codecave:ExpHP.bullet-cap.iat-funcs>
+    mov  eax, [eax + iat_funcs.GetModuleHandleA - iat_funcs]
+    test eax, eax
+    jz   .use_wide
+
+.use_ansi:
+    mov  eax, data  ; REWRITE: <codecave:ExpHP.bullet-cap.data>
+    lea  eax, [eax + strings.kernel32 - data]
+    push eax
+    mov  eax, iat_funcs  ; REWRITE: <codecave:ExpHP.bullet-cap.iat-funcs>
+    mov  eax, [eax + iat_funcs.GetModuleHandleA - iat_funcs]
+    call [eax]
+    test eax, eax
+    jz   .error
+    jmp .get_proc
+
+.use_wide:
     mov  eax, data  ; REWRITE: <codecave:ExpHP.bullet-cap.data>
     lea  eax, [eax + wstrings.kernel32 - data]
     push eax
@@ -286,6 +307,7 @@ get_VirtualProtect:  ; HEADER: ExpHP.bullet-cap.get-VirtualProtect
     test eax, eax
     jz   .error
 
+.get_proc:
     mov  ecx, eax
     mov  eax, data  ; REWRITE: <codecave:ExpHP.bullet-cap.data>
     lea  eax, [eax + strings.VirtualProtect - data]
