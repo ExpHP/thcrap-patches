@@ -4,7 +4,7 @@
 
 Adds debug counters so you can see how much your dank memes are tormenting the game
 
-![TODO IMAGE]()
+![Debug counters example image](https://raw.githubusercontent.com/ExpHP/thcrap-patches/master/patches/debug_counters/debug-counters.png)
 
 Legend:
 
