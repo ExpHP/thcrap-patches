@@ -1,0 +1,17 @@
+binhacks:
+  ExpHP.sprite-death-fix.hack:
+    addr: "0x443079"
+    expected: "33c05bc3cc"
+    codecave:
+      - "56                " # push esi
+      - "8B35101C4900      " # mov  esi, [ANM_MANAGER_PTR_10]
+      - "B8502F4400        " # mov  eax, FLUSH_SPRITES_10
+      - "FFD0              " # call eax
+      - "8D86CCDA3A00      " # lea  eax, [esi+BUFFER_OFFSET_10]
+      - "8986CCDA7200      " # mov  [esi+CURSOR_OFFSET_10+0x0], eax  ; write cursor
+      - "8986D0DA7200      " # mov  [esi+CURSOR_OFFSET_10+0x4], eax  ; read cursor
+      - "5E                " # pop  esi
+
+      # original code
+      - "5B                " # pop  ebx
+      - "C3                " # retn

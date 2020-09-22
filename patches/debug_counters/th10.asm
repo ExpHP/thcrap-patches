@@ -71,18 +71,21 @@ istruc ArraySpec
     at ArraySpec.stride, dd 0x3f0
 iend
 
-enemy_data:  ; HEADER: AUTO
-    dd KIND_LIST
-istruc ListSpec
-    at ListSpec.struct_ptr, dd 0x477704
-    at ListSpec.head_ptr_offset, dd 0x58
+laser_data:  ; HEADER: AUTO
+    dd KIND_LASER
+istruc LaserSpec
+    at LaserSpec.struct_ptr, dd 0x47781c
+    at LaserSpec.count_offset, dd 0x438
+    at LaserSpec.limit_addr, dd 0x41c516
 iend
 
-ui_vm_data:
-    dd KIND_LIST
-istruc ListSpec
-    at ListSpec.struct_ptr, dd 0
-    at ListSpec.head_ptr_offset, dd 0x72dadc
+anmid_data:  ; HEADER: AUTO
+    dd KIND_ANMID
+istruc AnmidSpec
+    at AnmidSpec.struct_ptr, dd 0x491c10
+    at AnmidSpec.world_head_ptr_offset, dd 0x72dad4
+    at AnmidSpec.ui_head_ptr_offset, dd 0x72dadc
+    at AnmidSpec.num_fast_vms, dd 0x1000
 iend
 
 show_debug_data:  ; DELETE

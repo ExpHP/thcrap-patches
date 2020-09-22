@@ -12,7 +12,8 @@
         "ExpHP.debug-counters.bullet-data": "01000000 // F0764700 // 01000000 // 52584200 // 60000000 // 46040000 // F0070000",
         "ExpHP.debug-counters.normal-item-data": "01000000 // 18784700 // 00000000 // 96000000 // 14000000 // DC030000 // F0030000",
         "ExpHP.debug-counters.cancel-item-data": "01000000 // 18784700 // 00000000 // 00080000 // B44E0200 // DC030000 // F0030000",
-        "ExpHP.debug-counters.enemy-data": "02000000 // 04774700 // 58000000 // 02000000 // 00000000 // DCDA7200",
+        "ExpHP.debug-counters.laser-data": "03000000 // 1C784700 // 38040000 // 16C54100",
+        "ExpHP.debug-counters.anmid-data": "02000000 // 101C4900 // D4DA7200 // DCDA7200 // 00100000",
         "of(ExpHP.debug-counters.draw)": "E8[codecave:ExpHP.debug-counters.show-debug-data] // A1E0764700 // E800000000 // C7042458364100 // C3"
     }
 }

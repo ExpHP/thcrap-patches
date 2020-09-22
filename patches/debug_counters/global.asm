@@ -4,9 +4,12 @@
 
 ; AUTO_PREFIX: ExpHP.debug-counters.
 
+anmid_data:  ; DELETE
+laser_data:  ; DELETE
 bullet_data: ; DELETE
 normal_item_data: ; DELETE
 cancel_item_data: ; DELETE
+
 drawf_debug_int: ; DELETE
 
 data:  ; HEADER: AUTO
@@ -41,9 +44,29 @@ show_debug_data:  ; HEADER: AUTO
     next_y
 
     mov  eax, data  ; REWRITE: <codecave:AUTO>
+    lea  eax, [eax + strings.anmid_msg - data]
+    push eax
+    push anmid_data  ; REWRITE: <codecave:AUTO>
+    lea  eax, [%$pos_x]
+    push eax
+    call drawf_spec  ; REWRITE: [codecave:AUTO]
+
+    next_y
+
+    mov  eax, data  ; REWRITE: <codecave:AUTO>
     lea  eax, [eax + strings.bullet_msg - data]
     push eax
     push bullet_data  ; REWRITE: <codecave:AUTO>
+    lea  eax, [%$pos_x]
+    push eax
+    call drawf_spec  ; REWRITE: [codecave:AUTO]
+
+    next_y
+
+    mov  eax, data  ; REWRITE: <codecave:AUTO>
+    lea  eax, [eax + strings.laser_msg - data]
+    push eax
+    push laser_data  ; REWRITE: <codecave:AUTO>
     lea  eax, [%$pos_x]
     push eax
     call drawf_spec  ; REWRITE: [codecave:AUTO]
@@ -68,6 +91,9 @@ show_debug_data:  ; HEADER: AUTO
     push eax
     call drawf_spec  ; REWRITE: [codecave:AUTO]
 
+    next_y
+
+
 .nobullets:
 
     next_y
@@ -86,10 +112,14 @@ drawf_spec:  ; HEADER: AUTO
     cmp  eax, KIND_ARRAY
     jz near drawf_array_spec  ; REWRITE: [codecave:AUTO]
 
-    cmp  eax, KIND_LIST
-    jz near drawf_list_spec  ; REWRITE: [codecave:AUTO]
+    cmp  eax, KIND_ANMID
+    jz near drawf_anmid_spec  ; REWRITE: [codecave:AUTO]
+
+    cmp  eax, KIND_LASER
+    jz near drawf_laser_spec  ; REWRITE: [codecave:AUTO]
 
     int 3
+
 
 ; __stdcall void DrawfArraySpec(Float3*, ArraySpec*, char* fmt)
 drawf_array_spec:  ; HEADER: AUTO
@@ -122,9 +152,95 @@ drawf_array_spec:  ; HEADER: AUTO
     ret 0xc
     %pop
 
-; __stdcall void DrawfListSpec(Float3*, ListSpec*, char* fmt)
-drawf_list_spec:  ; HEADER: AUTO
-    int 3
+; __stdcall void DrawfLaserSpec(Float3*, LaserSpec*, char* fmt)
+drawf_laser_spec:  ; HEADER: AUTO
+    %push
+    %define %$pos_ptr  ebp+0x08
+    %define %$spec_ptr ebp+0x0c
+    %define %$fmt      ebp+0x10
+    enter 0x00, 0
+    push edi
+    push esi
+
+    mov esi, [%$spec_ptr]
+    mov eax, [esi + LaserSpec.struct_ptr]
+    mov edi, [eax]  ; LaserManager pointer
+    test edi, edi
+    jz .nostruct
+
+    mov  eax, [esi + LaserSpec.count_offset]
+    push dword [edi+eax] ; count
+    push dword [%$fmt]
+    mov  eax, [esi + LaserSpec.limit_addr]
+    push dword [eax]
+    push dword [%$pos_ptr]
+    call drawf_debug_int  ; REWRITE: [codecave:AUTO]
+
+.nostruct:
+    pop esi
+    pop edi
+    leave
+    ret 0xc
+    %pop
+
+; __stdcall void DrawfAnmidSpec(Float3*, AnmidSpec*, char* fmt)
+drawf_anmid_spec:  ; HEADER: AUTO
+    %push
+    %define %$pos_ptr  ebp+0x08
+    %define %$spec_ptr ebp+0x0c
+    %define %$fmt      ebp+0x10
+    enter 0x04, 0
+    %define %$total    ebp-0x04
+    push edi
+    push esi
+
+    mov esi, [%$spec_ptr]
+    mov eax, [esi + AnmidSpec.struct_ptr]
+    mov edi, [eax]  ; AnmManager pointer
+    test edi, edi
+    jz .nostruct
+
+    mov  dword [%$total], 0
+
+    mov  eax, [esi + AnmidSpec.world_head_ptr_offset]
+    push dword [edi+eax]
+    call count_linked_list  ; REWRITE: [codecave:AUTO]
+    add  eax, dword [%$total]
+    mov  dword [%$total], eax
+
+    mov  eax, [esi + AnmidSpec.ui_head_ptr_offset]
+    push dword [edi+eax]
+    call count_linked_list  ; REWRITE: [codecave:AUTO]
+    add  eax, dword [%$total]
+    mov  dword [%$total], eax
+
+    push dword [%$total]
+    push dword [%$fmt]
+    push dword [esi + AnmidSpec.num_fast_vms]
+    push dword [%$pos_ptr]
+    call drawf_debug_int  ; REWRITE: [codecave:AUTO]
+
+.nostruct:
+    pop esi
+    pop edi
+    leave
+    ret 0xc
+    %pop
+
+; __stdcall int CountLinkedList(LikedListNode* head)
+count_linked_list:  ; HEADER: AUTO
+    prologue_sd
+    mov  ecx, [ebp+0x08]
+    xor  eax, eax
+.loop:
+    test ecx, ecx
+    jz   .end
+    inc  eax
+    mov  ecx, [ecx+0x04]
+    jmp  .loop
+.end:
+    epilogue_sd
+    ret  0x4
 
 ; Common implementation for counting used items in an array that lives on some struct.
 ; (Specifically, searches for items where a specific byte is nonzero.)

@@ -6,7 +6,8 @@
 %define COLOR_WARN        0xfff5782f
 %define COLOR_MAX         0xffff3429
 %define KIND_ARRAY        1
-%define KIND_LIST         2
+%define KIND_ANMID        2
+%define KIND_LASER        3
 
 struc ArraySpec  ; DELETE
     .struct_ptr: resd 1 ; address of (possibly null) pointer to struct that holds the array  ; DELETE
@@ -17,7 +18,15 @@ struc ArraySpec  ; DELETE
     .stride: resd 1  ; size of each item in the array  ; DELETE
 endstruc  ; DELETE
 
-struc ListSpec  ; DELETE
-    .struct_ptr: resd 1 ; address of (possibly null) pointer to struct that holds the list head  ; DELETE
-    .head_ptr_offset: resd 1  ; offset of field with the (possibly null) pointer to the first entry's LinkedListNode.  ; DELETE
+struc LaserSpec  ; DELETE
+    .struct_ptr: resd 1  ; DELETE
+    .count_offset: resd 1  ; DELETE
+    .limit_addr: resd 1  ; DELETE
+endstruc  ; DELETE
+
+struc AnmidSpec  ; DELETE
+    .struct_ptr: resd 1  ; DELETE
+    .world_head_ptr_offset: resd 1  ; DELETE
+    .ui_head_ptr_offset: resd 1  ; DELETE
+    .num_fast_vms: resd 1  ; size of the "fast VM" array.  Technically the number of VMs can surpass this. DELETE
 endstruc  ; DELETE

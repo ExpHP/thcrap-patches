@@ -33,7 +33,7 @@ codecaves:
     - "C78674890000FFFFFFFF" # mov  dword [esi+ASCIIMGR_COLOR], COLOR_WHITE
     - "5F 5E 89EC 5D     " # epilogue w/ esi edi
     - "C21000            " # ret 0x10
-    
+
   ExpHP.debug-counters.bullet-data:
     - "01000000          " # dd KIND_ARRAY
     # istruc ArraySpec
@@ -67,16 +67,19 @@ codecaves:
     - "F0030000          " # at ArraySpec.stride, dd 0x3f0
     # iend
 
-  ExpHP.debug-counters.enemy-data:
-    - "02000000          " # dd KIND_LIST
-    # istruc ListSpec
-    - "04774700          " # at ListSpec.struct_ptr, dd 0x477704
-    - "58000000          " # at ListSpec.head_ptr_offset, dd 0x58
+  ExpHP.debug-counters.laser-data:
+    - "03000000          " # dd KIND_LASER
+    # istruc LaserSpec
+    - "1C784700          " # at LaserSpec.struct_ptr, dd 0x47781c
+    - "38040000          " # at LaserSpec.count_offset, dd 0x438
+    - "16C54100          " # at LaserSpec.limit_addr, dd 0x41c516
     # iend
 
-    # ui_vm_data:
-    - "02000000          " # dd KIND_LIST
-    # istruc ListSpec
-    - "00000000          " # at ListSpec.struct_ptr, dd 0
-    - "DCDA7200          " # at ListSpec.head_ptr_offset, dd 0x72dadc
+  ExpHP.debug-counters.anmid-data:
+    - "02000000          " # dd KIND_ANMID
+    # istruc AnmidSpec
+    - "101C4900          " # at AnmidSpec.struct_ptr, dd 0x491c10
+    - "D4DA7200          " # at AnmidSpec.world_head_ptr_offset, dd 0x72dad4
+    - "DCDA7200          " # at AnmidSpec.ui_head_ptr_offset, dd 0x72dadc
+    - "00100000          " # at AnmidSpec.num_fast_vms, dd 0x1000
     # iend

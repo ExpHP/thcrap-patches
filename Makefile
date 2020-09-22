@@ -11,6 +11,7 @@ all: \
 	ssa \
 	bullet-cap \
 	debug-counters \
+	sprite-death-fix \
 
 REPO=patches
 PERSONAL=personal
@@ -201,5 +202,18 @@ $(DEBUG_COUNTERS_PATCH)/global.js: $(DEBUG_COUNTERS_PATCH)/global.yaml
 	scripts/convert-yaml.py $^ >$@
 
 $(DEBUG_COUNTERS_PATCH)/th%.js: $(DEBUG_COUNTERS_PATCH)/th%.yaml
+	scripts/convert-yaml.py $^ >$@
+
+
+#================================================
+
+SPRITE_DEATH_PATCH=$(REPO)/sprite_death_fix
+
+.PHONY: sprite-death-fix
+sprite-death-fix: \
+	$(SPRITE_DEATH_PATCH)/$(TH10_VER).js \
+	# $(SPRITE_DEATH_PATCH)/$(TH11_VER).js \
+
+$(SPRITE_DEATH_PATCH)/th%.js: $(SPRITE_DEATH_PATCH)/th%.yaml
 	scripts/convert-yaml.py $^ >$@
 
