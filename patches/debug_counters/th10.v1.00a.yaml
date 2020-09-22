@@ -33,8 +33,9 @@ codecaves:
     - "C78674890000FFFFFFFF" # mov  dword [esi+ASCIIMGR_COLOR], COLOR_WHITE
     - "5F 5E 89EC 5D     " # epilogue w/ esi edi
     - "C21000            " # ret 0x10
-
+    
   ExpHP.debug-counters.bullet-data:
+    - "01000000          " # dd KIND_ARRAY
     # istruc ArraySpec
     - "F0764700          " # at ArraySpec.struct_ptr, dd 0x4776f0
     - "01000000          " # at ArraySpec.length_is_addr, dd 1
@@ -45,6 +46,7 @@ codecaves:
     # iend
 
   ExpHP.debug-counters.normal-item-data:
+    - "01000000          " # dd KIND_ARRAY
     # istruc ArraySpec
     - "18784700          " # at ArraySpec.struct_ptr, dd 0x477818
     - "00000000          " # at ArraySpec.length_is_addr, dd 0
@@ -55,6 +57,7 @@ codecaves:
     # iend
 
   ExpHP.debug-counters.cancel-item-data:
+    - "01000000          " # dd KIND_ARRAY
     # istruc ArraySpec
     - "18784700          " # at ArraySpec.struct_ptr, dd 0x477818
     - "00000000          " # at ArraySpec.length_is_addr, dd 0  ; I don't think this length ever explicitly appears in the code
@@ -64,13 +67,15 @@ codecaves:
     - "F0030000          " # at ArraySpec.stride, dd 0x3f0
     # iend
 
-    # enemy_data:
+  ExpHP.debug-counters.enemy-data:
+    - "02000000          " # dd KIND_LIST
     # istruc ListSpec
     - "04774700          " # at ListSpec.struct_ptr, dd 0x477704
     - "58000000          " # at ListSpec.head_ptr_offset, dd 0x58
     # iend
 
     # ui_vm_data:
+    - "02000000          " # dd KIND_LIST
     # istruc ListSpec
     - "00000000          " # at ListSpec.struct_ptr, dd 0
     - "DCDA7200          " # at ListSpec.head_ptr_offset, dd 0x72dadc

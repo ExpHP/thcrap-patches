@@ -1,33 +1,8 @@
 
 %include "util.asm"
+%include "common.asm"
 
 ; AUTO_PREFIX: ExpHP.debug-counters.
-
-%define ASCII_MANAGER_PTR 0x4776e0
-%define ASCIIMGR_COLOR    0x8974
-; the drawf function that is only used by FpsCounter and DebugSprtView
-%define DRAWF_DEBUG       0x401690
-%define COLOR_WHITE       0xffffffff
-%define COLOR_NOMINAL     0xffffffff
-%define COLOR_WARN        0xfff5782f
-%define COLOR_MAX         0xffff3429
-%define KIND_ARRAY        1
-%define KIND_LIST         2
-
-
-struc ArraySpec  ; DELETE
-    .struct_ptr: resd 1 ; address of (possibly null) pointer to struct that holds the array  ; DELETE
-    .length_is_addr: resd 1  ; boolean.  If 1, the array_length field is an address where length can be found (to support bullet_cap patch)  ; DELETE
-    .array_length: resd 1  ; number of items in the array  ; DELETE
-    .array_offset: resd 1  ; offset of array in struct  ; DELETE
-    .field_offset: resd 1  ; offset of a byte in an array item that is nonzero if and only if the item is in use  ; DELETE
-    .stride: resd 1  ; size of each item in the array  ; DELETE
-endstruc  ; DELETE
-
-struc ListSpec  ; DELETE
-    .struct_ptr: resd 1 ; address of (possibly null) pointer to struct that holds the list head  ; DELETE
-    .head_ptr_offset: resd 1  ; offset of field with the (possibly null) pointer to the first entry's LinkedListNode.  ; DELETE
-endstruc  ; DELETE
 
 bullet_data: ; DELETE
 normal_item_data: ; DELETE
@@ -71,7 +46,7 @@ show_debug_data:  ; HEADER: AUTO
     push bullet_data  ; REWRITE: <codecave:AUTO>
     lea  eax, [%$pos_x]
     push eax
-    call drawf_array_spec  ; REWRITE: [codecave:AUTO]
+    call drawf_spec  ; REWRITE: [codecave:AUTO]
 
     next_y
 
@@ -81,7 +56,7 @@ show_debug_data:  ; HEADER: AUTO
     push cancel_item_data  ; REWRITE: <codecave:AUTO>
     lea  eax, [%$pos_x]
     push eax
-    call drawf_array_spec  ; REWRITE: [codecave:AUTO]
+    call drawf_spec  ; REWRITE: [codecave:AUTO]
 
     next_y
 
@@ -91,7 +66,7 @@ show_debug_data:  ; HEADER: AUTO
     push normal_item_data  ; REWRITE: <codecave:AUTO>
     lea  eax, [%$pos_x]
     push eax
-    call drawf_array_spec  ; REWRITE: [codecave:AUTO]
+    call drawf_spec  ; REWRITE: [codecave:AUTO]
 
 .nobullets:
 
@@ -100,7 +75,23 @@ show_debug_data:  ; HEADER: AUTO
     ret
     %pop
 
-; __stdcall void DrawfDebugInt(Float3*, ArraySpec*, char* fmt)
+; __stdcall void DrawfSpec(Float3*, Spec*, char* fmt)
+drawf_spec:  ; HEADER: AUTO
+    ; read the first field (discriminant) of the spec and then advance it to point after
+    mov  eax, [esp+0x8]
+    mov  eax, [eax]
+    add  dword [esp+0x8], 0x4
+
+    ; 'near' forces a 4 byte operand
+    cmp  eax, KIND_ARRAY
+    jz near drawf_array_spec  ; REWRITE: [codecave:AUTO]
+
+    cmp  eax, KIND_LIST
+    jz near drawf_list_spec  ; REWRITE: [codecave:AUTO]
+
+    int 3
+
+; __stdcall void DrawfArraySpec(Float3*, ArraySpec*, char* fmt)
 drawf_array_spec:  ; HEADER: AUTO
     %push
     %define %$pos_ptr  ebp+0x08
@@ -130,6 +121,10 @@ drawf_array_spec:  ; HEADER: AUTO
     leave
     ret 0xc
     %pop
+
+; __stdcall void DrawfListSpec(Float3*, ListSpec*, char* fmt)
+drawf_list_spec:  ; HEADER: AUTO
+    int 3
 
 ; Common implementation for counting used items in an array that lives on some struct.
 ; (Specifically, searches for items where a specific byte is nonzero.)
