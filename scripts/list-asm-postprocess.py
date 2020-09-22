@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# Used by list-asm to work around nasm's limited gutter width.
-#
-# Merges instances of the following:
+# Implements the final steps of list-asm, which are too tough to do in shell scripting.
+# 
+# Originally written to merge instances of the following to work around nasm's limited gutter width:
 #
 #    - "C705704C4700020000" # mov    dword [CURRENT_LIVES], 2
 #    - "00                " #
@@ -11,8 +11,14 @@
 #
 #    - "C705704C470002000000" # mov    dword [CURRENT_LIVES], 2
 #
-# Also looks for REWRITE comments which replace the last 4 bytes of a command
-# (or REWRITE-n which replace earlier bytes):
+# Over time, some special comment directives were added to help fully automate the conversion of codecaves,
+# making it more straightforward to paste the output into yaml files (and even allowing some files to be
+# fully Makefile-automated if they only contain codecaves):
+#
+# A line with DELETE in the comment is eliminated from the output.
+#
+# A line with REWRITE: in the comment replaces the last 4 bytes of a command with a string
+# (and there is REWRITE-n to replace earlier bytes):
 #
 #    - "001122334455"  # blah blah  REWRITE: <blah>
 #    - "001122334455"  # blah blah  REWRITE-1: [bloo]
@@ -21,6 +27,32 @@
 #
 #    - "0011<blah>"  # blah blah
 #    - "00[bloo]55"  # blah blah
+#
+# lines with HEADER: in the comment are dedented and turned into a block-style yaml key with the text that
+# follows, generally used on the function name of a codecave.
+#
+#      # get_stuff:  ; HEADER: foobar
+#      - "001122334455"
+#
+# becomes:
+#
+#    foobar:
+#      - "001122334455"
+#
+# There are also AUTO and AUTO_PREFIX to help automate my naming convention.
+# AUTO_PREFIX defines a prefix for all codecave names in the file.
+# The string 'AUTO', when it appears as a whole word inside HEADER or REPLACE, will be replaced with
+# a kebab-case form of the last identifier in the assembly line, prefixed by the AUTO_PREFIX.
+#
+#      # AUTO_PREFIX: ExpHP.bullet-cap.
+#      # some_function:  ; HEADER: auto
+#      - "001122334455"  # mov eax, chucky_cheez  ; REWRITE: <codecave:AUTO>
+#
+# becomes:
+#
+#    ExpHP.bullet-cap.some-function:
+#      - "0011<codecave:ExpHP.bullet-cap.chucky-cheez>"  # mov eax, chucky_cheez
+#
 
 import sys
 import re
@@ -28,6 +60,9 @@ import re
 ASSEMBLY_LINE_RE = re.compile(r'^\s+- "[0-9a-fA-F ]+"')
 REWRITE_RE = re.compile(r'\bREWRITE(-[0-9]+)?:(.+)$')
 HEADER_RE = re.compile(r'\bHEADER:(.+)$')
+AUTO_PREFIX_RE = re.compile(r'\bAUTO_PREFIX:(.+)$')
+IDENTIFIER_RE = re.compile(r'\b[a-zA-Z_][a-zA-Z0-9_]*\b')
+AUTO_RE = re.compile(r'\bAUTO\b')
 
 def main():
     import argparse
@@ -37,8 +72,9 @@ def main():
     ).parse_args()
 
     lines = list(join_long_lines(sys.stdin))
-    lines = list(handle_rewrites(lines))
-    lines = list(handle_headers(lines))
+    auto_prefix = find_auto_prefix(lines)
+    lines = list(handle_rewrites(lines, auto_prefix))
+    lines = list(handle_headers(lines, auto_prefix))
     lines = list(handle_deletes(lines))
     for line in lines:
         print(line, end='')
@@ -64,7 +100,7 @@ def join_long_lines(lines):
     if prev_line is not None:
         yield prev_line
 
-def handle_rewrites(lines):
+def handle_rewrites(lines, auto_prefix):
     for line in lines:
         pre_comment, comment = split_asm_comment(line)
         if not comment:
@@ -78,6 +114,7 @@ def handle_rewrites(lines):
 
         offset_from_end = match.group(1) or 0
         rewrite_text = match.group(2).strip()
+        rewrite_text = possibly_substitute_auto(rewrite_text, line, auto_prefix)
         # remove from comment
         comment = comment[:match.start()].rstrip()
 
@@ -106,7 +143,7 @@ def handle_rewrites(lines):
         pre_comment = '"'.join([before_str, in_str, after_str])
         yield rejoin_asm_comment(pre_comment, comment) + '\n'
 
-def handle_headers(lines):
+def handle_headers(lines, auto_prefix):
     for line in lines:
         pre_comment, comment = split_asm_comment(line)
         if not comment:
@@ -114,12 +151,12 @@ def handle_headers(lines):
             continue
 
         match = HEADER_RE.search(comment)
-        import sys
         if not match:
             yield line
             continue
 
         header_text = match.group(1)
+        header_text = possibly_substitute_auto(header_text, line, auto_prefix)
         # remove from comment
         comment = comment[:match.start()].rstrip()
 
@@ -142,6 +179,38 @@ def handle_deletes(lines):
             continue
 
         yield line
+
+def find_auto_prefix(lines):
+    comments = [line.split('#')[1] for line in lines if '#' in line]
+    matches = [AUTO_PREFIX_RE.search(comment) for comment in comments]
+    matches = [match for match in matches if match]
+    if len(matches) == 0:
+        return ''
+    if len(matches) == 1:
+        return matches[0].group(1).strip()
+    raise RuntimeError('multiple AUTO_PREFIX: found')
+
+def possibly_substitute_auto(text, full_line, auto_prefix):
+    match = AUTO_RE.search(text)
+    if not match:
+        return text
+    return text[:match.start()] + get_auto_string(full_line, auto_prefix) + text[match.end():]
+
+def get_auto_string(line, auto_prefix):
+    """
+    Get substitution text for AUTO when it appears in a directive.
+
+    This is the contents of AUTO_PREFIX followed by the last identifier in the asm line converted to kebab case.
+    E.g. with AUTO_PREFIX of 'ExpHP.bullet-cap.' and an identifier of 'get_stuff', this would return 'ExpHP.bullet-cap.get-stuff'.
+    """
+    if '#' not in line:
+        raise RuntimeError("can't find asm line")
+    pre_asm_comment, _ = split_asm_comment(line)
+    _, asm_line = pre_asm_comment.split('#', 1)
+    identifiers = IDENTIFIER_RE.findall(asm_line)
+    if not identifiers:
+        raise RuntimeError("can't find identifier for AUTO")
+    return auto_prefix + identifiers[-1].replace('_', '-')
 
 def split_asm_comment(line):
     """

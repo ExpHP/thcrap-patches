@@ -1,6 +1,8 @@
 
 %include "util.asm"
 
+; AUTO_PREFIX: ExpHP.debug-counters.
+
 %define ASCII_MANAGER_PTR 0x4776e0
 %define ASCIIMGR_COLOR    0x8974
 ; the drawf function that is only used by FpsCounter and DebugSprtView
@@ -8,17 +10,17 @@
 %define COLOR_WHITE       0xffffffff
 
 cave:  ; 0x413653
-    call show_debug_data  ; REWRITE: [codecave:ExpHP.debug-counters.show-debug-data]
+    call show_debug_data  ; REWRITE: [codecave:AUTO]
 
     mov  eax, [ASCII_MANAGER_PTR] ; original code
     abs_jmp_hack 0x413658
 
 ; __stdcall void DrawfDebugInt(Float3*, int limit, char*, int current)
-drawf_debug_int:  ; HEADER: ExpHP.debug-counters.drawf-debug-int
+drawf_debug_int:  ; HEADER: AUTO
     prologue_sd
     push dword [ebp+0x0c] ; limit
     push dword [ebp+0x14] ; current
-    call get_color  ; REWRITE: [codecave:ExpHP.debug-counters.get-color]
+    call get_color  ; REWRITE: [AUTO]
     mov  ecx, [ASCII_MANAGER_PTR]
     mov  [ecx+ASCIIMGR_COLOR], eax
 
@@ -49,7 +51,7 @@ struc ListSpec
     .head_ptr_offset: resd 1  ; offset of field with the (possibly null) pointer to the first entry's LinkedListNode.
 endstruc
 
-bullet_data:  ; HEADER: ExpHP.debug-counters.bullet-data
+bullet_data:  ; HEADER: AUTO
 istruc ArraySpec
     at ArraySpec.struct_ptr, dd 0x4776f0
     at ArraySpec.length_is_addr, dd 1
@@ -59,7 +61,7 @@ istruc ArraySpec
     at ArraySpec.stride, dd 0x7f0
 iend
 
-normal_item_data:  ; HEADER: ExpHP.debug-counters.normal-item-data
+normal_item_data:  ; HEADER: AUTO
 istruc ArraySpec
     at ArraySpec.struct_ptr, dd 0x477818
     at ArraySpec.length_is_addr, dd 0
@@ -69,7 +71,7 @@ istruc ArraySpec
     at ArraySpec.stride, dd 0x3f0
 iend
 
-cancel_item_data:  ; HEADER: ExpHP.debug-counters.cancel-item-data
+cancel_item_data:  ; HEADER: AUTO
 istruc ArraySpec
     at ArraySpec.struct_ptr, dd 0x477818
     at ArraySpec.length_is_addr, dd 0  ; I don't think this length ever explicitly appears in the code
