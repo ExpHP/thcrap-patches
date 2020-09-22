@@ -1,0 +1,77 @@
+binhacks:
+  ExpHP.debug-counters.draw:
+    addr: "0x413653"
+    expected: "a1e0764700"
+    codecave:
+      - "E8[codecave:ExpHP.debug-counters.show-debug-data]" # call show_debug_data
+
+      - "A1E0764700        " # mov  eax, [ASCII_MANAGER_PTR] ; original code
+      # abs_jmp_hack 0x413658
+      - "E800000000        " # call %%next
+      - "C7042458364100    " # mov dword [esp], %1
+      - "C3                " # ret
+
+codecaves:
+    # __stdcall void DrawfDebugInt(Float3*, int limit, char*, int current)
+  ExpHP.debug-counters.drawf-debug-int:
+    - "55 89E5 56 57     " # prologue w/ esi edi
+    - "FF750C            " # push dword [ebp+0x0c] ; limit
+    - "FF7514            " # push dword [ebp+0x14] ; current
+    - "E8[codecave:ExpHP.debug-counters.get-color]" # call get_color
+    - "8B0DE0764700      " # mov  ecx, [ASCII_MANAGER_PTR]
+    - "898174890000      " # mov  [ecx+ASCIIMGR_COLOR], eax
+
+    # MoF has a weird calling convention
+    - "8B35E0764700      " # mov  esi, [ASCII_MANAGER_PTR]
+    - "8B5D08            " # mov  ebx, [ebp+0x08] ; pos
+    - "FF7514            " # push dword [ebp+0x14] ; arg
+    - "FF7510            " # push dword [ebp+0x10] ; template
+    - "B890164000        " # mov  eax, DRAWF_DEBUG
+    - "FFD0              " # call eax
+    - "83C408            " # add  esp, 0x8  ; caller cleans stack for varargs
+
+    - "C78674890000FFFFFFFF" # mov  dword [esi+ASCIIMGR_COLOR], COLOR_WHITE
+    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
+    - "C21000            " # ret 0x10
+
+  ExpHP.debug-counters.bullet-data:
+    # istruc ArraySpec
+    - "F0764700          " # at ArraySpec.struct_ptr, dd 0x4776f0
+    - "01000000          " # at ArraySpec.length_is_addr, dd 1
+    - "52584200          " # at ArraySpec.array_length, dd 0x425852
+    - "60000000          " # at ArraySpec.array_offset, dd 0x60
+    - "46040000          " # at ArraySpec.field_offset, dd 0x446
+    - "F0070000          " # at ArraySpec.stride, dd 0x7f0
+    # iend
+
+  ExpHP.debug-counters.normal-item-data:
+    # istruc ArraySpec
+    - "18784700          " # at ArraySpec.struct_ptr, dd 0x477818
+    - "00000000          " # at ArraySpec.length_is_addr, dd 0
+    - "96000000          " # at ArraySpec.array_length, dd 0x96
+    - "14000000          " # at ArraySpec.array_offset, dd 0x14
+    - "DC030000          " # at ArraySpec.field_offset, dd 0x3dc
+    - "F0030000          " # at ArraySpec.stride, dd 0x3f0
+    # iend
+
+  ExpHP.debug-counters.cancel-item-data:
+    # istruc ArraySpec
+    - "18784700          " # at ArraySpec.struct_ptr, dd 0x477818
+    - "00000000          " # at ArraySpec.length_is_addr, dd 0  ; I don't think this length ever explicitly appears in the code
+    - "00080000          " # at ArraySpec.array_length, dd 0x800
+    - "B44E0200          " # at ArraySpec.array_offset, dd 0x24eb4
+    - "DC030000          " # at ArraySpec.field_offset, dd 0x3dc
+    - "F0030000          " # at ArraySpec.stride, dd 0x3f0
+    # iend
+
+    # enemy_data:
+    # istruc ListSpec
+    - "04774700          " # at ListSpec.struct_ptr, dd 0x477704
+    - "58000000          " # at ListSpec.head_ptr_offset, dd 0x58
+    # iend
+
+    # ui_vm_data:
+    # istruc ListSpec
+    - "00000000          " # at ListSpec.struct_ptr, dd 0
+    - "DCDA7200          " # at ListSpec.head_ptr_offset, dd 0x72dadc
+    # iend

@@ -10,6 +10,7 @@ all: \
 	mouse \
 	ssa \
 	bullet-cap \
+	debug-counters \
 
 REPO=patches
 PERSONAL=personal
@@ -179,5 +180,26 @@ $(BULLET_CAP_PATCH)/global.js: $(BULLET_CAP_PATCH)/global.yaml
 	scripts/convert-yaml.py $^ >$@
 
 $(BULLET_CAP_PATCH)/th%.js: $(BULLET_CAP_PATCH)/th%.yaml
+	scripts/convert-yaml.py $^ >$@
+
+#================================================
+
+DEBUG_COUNTERS_PATCH=$(REPO)/debug_counters
+
+.PHONY: debug-counters
+debug-counters: \
+	$(DEBUG_COUNTERS_PATCH)/global.js \
+	$(DEBUG_COUNTERS_PATCH)/$(TH10_VER).js \
+	# $(DEBUG_COUNTERS_PATCH)/$(TH11_VER).js \
+
+$(DEBUG_COUNTERS_PATCH)/global.yaml: $(DEBUG_COUNTERS_PATCH)/global.asm
+	echo "# this yaml file is auto-generated" >$@
+	echo "codecaves:" >>$@
+	scripts/list-asm $< >>$@
+
+$(DEBUG_COUNTERS_PATCH)/global.js: $(DEBUG_COUNTERS_PATCH)/global.yaml
+	scripts/convert-yaml.py $^ >$@
+
+$(DEBUG_COUNTERS_PATCH)/th%.js: $(DEBUG_COUNTERS_PATCH)/th%.yaml
 	scripts/convert-yaml.py $^ >$@
 
