@@ -1,0 +1,25 @@
+binhacks:
+  ExpHP.debug-counters.draw:
+    /fields-if(th10):
+      addr: "0x413653"
+      expected: "a1e0764700"
+      codecave:
+        - "E8[codecave:ExpHP.debug-counters.show-debug-data]" # call show_debug_data
+
+        - "A1E0764700        " # mov  eax, [ASCII_MANAGER_PTR] ; original code
+        # abs_jmp_hack 0x413658
+        - "E800000000        " # call %%next
+        - "C7042458364100    " # mov dword [esp], %1
+        - "C3                " # ret
+
+    /fields-if(th11):
+      addr: "0x419f2b"
+      expected: "8b0d588d4a00"
+      codecave:
+        - "E8[codecave:ExpHP.debug-counters.show-debug-data]" # call show_debug_data
+
+        - "8B0D588D4A00      " # mov  ecx, [ASCII_MANAGER_PTR] ; original code
+        # abs_jmp_hack 0x419f31
+        - "E800000000        " # call %%next
+        - "C70424319F4100    " # mov dword [esp], %1
+        - "C3                " # ret

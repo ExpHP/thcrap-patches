@@ -154,9 +154,9 @@ ssa: \
 	$(SSA_PATCH)/$(TH14_VER).js \
 
 $(SSA_PATCH)/common.yaml: $(SSA_PATCH)/common.asm
-	echo "# this yaml file is auto-generated" >$@
-	echo "codecaves:" >>$@
-	echo "  protection: 64" >>$@
+	@echo "# this yaml file is auto-generated" >$@
+	@echo "codecaves:" >>$@
+	@echo "  protection: 64" >>$@
 	scripts/list-asm $< >>$@
 
 $(SSA_PATCH)/th%.js: $(SSA_PATCH)/th%.yaml $(SSA_PATCH)/common.yaml
@@ -173,8 +173,8 @@ bullet-cap: \
 	$(BULLET_CAP_PATCH)/$(TH11_VER).js \
 
 $(BULLET_CAP_PATCH)/global.yaml: $(BULLET_CAP_PATCH)/global.asm
-	echo "# this yaml file is auto-generated" >$@
-	echo "codecaves:" >>$@
+	@echo "# this yaml file is auto-generated" >$@
+	@echo "codecaves:" >>$@
 	scripts/list-asm $< >>$@
 
 $(BULLET_CAP_PATCH)/global.js: $(BULLET_CAP_PATCH)/global.yaml
@@ -194,15 +194,20 @@ debug-counters: \
 	$(DEBUG_COUNTERS_PATCH)/$(TH11_VER).js \
 
 $(DEBUG_COUNTERS_PATCH)/global.yaml: $(DEBUG_COUNTERS_PATCH)/global.asm
-	echo "# this yaml file is auto-generated" >$@
-	echo "codecaves:" >>$@
+	@echo "# this yaml file is auto-generated" >$@
+	@echo "codecaves:" >>$@
+	scripts/list-asm $< >>$@
+
+$(DEBUG_COUNTERS_PATCH)/th%.yaml: $(DEBUG_COUNTERS_PATCH)/th%.asm
+	@echo "# this yaml file is auto-generated" >$@
+	@echo "codecaves:" >>$@
 	scripts/list-asm $< >>$@
 
 $(DEBUG_COUNTERS_PATCH)/global.js: $(DEBUG_COUNTERS_PATCH)/global.yaml
 	scripts/convert-yaml.py $^ >$@
 
-$(DEBUG_COUNTERS_PATCH)/th%.js: $(DEBUG_COUNTERS_PATCH)/th%.yaml
-	scripts/convert-yaml.py $^ >$@
+$(DEBUG_COUNTERS_PATCH)/th%.js: $(DEBUG_COUNTERS_PATCH)/th%.yaml $(DEBUG_COUNTERS_PATCH)/binhacks.yaml
+	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
 
 
 #================================================

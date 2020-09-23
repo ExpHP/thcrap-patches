@@ -10,12 +10,6 @@
 %define DRAWF_DEBUG       0x401600
 %define COLOR_WHITE       0xffffffff
 
-cave:  ; 0x419f2b
-    call show_debug_data  ; REWRITE: [codecave:AUTO]
-
-    mov  ecx, [ASCII_MANAGER_PTR] ; original code
-    abs_jmp_hack 0x419f31
-
 ; __stdcall void DrawfDebugInt(Float3*, int limit, char*, int current)
 drawf_debug_int:  ; HEADER: AUTO
     prologue_sd
@@ -89,5 +83,4 @@ istruc AnmidSpec
     at AnmidSpec.num_fast_vms, dd 0x1000
 iend
 
-show_debug_data:  ; DELETE
 get_color:  ; DELETE
