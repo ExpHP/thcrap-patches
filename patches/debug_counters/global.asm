@@ -108,6 +108,12 @@ drawf_spec:  ; HEADER: AUTO
     mov  eax, [eax]
     add  dword [esp+0x8], 0x4
 
+    test eax, eax
+    jnz  .nonzero
+    ret  0xc  ; for zero write nothing; this lets lines be disabled for debugging and gradual implementation
+
+.nonzero:
+
     ; 'near' forces a 4 byte operand
     cmp  eax, KIND_ARRAY
     jz near drawf_array_spec  ; REWRITE: [codecave:AUTO]

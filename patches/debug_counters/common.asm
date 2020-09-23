@@ -1,6 +1,4 @@
 
-; the drawf function that is only used by FpsCounter and DebugSprtView
-%define DRAWF_DEBUG       0x401690
 %define COLOR_WHITE       0xffffffff
 %define COLOR_NOMINAL     0xffffffff
 %define COLOR_WARN        0xfff5782f
@@ -20,13 +18,17 @@ endstruc  ; DELETE
 
 struc LaserSpec  ; DELETE
     .struct_ptr: resd 1  ; DELETE
-    .count_offset: resd 1  ; DELETE
+    ; Find these in the function that allocates a laser.
+    ; (in the LASER_MANAGER crossrefs, about two down from LaserManager::operator new)
+    .count_offset: resd 1  ;  DELETE
     .limit_addr: resd 1  ; DELETE
 endstruc  ; DELETE
 
 struc AnmidSpec  ; DELETE
     .struct_ptr: resd 1  ; DELETE
+    ; For these, check AnmManager's on_ticks.
     .world_head_ptr_offset: resd 1  ; DELETE
     .ui_head_ptr_offset: resd 1  ; DELETE
+    ; Check AnmManager::initialize for the first array it initializes
     .num_fast_vms: resd 1  ; size of the "fast VM" array.  Technically the number of VMs can surpass this. DELETE
 endstruc  ; DELETE

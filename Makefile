@@ -191,7 +191,7 @@ DEBUG_COUNTERS_PATCH=$(REPO)/debug_counters
 debug-counters: \
 	$(DEBUG_COUNTERS_PATCH)/global.js \
 	$(DEBUG_COUNTERS_PATCH)/$(TH10_VER).js \
-	# $(DEBUG_COUNTERS_PATCH)/$(TH11_VER).js \
+	$(DEBUG_COUNTERS_PATCH)/$(TH11_VER).js \
 
 $(DEBUG_COUNTERS_PATCH)/global.yaml: $(DEBUG_COUNTERS_PATCH)/global.asm
 	echo "# this yaml file is auto-generated" >$@
@@ -212,7 +212,7 @@ SPRITE_DEATH_PATCH=$(REPO)/sprite_death_fix
 .PHONY: sprite-death-fix
 sprite-death-fix: \
 	$(SPRITE_DEATH_PATCH)/$(TH10_VER).js \
-	# $(SPRITE_DEATH_PATCH)/$(TH11_VER).js \
+	$(SPRITE_DEATH_PATCH)/$(TH11_VER).js \
 
 $(SPRITE_DEATH_PATCH)/th%.js: $(SPRITE_DEATH_PATCH)/th%.yaml
 	scripts/convert-yaml.py $^ >$@

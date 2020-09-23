@@ -1,6 +1,6 @@
 # `debug_counters`
 
-**Supports:** TH10
+**Supports:** TH10-TH11
 
 Adds debug counters so you can see how much your dank memes are tormenting the game
 

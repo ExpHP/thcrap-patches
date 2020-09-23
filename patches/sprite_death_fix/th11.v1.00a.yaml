@@ -1,0 +1,31 @@
+binhacks:
+  ExpHP.sprite-death-fix.hack:
+    addr: "0x44fda4"
+    expected: "8bb824567b00"
+    codecave:
+      # Games prior to DDC are missing this bounds check
+      - "52                " # push edx  ; save (it's an argument to the current function)
+      - "8B3568324C00      " # mov  esi, [ANM_MANAGER_PTR_11]
+      - "8DB824567B00      " # lea  edi, [eax+CURSOR_OFFSET_11]  ; write ptr
+      - "8B07              " # mov  eax, [edi]
+      - "05A8000000        " # add  eax, 0xa8
+      - "39F8              " # cmp  eax, edi
+      - "7C19              " # jl   .noreset
+
+      # requires ANM_MANAGER in esi
+      - "B810FD4400        " # mov  eax, FLUSH_SPRITES_11
+      - "FFD0              " # call eax
+      - "8D8624564300      " # lea  eax, [esi+BUFFER_OFFSET_11]
+      - "898624567B00      " # mov  [esi+CURSOR_OFFSET_11+0x0], eax  ; write cursor
+      - "898628567B00      " # mov  [esi+CURSOR_OFFSET_11+0x4], eax  ; read cursor
+
+      # .noreset:
+      - "5A                " # pop  edx
+      # original code
+      - "A168324C00        " # mov  eax, [ANM_MANAGER_PTR_11]
+      - "8BB824567B00      " # mov  edi, dword [eax+CURSOR_OFFSET_11]
+
+      # abs_jmp_hack 0x44fdaa
+      - "E800000000        " # call %%next
+      - "C70424AAFD4400    " # mov dword [esp], %1
+      - "C3                " # ret

@@ -1,0 +1,86 @@
+binhacks:
+  ExpHP.debug-counters.draw:
+    addr: "0x419f2b"
+    expected: "8b0d588d4a00"
+    codecave:
+      - "E8[codecave:ExpHP.debug-counters.show-debug-data]" # call show_debug_data
+
+      - "8B0D588D4A00      " # mov  ecx, [ASCII_MANAGER_PTR] ; original code
+      # abs_jmp_hack 0x419f31
+      - "E800000000        " # call %%next
+      - "C70424319F4100    " # mov dword [esp], %1
+      - "C3                " # ret
+
+codecaves:
+    # __stdcall void DrawfDebugInt(Float3*, int limit, char*, int current)
+  ExpHP.debug-counters.drawf-debug-int:
+    - "55 89E5 56 57     " # prologue w/ esi edi
+    - "FF750C            " # push dword [ebp+0x0c] ; limit
+    - "FF7514            " # push dword [ebp+0x14] ; current
+    - "E8[codecave:ExpHP.debug-counters.get-color]" # call get_color
+    - "8B0D588D4A00      " # mov  ecx, [ASCII_MANAGER_PTR]
+    - "898180840100      " # mov  [ecx+ASCIIMGR_COLOR], eax
+
+    # SA has a weird calling convention
+    - "8B0D588D4A00      " # mov  ecx, [ASCII_MANAGER_PTR]
+    - "8B5D08            " # mov  ebx, [ebp+0x08] ; pos
+    - "FF7514            " # push dword [ebp+0x14] ; arg
+    - "FF7510            " # push dword [ebp+0x10] ; template
+    - "B800164000        " # mov  eax, DRAWF_DEBUG
+    - "FFD0              " # call eax
+    - "83C408            " # add  esp, 0x8  ; caller cleans stack for varargs
+
+    - "8B0D588D4A00      " # mov  ecx, [ASCII_MANAGER_PTR]
+    - "C78180840100FFFFFFFF" # mov  dword [ecx+ASCIIMGR_COLOR], COLOR_WHITE
+    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
+    - "C21000            " # ret 0x10
+
+  ExpHP.debug-counters.bullet-data:
+    - "01000000          " # dd KIND_ARRAY
+    # istruc ArraySpec
+    - "688D4A00          " # at ArraySpec.struct_ptr, dd 0x4a8d68
+    - "01000000          " # at ArraySpec.length_is_addr, dd 1
+    - "3C8D4000          " # at ArraySpec.array_length, dd 0x408d3c
+    - "64000000          " # at ArraySpec.array_offset, dd 0x64
+    - "B2040000          " # at ArraySpec.field_offset, dd 0x4b2
+    - "10090000          " # at ArraySpec.stride, dd 0x910
+    # iend
+
+  ExpHP.debug-counters.normal-item-data:
+    - "01000000          " # dd KIND_ARRAY
+    # istruc ArraySpec
+    - "908E4A00          " # at ArraySpec.struct_ptr, dd 0x4a8e90
+    - "00000000          " # at ArraySpec.length_is_addr, dd 0
+    - "96000000          " # at ArraySpec.array_length, dd 0x96
+    - "14000000          " # at ArraySpec.array_offset, dd 0x14
+    - "64040000          " # at ArraySpec.field_offset, dd 0x464
+    - "78040000          " # at ArraySpec.stride, dd 0x478
+    # iend
+
+  ExpHP.debug-counters.cancel-item-data:
+    - "01000000          " # dd KIND_ARRAY
+    # istruc ArraySpec
+    - "908E4A00          " # at ArraySpec.struct_ptr, dd 0x4a8e90
+    - "00000000          " # at ArraySpec.length_is_addr, dd 0  ; I don't think this length ever explicitly appears in the code
+    - "00080000          " # at ArraySpec.array_length, dd 0x800
+    - "649E0200          " # at ArraySpec.array_offset, dd 0x29e64
+    - "64040000          " # at ArraySpec.field_offset, dd 0x464
+    - "78040000          " # at ArraySpec.stride, dd 0x478
+    # iend
+
+  ExpHP.debug-counters.laser-data:
+    - "03000000          " # dd KIND_LASER
+    # istruc LaserSpec
+    - "948E4A00          " # at LaserSpec.struct_ptr, dd 0x4a8e94
+    - "54040000          " # at LaserSpec.count_offset, dd 0x454
+    - "FD4D4200          " # at LaserSpec.limit_addr, dd 0x424dfd
+    # iend
+
+  ExpHP.debug-counters.anmid-data:
+    - "02000000          " # dd KIND_ANMID
+    # istruc AnmidSpec
+    - "68324C00          " # at AnmidSpec.struct_ptr, dd 0x4c3268
+    - "2C567B00          " # at AnmidSpec.world_head_ptr_offset, dd 0x7b562c
+    - "34567B00          " # at AnmidSpec.ui_head_ptr_offset, dd 0x7b5634
+    - "00100000          " # at AnmidSpec.num_fast_vms, dd 0x1000
+    # iend
