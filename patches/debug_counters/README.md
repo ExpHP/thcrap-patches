@@ -15,3 +15,9 @@ Legend:
 * `anmid`: Number of automatically-managed ANM VMs.  This counts certain types of sprites that the game refers to by ID rather than storing them directly on a game object.
 
 The numbers are colored orange when within 75% of maximum capacity, and red when they hit the max.  (`anmid` doesn't really have a maximum, but it is colored red when the count exceeds the length of the "fast VM" array, which is expected to impact performance).
+
+## Notice about performance
+
+If you really want accurate performance data, then be aware that using this patch MIGHT decrease your performance if you're using e.g. a really high bullet cap. Or... it might not impact performance at all.  It is difficult to quantify.
+
+Basically, this patch needs to iterate over some of the game's data structures in order to count living entries.  Of course, the game already iterates over these arrays on every frame, but doing it a second time certainly doesn't help due to the additional cache misses.  When I profiled with the game unpaused at 35k bullets, this patch was found to account for 8.5% of CPU time on my system.  That said, CPU time does not translate straightforwardly to framerate.  YMMV.
