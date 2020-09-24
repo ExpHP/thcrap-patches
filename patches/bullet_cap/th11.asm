@@ -9,59 +9,72 @@
 ; some manual fixes like inserting [codecave:yadda-yadda-yadda] and deleting
 ; dummy labels.
 
+; AUTO_PREFIX: ExpHP.bullet-cap.
+
 %include "util.asm"
+%include "common.asm"
 
 ; An innocuous place in the function that starts the game thread.
 cave:  ; 0x42a51e
-    call initialize  ; REWRITE: [codecave:ExpHP.bullet-cap.initialize]
+    call initialize  ; REWRITE: [codecave:AUTO]
 
     ; original code
     mov   esi, 0x4c3a70
     abs_jmp_hack 0x42a523
 
 ; Address range spanned by .text
-address_range:  ; HEADER: ExpHP.bullet-cap.address-range
+address_range:  ; HEADER: AUTO
     dd 0x401000
     dd 0x48ae15
 
-bullet_data:  ; HEADER: ExpHP.bullet-cap.bullet-data
-    dd 0x7d0  ; old bullet count (not counting pre-TD dummy bullet)
-    dd 0x910  ; size of bullet
-
-; Here we have a list of numbers related to bullet count, each followed by a blacklist.
-; (i.e. addresses where this dword only appears incidentally and should not be replaced).
-; Each one will be substituted as  value -> value + new_count - old_count.
-counts_to_replace:  ; HEADER: ExpHP.bullet-cap.counts-to-replace
+bullet_replacements:  ; HEADER: AUTO
+istruc ListHeader
+    at ListHeader.old_cap, dd 0x7d0
+    at ListHeader.elem_size, dd 0x910
+iend
     dd 0x7d0
-    dd 0x41c390
-    dd 0x459053
-    dd 0x46b808
-    dd 0 ; blacklist end
+    dd SCALE_1
+    dd BLACKLIST_BEGIN
+    dd 0x41c394 - 4
+    dd 0x459057 - 4
+    dd 0x46b806 + 2  ; coincidental appearance in a jump
+    dd BLACKLIST_END
 
     dd 0x7d1
-    dd 0
+    dd SCALE_1
+    dd REPLACE_ALL
 
-    dd 0 ; END
-
-; Similar to counts_to_replace, but for BulletManager offsets that depend on the final bullet's offset.
-; These will be substituted as  value -> value + bullet_size * (new_count - old_count)
-;
-; Also sometimes the games do stuff like `rep stosd` and we have to divide size by 4 or something like that.
-offsets_to_replace:  ; HEADER: ExpHP.bullet-cap.offsets-to-replace
     dd 0x46d216  ; offset of dummy bullet state
-    dd 1 ; use size as is
-    dd 0
-    dd 0x46d674  ; offset of bullet.anm
-    dd 1 ; use size as is
-    dd 0
-    dd 0x46d678  ; size of bullet manager
-    dd 1 ; use size as is
-    dd 0
-    dd 0x46d610  ; size of bullet array
-    dd 1 ; use size as is
-    dd 0
+    dd SCALE_SIZE
+    dd REPLACE_ALL
 
-    dd 0 ; END
+    dd 0x46d674  ; offset of bullet.anm
+    dd SCALE_SIZE
+    dd REPLACE_ALL
+
+    dd 0x46d678  ; size of bullet manager
+    dd SCALE_SIZE
+    dd REPLACE_ALL
+
+    dd 0x46d610  ; size of bullet array
+    dd SCALE_SIZE
+    dd REPLACE_ALL
+
+    dd LIST_END
+
+laser_replacements:  ; HEADER: AUTO
+istruc ListHeader
+    at ListHeader.old_cap, dd 0
+    at ListHeader.elem_size, dd 0
+iend
+    dd LIST_END
+
+cancel_replacements:  ; HEADER: AUTO
+istruc ListHeader
+    at ListHeader.old_cap, dd 0
+    at ListHeader.elem_size, dd 0
+iend
+    dd LIST_END
 
 iat_funcs:  ; HEADER: ExpHP.bullet-cap.iat-funcs
 .GetLastError: dd 0x48b1b8

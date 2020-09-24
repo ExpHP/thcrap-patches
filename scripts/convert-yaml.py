@@ -44,6 +44,7 @@ def main():
     out.update(y)
 
     json.dump(out, sys.stdout, indent=4)
+    print() # ensure trailing newline
 
 def merge_json(a, b, path=None):
     if path is None:

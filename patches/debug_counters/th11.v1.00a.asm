@@ -38,7 +38,8 @@ bullet_data:  ; HEADER: AUTO
 istruc ArraySpec
     at ArraySpec.struct_ptr, dd 0x4a8d68
     at ArraySpec.length_is_addr, dd 1
-    at ArraySpec.array_length, dd 0x408d3c
+    at ArraySpec.length_correction, dd 0
+    at ArraySpec.array_length, dd 0x408d40 - 4
     at ArraySpec.array_offset, dd 0x64
     at ArraySpec.field_offset, dd 0x4b2
     at ArraySpec.stride, dd 0x910
@@ -49,6 +50,7 @@ normal_item_data:  ; HEADER: AUTO
 istruc ArraySpec
     at ArraySpec.struct_ptr, dd 0x4a8e90
     at ArraySpec.length_is_addr, dd 0
+    at ArraySpec.length_correction, dd 0
     at ArraySpec.array_length, dd 0x96
     at ArraySpec.array_offset, dd 0x14
     at ArraySpec.field_offset, dd 0x464
@@ -59,8 +61,9 @@ cancel_item_data:  ; HEADER: AUTO
     dd KIND_ARRAY
 istruc ArraySpec
     at ArraySpec.struct_ptr, dd 0x4a8e90
-    at ArraySpec.length_is_addr, dd 0  ; I don't think this length ever explicitly appears in the code
-    at ArraySpec.array_length, dd 0x800
+    at ArraySpec.length_is_addr, dd 1
+    at ArraySpec.length_correction, dd -0x96 ; true cancel item cap never appears in code
+    at ArraySpec.array_length, dd 0x423490 - 4
     at ArraySpec.array_offset, dd 0x29e64
     at ArraySpec.field_offset, dd 0x464
     at ArraySpec.stride, dd 0x478
@@ -71,7 +74,7 @@ laser_data:  ; HEADER: AUTO
 istruc LaserSpec
     at LaserSpec.struct_ptr, dd 0x4a8e94
     at LaserSpec.count_offset, dd 0x454
-    at LaserSpec.limit_addr, dd 0x424dfd
+    at LaserSpec.limit_addr, dd 0x424e01 - 4
 iend
 
 anmid_data:  ; HEADER: AUTO

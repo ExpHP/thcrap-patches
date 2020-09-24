@@ -270,6 +270,7 @@ count_array_items_with_nonzero_byte:  ; HEADER: AUTO
     mov  %$remaining, [%$data + ArraySpec.array_length]
     jz   .notaddr
     mov  %$remaining, [%$remaining]
+    add  %$remaining, [%$data + ArraySpec.length_correction]
 .notaddr:
 
     mov  eax, [%$limit_out_ptr]

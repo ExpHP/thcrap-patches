@@ -8,11 +8,10 @@
         }
     },
     "codecaves": {
-        "bullet-cap": "0000000a",
         "ExpHP.bullet-cap.address-range": "00104000 // 15AE4800",
-        "ExpHP.bullet-cap.bullet-data": "D0070000 // 10090000",
-        "ExpHP.bullet-cap.counts-to-replace": "D0070000 // 90C34100 // 53904500 // 08B84600 // 00000000 // D1070000 // 00000000 // 00000000",
-        "ExpHP.bullet-cap.offsets-to-replace": "16D24600 // 01000000 // 00000000 // 74D64600 // 01000000 // 00000000 // 78D64600 // 01000000 // 00000000 // 10D64600 // 01000000 // 00000000 // 00000000",
+        "ExpHP.bullet-cap.bullet-replacements": "D0070000 // 10090000 // D0070000 // 00000000 // FFFFFFFF // 90C34100 // 53904500 // 08B84600 // 00000000 // D1070000 // 00000000 // FFFFFFFF00000000 // 16D24600 // 01000000 // FFFFFFFF00000000 // 74D64600 // 01000000 // FFFFFFFF00000000 // 78D64600 // 01000000 // FFFFFFFF00000000 // 10D64600 // 01000000 // FFFFFFFF00000000 // 00000000",
+        "ExpHP.bullet-cap.laser-replacements": "00000000 // 00000000 // 00000000",
+        "ExpHP.bullet-cap.cancel-replacements": "00000000 // 00000000 // 00000000",
         "ExpHP.bullet-cap.iat-funcs": "B8B14800 // 00000000 // 74B14800 // 70B14800",
         "of(ExpHP.bullet-cap.install)": "E8[codecave:ExpHP.bullet-cap.initialize] // BE703A4C00 // E800000000 // C7042423A54200 // C3"
     }

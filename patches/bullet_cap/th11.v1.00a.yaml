@@ -19,44 +19,54 @@ codecaves:
     - "00104000          " # dd 0x401000
     - "15AE4800          " # dd 0x48ae15
 
-  ExpHP.bullet-cap.bullet-data:
-    - "D0070000          " # dd 0x7d0  ; old bullet count (not counting pre-TD dummy bullet)
-    - "10090000          " # dd 0x910  ; size of bullet
-
-  # Here we have a list of numbers related to bullet count, each followed by a blacklist.
-  # (i.e. addresses where this dword only appears incidentally and should not be replaced).
-  # Each one will be substituted as  value -> value + new_count - old_count.
-  ExpHP.bullet-cap.counts-to-replace:
+  ExpHP.bullet-cap.bullet-replacements:
+    # istruc ListHeader
+    - "D0070000          " # at ListHeader.old_cap, dd 0x7d0
+    - "10090000          " # at ListHeader.elem_size, dd 0x910
+    # iend
     - "D0070000          " # dd 0x7d0
-    - "90C34100          " # dd 0x41c390
-    - "53904500          " # dd 0x459053
-    - "08B84600          " # dd 0x46b808
-    - "00000000          " # dd 0 ; blacklist end
+    - "00000000          " # dd SCALE_1
+    - "FFFFFFFF          " # dd BLACKLIST_BEGIN
+    - "90C34100          " # dd 0x41c394 - 4
+    - "53904500          " # dd 0x459057 - 4
+    - "08B84600          " # dd 0x46b806 + 2  ; coincidental appearance in a jump
+    - "00000000          " # dd BLACKLIST_END
 
     - "D1070000          " # dd 0x7d1
-    - "00000000          " # dd 0
+    - "00000000          " # dd SCALE_1
+    - "FFFFFFFF00000000  " # dd REPLACE_ALL
 
-    - "00000000          " # dd 0 ; END
-
-  # Similar to counts_to_replace, but for BulletManager offsets that depend on the final bullet's offset.
-  # These will be substituted as  value -> value + bullet_size * (new_count - old_count)
-  #
-  # Also sometimes the games do stuff like `rep stosd` and we have to divide size by 4 or something like that.
-  ExpHP.bullet-cap.offsets-to-replace:
     - "16D24600          " # dd 0x46d216  ; offset of dummy bullet state
-    - "01000000          " # dd 1 ; use size as is
-    - "00000000          " # dd 0
-    - "74D64600          " # dd 0x46d674  ; offset of bullet.anm
-    - "01000000          " # dd 1 ; use size as is
-    - "00000000          " # dd 0
-    - "78D64600          " # dd 0x46d678  ; size of bullet manager
-    - "01000000          " # dd 1 ; use size as is
-    - "00000000          " # dd 0
-    - "10D64600          " # dd 0x46d610  ; size of bullet array
-    - "01000000          " # dd 1 ; use size as is
-    - "00000000          " # dd 0
+    - "01000000          " # dd SCALE_SIZE
+    - "FFFFFFFF00000000  " # dd REPLACE_ALL
 
-    - "00000000          " # dd 0 ; END
+    - "74D64600          " # dd 0x46d674  ; offset of bullet.anm
+    - "01000000          " # dd SCALE_SIZE
+    - "FFFFFFFF00000000  " # dd REPLACE_ALL
+
+    - "78D64600          " # dd 0x46d678  ; size of bullet manager
+    - "01000000          " # dd SCALE_SIZE
+    - "FFFFFFFF00000000  " # dd REPLACE_ALL
+
+    - "10D64600          " # dd 0x46d610  ; size of bullet array
+    - "01000000          " # dd SCALE_SIZE
+    - "FFFFFFFF00000000  " # dd REPLACE_ALL
+
+    - "00000000          " # dd LIST_END
+
+  ExpHP.bullet-cap.laser-replacements:
+    # istruc ListHeader
+    - "00000000          " # at ListHeader.old_cap, dd 0
+    - "00000000          " # at ListHeader.elem_size, dd 0
+    # iend
+    - "00000000          " # dd LIST_END
+
+  ExpHP.bullet-cap.cancel-replacements:
+    # istruc ListHeader
+    - "00000000          " # at ListHeader.old_cap, dd 0
+    - "00000000          " # at ListHeader.elem_size, dd 0
+    # iend
+    - "00000000          " # dd LIST_END
 
   ExpHP.bullet-cap.iat-funcs:
     - "B8B14800          " # .GetLastError: dd 0x48b1b8

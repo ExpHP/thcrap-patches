@@ -10,6 +10,7 @@
 struc ArraySpec  ; DELETE
     .struct_ptr: resd 1 ; address of (possibly null) pointer to struct that holds the array  ; DELETE
     .length_is_addr: resd 1  ; boolean.  If 1, the array_length field is an address where length can be found (to support bullet_cap patch)  ; DELETE
+    .length_correction: resd 1  ; when length_is_addr = 1, a correction can be added to the length after it is read from the address  ; DELETE
     .array_length: resd 1  ; number of items in the array  ; DELETE
     .array_offset: resd 1  ; offset of array in struct  ; DELETE
     .field_offset: resd 1  ; offset of a byte in an array item that is nonzero if and only if the item is in use  ; DELETE
