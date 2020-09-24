@@ -1,0 +1,28 @@
+binhacks:
+  ExpHP.bullet-cap.install:
+    /fields-if(th10):
+      addr: "0x420ec8"
+      expected: "e883b20200"
+      codecave:
+        - "E8[codecave:ExpHP.bullet-cap.initialize]" # call initialize
+
+        # original code
+        - "B850C14400        " # mov   eax, 0x44c150
+        - "FFD0              " # call  eax
+        # abs_jmp_hack 0x420ecd
+        - "E800000000        " # call %%next
+        - "C70424CD0E4200    " # mov dword [esp], %1
+        - "C3                " # ret
+
+    /fields-if(th11):
+      addr: "0x42a51e"
+      expected: "be703a4c00"
+      codecave:
+        - "E8[codecave:ExpHP.bullet-cap.initialize]" # call initialize
+
+        # original code
+        - "BE703A4C00        " # mov   esi, 0x4c3a70
+        # abs_jmp_hack 0x42a523
+        - "E800000000        " # call %%next
+        - "C7042423A54200    " # mov dword [esp], %1
+        - "C3                " # ret

@@ -1,3 +1,7 @@
+
+# Meta flag
+.DELETE_ON_ERROR:
+
 .PHONY: all
 all: \
 	subseason-patches \
@@ -177,11 +181,16 @@ $(BULLET_CAP_PATCH)/global.yaml: $(BULLET_CAP_PATCH)/global.asm
 	@echo "codecaves:" >>$@
 	scripts/list-asm $< >>$@
 
+$(BULLET_CAP_PATCH)/th%.yaml: $(BULLET_CAP_PATCH)/th%.asm
+	@echo "# this yaml file is auto-generated" >$@
+	@echo "codecaves:" >>$@
+	scripts/list-asm $< >>$@
+
 $(BULLET_CAP_PATCH)/global.js: $(BULLET_CAP_PATCH)/global.yaml
 	scripts/convert-yaml.py $^ >$@
 
-$(BULLET_CAP_PATCH)/th%.js: $(BULLET_CAP_PATCH)/th%.yaml
-	scripts/convert-yaml.py $^ >$@
+$(BULLET_CAP_PATCH)/th%.js: $(BULLET_CAP_PATCH)/th%.yaml $(BULLET_CAP_PATCH)/binhacks.yaml
+	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
 
 #================================================
 
