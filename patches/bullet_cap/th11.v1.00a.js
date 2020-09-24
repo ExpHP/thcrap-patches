@@ -8,6 +8,7 @@
         }
     },
     "codecaves": {
+        "bullet-cap": "0000000a",
         "ExpHP.bullet-cap.address-range": "00104000 // 15AE4800",
         "ExpHP.bullet-cap.bullet-data": "D0070000 // 10090000",
         "ExpHP.bullet-cap.counts-to-replace": "D0070000 // 90C34100 // 53904500 // 08B84600 // 00000000 // D1070000 // 00000000 // 00000000",

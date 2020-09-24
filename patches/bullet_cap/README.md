@@ -8,7 +8,7 @@ This patch can be used to increase or reduce the bullet cap (which defaults to 2
 
 ## Configuration
 
-**By default, the patch sets the bullet cap to 4000,** which is double its size in most games.
+**By default, the patch sets the bullet cap to 100,000.** I.e., "like, infinity."
 
 You can configure this further in a downstream thcrap patch by having the following in `<patch>/global.js`:
 
@@ -39,3 +39,9 @@ Granted, obviously, not every instance of the number 2000 is related to bullet c
 ## `bullet_cap` breaks my patch!
 
 This patch can potentially break other patches if they contain a binhack whose new code *incidentally* contains a copy of one of the values replaced by this patch.  If this happens to you, [leave an issue](https://github.com/ExpHP/thcrap-patches/issues/new) and we can try to work something out.  (please do not try to modify the blacklist from your patch if you are publishing to `thcrap_configure` as I may change its format in the future!)
+
+## I canceled 50000 bullets at once and the game froze
+
+That sounds like a "you" problem.
+
+...but seriously, go grab a cup of tea and wait a few minutes, the game's not frozen.  I did look into why this happens and I might be able to slip in a simple performance "cure" for it later.

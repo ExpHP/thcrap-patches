@@ -9,62 +9,117 @@
 ; some manual fixes like inserting [codecave:yadda-yadda-yadda] and deleting
 ; dummy labels.
 
+; AUTO_PREFIX: ExpHP.bullet-cap.
+
 %include "util.asm"
+%include "common.asm"
 
 ; An innocuous place in the function that starts the game thread.
-cave:  ; 0x420ec8
-    call initialize  ; REWRITE: [codecave:ExpHP.bullet-cap.initialize]
+; 0x420ec8
+cave:  ; HEADER: AUTO
+    call initialize  ; REWRITE: [codecave:AUTO]
 
     ; original code
     mov   eax, 0x44c150
     call  eax
     abs_jmp_hack 0x420ecd
 
+; 0x41bdf9
+fix_next_cancel:  ; HEADER: AUTO
+    push edx
+    call next_cancel_index  ; REWRITE: [codecave:AUTO]
+    mov  edx, eax
+    abs_jmp_hack 0x41be0a
+
 ; Address range spanned by .text
-address_range:  ; HEADER: ExpHP.bullet-cap.address-range
+address_range:  ; HEADER: AUTO
     dd 0x401000
     dd 0x465a81
 
-bullet_data:  ; HEADER: ExpHP.bullet-cap.bullet-data
-    dd 0x7d0  ; old bullet count (not counting pre-TD dummy bullet)
-    dd 0x7f0  ; size of bullet
-
-; Here we have a list of numbers related to bullet count, each followed by a blacklist.
-; (i.e. addresses where this dword only appears incidentally and should not be replaced).
-; Each one will be substituted as  value -> value + new_count - old_count.
-counts_to_replace:  ; HEADER: ExpHP.bullet-cap.counts-to-replace
+bullet_replacements:  ; HEADER: AUTO
+istruc ListHeader
+    at ListHeader.old_cap, dd 0x7d0
+    at ListHeader.elem_size, dd 0x7f0
+iend
     dd 0x7d0
-    dd 0x415609
-    dd 0x44bd7e
-    dd 0 ; blacklist end
+    dd SCALE_1
+    dd BLACKLIST_BEGIN
+    dd 0x41560d - 4
+    dd 0x44bd82 - 4
+    dd BLACKLIST_END
 
     dd 0x7d1
-    dd 0
+    dd SCALE_1
+    dd REPLACE_ALL
 
-    dd 0 ; END
-
-; Similar to counts_to_replace, but for BulletManager offsets that depend on the final bullet's offset.
-; These will be substituted as  value -> value + bullet_size * (new_count - old_count)
-;
-; Also sometimes the games do stuff like `rep stosd` and we have to divide size by 4 or something like that.
-offsets_to_replace:  ; HEADER: ExpHP.bullet-cap.offsets-to-replace
     dd 0x3e07a6  ; offset of dummy bullet state
-    dd 1 ; use size as is
-    dd 0
-    dd 0x3e0b50  ; offset of bullet.anm
-    dd 1 ; use size as is
-    dd 0
-    dd 0x3e0b54  ; size of bullet manager
-    dd 1 ; use size as is
-    dd 0
-    dd 0xf82d5  ; num dwords in bullet manager
-    dd 4 ; use size / 4
-    dd 0
-    dd 0xf82bc  ; num dwords in bullet array
-    dd 4 ; use size / 4
-    dd 0
+    dd SCALE_SIZE
+    dd REPLACE_ALL
 
-    dd 0 ; END
+    dd 0x3e0b50  ; offset of bullet.anm
+    dd SCALE_SIZE
+    dd REPLACE_ALL
+
+    dd 0x3e0b54  ; size of bullet manager
+    dd SCALE_SIZE
+    dd REPLACE_ALL
+
+    dd 0xf82d5  ; num dwords in bullet manager
+    dd SCALE_SIZE_DIV(4)
+    dd REPLACE_ALL
+
+    dd 0xf82bc  ; num dwords in bullet array
+    dd SCALE_SIZE_DIV(4)
+    dd REPLACE_ALL
+
+    dd LIST_END
+
+laser_replacements:  ; HEADER: AUTO
+istruc ListHeader
+    at ListHeader.old_cap, dd 0x100
+    at ListHeader.elem_size, dd 0
+iend
+    dd 0x100
+    dd SCALE_1
+    dd WHITELIST_BEGIN
+    dd 0x41c51a - 4
+    dd WHITELIST_END
+
+    dd LIST_END
+
+cancel_replacements:  ; HEADER: AUTO
+istruc ListHeader
+    at ListHeader.old_cap, dd 0x800
+    at ListHeader.elem_size, dd 0x3f0
+iend
+    dd 0x896  ; array size (includes non-cancel items)
+    dd SCALE_1
+    dd REPLACE_ALL
+
+    dd 0x21cec0  ; ItemManager size
+    dd SCALE_SIZE
+    dd REPLACE_ALL
+
+    dd 0x873a8   ; array size in dwords
+    dd SCALE_SIZE_DIV(4)
+    dd REPLACE_ALL
+
+    dd 0x873b0   ; ItemManager size in dwords
+    dd SCALE_SIZE_DIV(4)
+    dd REPLACE_ALL
+
+    ; offsets of fields after array
+    dd 0x21ceb4  ; num items alive
+    dd SCALE_SIZE
+    dd REPLACE_ALL
+    dd 0x21ceb8  ; next cancel item index
+    dd SCALE_SIZE
+    dd REPLACE_ALL
+    dd 0x21cebc  ; num cancel items spawned this frame
+    dd SCALE_SIZE
+    dd REPLACE_ALL
+
+    dd LIST_END
 
 iat_funcs:  ; HEADER: ExpHP.bullet-cap.iat-funcs
 .GetLastError: dd 0x45fadc
@@ -74,3 +129,4 @@ iat_funcs:  ; HEADER: ExpHP.bullet-cap.iat-funcs
 
 ; defined in global.yaml
 initialize:
+next_cancel_index:
