@@ -50,7 +50,7 @@ istruc ArraySpec
     at ArraySpec.struct_ptr, dd 0x477818
     at ArraySpec.length_is_addr, dd 0
     at ArraySpec.length_correction, dd 0
-    at ArraySpec.array_length, dd 0x96
+    at ArraySpec.array_length, dd 150
     at ArraySpec.array_offset, dd 0x14
     at ArraySpec.field_offset, dd 0x3dc
     at ArraySpec.stride, dd 0x3f0
@@ -61,7 +61,7 @@ cancel_item_data:  ; HEADER: AUTO
 istruc ArraySpec
     at ArraySpec.struct_ptr, dd 0x477818
     at ArraySpec.length_is_addr, dd 1
-    at ArraySpec.length_correction, dd -0x96 ; true cancel item cap never appears in code
+    at ArraySpec.length_correction, dd -150 ; true cancel item cap never appears in code
     at ArraySpec.array_length, dd 0x41af16 - 4
     at ArraySpec.array_offset, dd 0x24eb4
     at ArraySpec.field_offset, dd 0x3dc

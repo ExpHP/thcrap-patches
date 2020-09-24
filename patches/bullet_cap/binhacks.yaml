@@ -27,7 +27,20 @@ binhacks:
         - "C7042423A54200    " # mov dword [esp], %1
         - "C3                " # ret
 
-  /fields-if(any(th10, th11)):
+    /fields-if(th12):
+      addr: "0x43051e"
+      expected: "bed8f04c00"
+      codecave:
+        - "E8[codecave:ExpHP.bullet-cap.initialize]" # call initialize
+
+        # original code
+        - "BED8F04C00        " # mov   esi, 0x4cf0d8
+        # abs_jmp_hack 0x430523
+        - "E800000000        " # call %%next
+        - "C7042423054300    " # mov dword [esp], %1
+        - "C3                " # ret
+
+  /fields-if(any(th10, th11, th12)):
     ExpHP.bullet-cap.fix-next-cancel:
       /fields-if(th10):
         addr: "0x41bdf9"
@@ -52,3 +65,27 @@ binhacks:
           - "E800000000        " # call %%next
           - "C704245E454200    " # mov dword [esp], %1
           - "C3                " # ret
+
+      /fields-if(th12):
+        addr: "0x427859"
+        expected: "4281e2ff070080"
+        codecave:
+          - "52                " # push edx
+          - "E8[codecave:ExpHP.bullet-cap.next-cancel-index]" # call next_cancel_index
+          - "89C2              " # mov  edx, eax
+          # abs_jmp_hack 0x42786a
+          - "E800000000        " # call %%next
+          - "C704246A784200    " # mov dword [esp], %1
+          - "C3                " # ret
+
+  # UFO actually has a bug in some of its loops over items where it misses the
+  # last 16 cancel items because he forgot to include UFOs in the iteration count.
+  #
+  # Fix these now so that they get picked up by our search and replace.
+  /fields-if(th12):
+    ExpHP.bullet-cap.fix-ufo-item-bugs:
+      addr:
+        - "0x427243"  # ItemManager::on_draw
+        - "0x427b5d"  # involves PLAYER, seems to be dead code though
+      expected: "580a0000"
+      code: "680a0000"

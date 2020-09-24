@@ -98,7 +98,3 @@ iat_funcs:  ; HEADER: ExpHP.bullet-cap.iat-funcs
 .GetModuleHandleA: dd 0x466198
 .GetModuleHandleW: dd 0
 .GetProcAddress: dd 0x466158
-
-; defined in global.yaml
-initialize:
-next_cancel_index:
