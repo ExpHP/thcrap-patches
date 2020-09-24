@@ -26,3 +26,29 @@ binhacks:
         - "E800000000        " # call %%next
         - "C7042423A54200    " # mov dword [esp], %1
         - "C3                " # ret
+
+  /fields-if(any(th10, th11)):
+    ExpHP.bullet-cap.fix-next-cancel:
+      /fields-if(th10):
+        addr: "0x41bdf9"
+        expected: "4281e2ff070080"
+        codecave:
+          - "52                " # push edx
+          - "E8[codecave:ExpHP.bullet-cap.next-cancel-index]" # call next_cancel_index
+          - "89C2              " # mov  edx, eax
+          # abs_jmp_hack 0x41be0a
+          - "E800000000        " # call %%next
+          - "C704240ABE4100    " # mov dword [esp], %1
+          - "C3                " # ret
+
+      /fields-if(th11):
+        addr: "0x42454d"
+        expected: "4181e1ff070080"
+        codecave:
+          - "51                " # push ecx
+          - "E8[codecave:ExpHP.bullet-cap.next-cancel-index]" # call next_cancel_index
+          - "89C1              " # mov  ecx, eax
+          # abs_jmp_hack 0x42455e
+          - "E800000000        " # call %%next
+          - "C704245E454200    " # mov dword [esp], %1
+          - "C3                " # ret

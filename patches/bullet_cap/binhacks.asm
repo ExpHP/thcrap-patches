@@ -41,6 +41,13 @@ fix_next_cancel_10:  ; HEADER: AUTO
     mov  edx, eax
     abs_jmp_hack 0x41be0a
 
+; 0x42454d
+fix_next_cancel_11:  ; HEADER: AUTO
+    push ecx
+    call next_cancel_index  ; REWRITE: [codecave:AUTO]
+    mov  ecx, eax
+    abs_jmp_hack 0x42455e
+
 ; defined in global.yaml  ; DELETE
 initialize:  ; DELETE
 next_cancel_index:  ; DELETE

@@ -33,6 +33,8 @@ new_bullet_cap_bigendian:  ; HEADER: bullet-cap
 
 new_cancel_cap_bigendian:  ; HEADER: cancel-cap
     db 0x00, 0x000, 0x0f, 0xa0
+new_laser_cap_bigendian:  ; HEADER: laser-cap
+    db 0x00, 0x000, 0x0f, 0xa0
 
 ; __stdcall Initialize()
 initialize:  ; HEADER: AUTO
@@ -40,6 +42,13 @@ initialize:  ; HEADER: AUTO
     bswap eax
     push eax
     mov  eax, bullet_replacements  ; REWRITE: <codecave:AUTO>
+    push eax
+    call do_replacement_list  ; REWRITE: [codecave:AUTO]
+
+    mov  eax, [new_laser_cap_bigendian]  ; REWRITE: <codecave:laser-cap>
+    bswap eax
+    push eax
+    mov  eax, laser_replacements  ; REWRITE: <codecave:AUTO>
     push eax
     call do_replacement_list  ; REWRITE: [codecave:AUTO]
 
@@ -292,10 +301,10 @@ search_n_replace:  ; HEADER: AUTO
 replace_with_whitelist:  ; HEADER: AUTO
     %push
     prologue_sd
-    %define %$pattern   ebp+0x10
-    %define %$repl      ebp+0x14
-    %define %$length    ebp+0x18
-    %define %$whitelist ebp+0x1c
+    %define %$pattern   ebp+0x08
+    %define %$repl      ebp+0x0c
+    %define %$length    ebp+0x10
+    %define %$whitelist ebp+0x14
     %define %$target    esi
 .loop:
     mov  ecx, [%$whitelist]
@@ -306,16 +315,14 @@ replace_with_whitelist:  ; HEADER: AUTO
     ; Expect either the old bytes or the new bytes to be there:
     push dword [%$length]
     push %$target
-    lea  eax, [%$pattern]
-    push eax
+    push dword [%$pattern]
     call mem_compare  ; REWRITE: [codecave:AUTO]
     test eax, eax
     jz   .do_it
 
     push dword [%$length]
     push %$target
-    lea  eax, [%$repl]
-    push eax
+    push dword [%$repl]
     call mem_compare  ; REWRITE: [codecave:AUTO]
     test eax, eax
     jz   .do_it
@@ -324,10 +331,11 @@ replace_with_whitelist:  ; HEADER: AUTO
 
 .do_it:
     push dword [%$length]
-    lea  eax, [%$repl]
-    push eax
+    push dword [%$repl]
     push %$target
     call memcpy_or_bust  ; REWRITE: [codecave:AUTO]
+
+    add  dword [%$whitelist], 0x4
 
     jmp .loop
 .end:

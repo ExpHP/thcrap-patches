@@ -23,3 +23,15 @@ binhacks:
         - "E800000000        " # call %%next
         - "C70424319F4100    " # mov dword [esp], %1
         - "C3                " # ret
+
+    /fields-if(th12):
+      addr: "0x41cd20"
+      expected: "8b0db8434b00"
+      codecave:
+        - "E8[codecave:ExpHP.debug-counters.show-debug-data]" # call show_debug_data
+
+        - "8B0DB8434B00      " # mov  ecx, [0x4b43b8] ; original code
+        # abs_jmp_hack 0x41cd26
+        - "E800000000        " # call %%next
+        - "C7042426CD4100    " # mov dword [esp], %1
+        - "C3                " # ret

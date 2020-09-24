@@ -6,13 +6,19 @@
         "ExpHP.bullet-cap.laser-replacements": "00010000 // 00000000 // 00010000 // 00000000 // 01000000 // 16C54100 // 00000000 // 00000000",
         "ExpHP.bullet-cap.cancel-replacements": "00080000 // F0030000 // 96080000 // 00000000 // FFFFFFFF00000000 // C0CE2100 // 01000000 // FFFFFFFF00000000 // A8730800 // 04000000 // FFFFFFFF00000000 // B0730800 // 04000000 // FFFFFFFF00000000 // B4CE2100 // 01000000 // FFFFFFFF00000000 // B8CE2100 // 01000000 // FFFFFFFF00000000 // BCCE2100 // 01000000 // FFFFFFFF00000000 // 00000000",
         "ExpHP.bullet-cap.iat-funcs": "DCFA4500 // 98614600 // 00000000 // 58614600",
-        "of(ExpHP.bullet-cap.install)": "E8[codecave:ExpHP.bullet-cap.initialize] // B850C14400 // FFD0 // E800000000 // C70424CD0E4200 // C3"
+        "of(ExpHP.bullet-cap.install)": "E8[codecave:ExpHP.bullet-cap.initialize] // B850C14400 // FFD0 // E800000000 // C70424CD0E4200 // C3",
+        "of(ExpHP.bullet-cap.fix-next-cancel)": "52 // E8[codecave:ExpHP.bullet-cap.next-cancel-index] // 89C2 // E800000000 // C704240ABE4100 // C3"
     },
     "binhacks": {
         "ExpHP.bullet-cap.install": {
             "addr": "0x420ec8",
             "expected": "e883b20200",
             "code": "E9 [codecave:of(ExpHP.bullet-cap.install)]"
+        },
+        "ExpHP.bullet-cap.fix-next-cancel": {
+            "addr": "0x41bdf9",
+            "expected": "4281e2ff070080",
+            "code": "E9 [codecave:of(ExpHP.bullet-cap.fix-next-cancel)] // CCCC"
         }
     }
 }

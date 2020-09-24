@@ -15,17 +15,25 @@
 ; AUTO_PREFIX: ExpHP.debug-counters.
 
 ; 0x413653
-binhack-10:  ; HEADER: AUTO
+binhack_10:  ; HEADER: AUTO
     call show_debug_data  ; REWRITE: [codecave:AUTO]
 
     mov  eax, [0x4776e0] ; original code
     abs_jmp_hack 0x413658
 
 ; 0x419f2b
-binhack-11:  ; HEADER: AUTO
+binhack_11:  ; HEADER: AUTO
     call show_debug_data  ; REWRITE: [codecave:AUTO]
 
     mov  ecx, [0x4a8d58] ; original code
     abs_jmp_hack 0x419f31
+
+; 0x41cd20
+binhack_12:  ; HEADER: AUTO
+    call show_debug_data  ; REWRITE: [codecave:AUTO]
+
+    mov  ecx, [0x4b43b8] ; original code
+    abs_jmp_hack 0x41cd26
+
 
 show_debug_data:  ; DELETE

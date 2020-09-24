@@ -45,16 +45,49 @@ iend
 
 laser_replacements:  ; HEADER: AUTO
 istruc ListHeader
-    at ListHeader.old_cap, dd 0
+    at ListHeader.old_cap, dd 0x100
     at ListHeader.elem_size, dd 0
 iend
+    dd 0x100
+    dd SCALE_1
+    dd WHITELIST_BEGIN
+    ; This sucker got inlined but we can just look at the crossrefs
+    ; of LaserLine::constructor and LaserInfinite::constructor.
+    dd 0x424e01 - 4
+    dd 0x426721 - 4
+    dd 0x426d4a - 4
+    dd 0x427b82 - 4
+    dd 0x4281d5 - 4
+    dd WHITELIST_END
     dd LIST_END
 
 cancel_replacements:  ; HEADER: AUTO
 istruc ListHeader
-    at ListHeader.old_cap, dd 0
-    at ListHeader.elem_size, dd 0
+    at ListHeader.old_cap, dd 0x800
+    at ListHeader.elem_size, dd 0x478
 iend
+    dd 0x896  ; array size (includes non-cancel items)
+    dd SCALE_1
+    dd REPLACE_ALL
+
+    ; offsets of fields after array
+    dd 0x265e64  ; num items alive
+    dd SCALE_SIZE
+    dd REPLACE_ALL
+    dd 0x265e68  ; next cancel item index
+    dd SCALE_SIZE
+    dd REPLACE_ALL
+    dd 0x265e6c  ; num cancel items spawned this frame
+    dd SCALE_SIZE
+    dd REPLACE_ALL
+    dd 0x265e70  ; ItemManager size
+    dd SCALE_SIZE
+    dd REPLACE_ALL
+
+    dd 0x265e50  ; array size
+    dd SCALE_SIZE
+    dd REPLACE_ALL
+
     dd LIST_END
 
 iat_funcs:  ; HEADER: ExpHP.bullet-cap.iat-funcs

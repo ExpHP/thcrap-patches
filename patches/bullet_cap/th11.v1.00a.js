@@ -3,16 +3,22 @@
     "codecaves": {
         "ExpHP.bullet-cap.address-range": "00104000 // 15AE4800",
         "ExpHP.bullet-cap.bullet-replacements": "D0070000 // 10090000 // D0070000 // 00000000 // FFFFFFFF // 90C34100 // 53904500 // 08B84600 // 00000000 // D1070000 // 00000000 // FFFFFFFF00000000 // 16D24600 // 01000000 // FFFFFFFF00000000 // 74D64600 // 01000000 // FFFFFFFF00000000 // 78D64600 // 01000000 // FFFFFFFF00000000 // 10D64600 // 01000000 // FFFFFFFF00000000 // 00000000",
-        "ExpHP.bullet-cap.laser-replacements": "00000000 // 00000000 // 00000000",
-        "ExpHP.bullet-cap.cancel-replacements": "00000000 // 00000000 // 00000000",
+        "ExpHP.bullet-cap.laser-replacements": "00010000 // 00000000 // 00010000 // 00000000 // 01000000 // FD4D4200 // 1D674200 // 466D4200 // 7E7B4200 // D1814200 // 00000000 // 00000000",
+        "ExpHP.bullet-cap.cancel-replacements": "00080000 // 78040000 // 96080000 // 00000000 // FFFFFFFF00000000 // 645E2600 // 01000000 // FFFFFFFF00000000 // 685E2600 // 01000000 // FFFFFFFF00000000 // 6C5E2600 // 01000000 // FFFFFFFF00000000 // 705E2600 // 01000000 // FFFFFFFF00000000 // 505E2600 // 01000000 // FFFFFFFF00000000 // 00000000",
         "ExpHP.bullet-cap.iat-funcs": "B8B14800 // 00000000 // 74B14800 // 70B14800",
-        "of(ExpHP.bullet-cap.install)": "E8[codecave:ExpHP.bullet-cap.initialize] // BE703A4C00 // E800000000 // C7042423A54200 // C3"
+        "of(ExpHP.bullet-cap.install)": "E8[codecave:ExpHP.bullet-cap.initialize] // BE703A4C00 // E800000000 // C7042423A54200 // C3",
+        "of(ExpHP.bullet-cap.fix-next-cancel)": "51 // E8[codecave:ExpHP.bullet-cap.next-cancel-index] // 89C1 // E800000000 // C704245E454200 // C3"
     },
     "binhacks": {
         "ExpHP.bullet-cap.install": {
             "addr": "0x42a51e",
             "expected": "be703a4c00",
             "code": "E9 [codecave:of(ExpHP.bullet-cap.install)]"
+        },
+        "ExpHP.bullet-cap.fix-next-cancel": {
+            "addr": "0x42454d",
+            "expected": "4181e1ff070080",
+            "code": "E9 [codecave:of(ExpHP.bullet-cap.fix-next-cancel)] // CCCC"
         }
     }
 }
