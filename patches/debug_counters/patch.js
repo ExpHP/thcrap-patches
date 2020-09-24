@@ -6,5 +6,5 @@
 	"servers": [
 		"https://raw.githubusercontent.com/ExpHP/thcrap-patches/master/patches/debug_counters/"
 	],
-	"title": "(10-11) Show sprite, bullet, laser, and item counts."
+	"title": "(10-12) Show sprite, bullet, laser, and item counts."
 }

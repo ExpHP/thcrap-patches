@@ -6,6 +6,9 @@
         "ExpHP.bullet-cap.laser-replacements": "00010000 // 00000000 // 00010000 // 00000000 // 01000000 // 16C54100 // 00000000 // 00000000",
         "ExpHP.bullet-cap.cancel-replacements": "00080000 // F0030000 // 96080000 // 00000000 // FFFFFFFF00000000 // C0CE2100 // 01000000 // FFFFFFFF00000000 // A8730800 // 04000000 // FFFFFFFF00000000 // B0730800 // 04000000 // FFFFFFFF00000000 // B4CE2100 // 01000000 // FFFFFFFF00000000 // B8CE2100 // 01000000 // FFFFFFFF00000000 // BCCE2100 // 01000000 // FFFFFFFF00000000 // 00000000",
         "ExpHP.bullet-cap.iat-funcs": "DCFA4500 // 98614600 // 00000000 // 58614600",
+        "bullet-cap": "00007d00",
+        "laser-cap": "00001000",
+        "cancel-cap": "00008000",
         "of(ExpHP.bullet-cap.install)": "E8[codecave:ExpHP.bullet-cap.initialize] // B850C14400 // FFD0 // E800000000 // C70424CD0E4200 // C3",
         "of(ExpHP.bullet-cap.fix-next-cancel)": "52 // E8[codecave:ExpHP.bullet-cap.next-cancel-index] // 89C2 // E800000000 // C704240ABE4100 // C3"
     },

@@ -25,16 +25,9 @@ bullet_replacements:  ; DELETE
 cancel_replacements:  ; DELETE
 laser_replacements:  ; DELETE
 
-new_bullet_cap_bigendian:  ; HEADER: bullet-cap
-    ; db 0x00, 0x04, 0x86, 0xa0  ; huge
-    db 0x00, 0x00, 0x0f, 0xa0  ; release
-    ; db 0x00, 0x00, 0x07, 0xd0  ; game default
-    ; db 0x00, 0x00, 0x00, 0x0a  ; debug
-
-new_cancel_cap_bigendian:  ; HEADER: cancel-cap
-    db 0x00, 0x000, 0x0f, 0xa0
-new_laser_cap_bigendian:  ; HEADER: laser-cap
-    db 0x00, 0x000, 0x0f, 0xa0
+new_bullet_cap_bigendian:  ; DELETE
+new_laser_cap_bigendian:  ; DELETE
+new_cancel_cap_bigendian:  ; DELETE
 
 ; __stdcall Initialize()
 initialize:  ; HEADER: AUTO

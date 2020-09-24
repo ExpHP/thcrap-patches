@@ -1,26 +1,28 @@
 # `bullet_cap`
 
-**Supports:** TH10, TH11.
+**Supports:** TH10, TH11, TH12.
 
-This patch can be used to increase or reduce the bullet cap (which defaults to 2000 in most games).
+This patch can be used to increase or reduce the following caps:
 
-**This patch does not currently affect lasers, which have their own cap.**
+* Bullet cap (which is 2000 in all games TH10-TH17).
+* Laser cap (which is either 256 or 512 in all games since TH10).
+* Cancel item cap (which is either 2048 or 4096 in all games since TH10).
+
+**By default, all three caps will be increased by a factor of 16.**
 
 ## Configuration
 
-**By default, the patch sets the bullet cap to 100,000.** I.e., "like, infinity."
-
-You can configure this further in a downstream thcrap patch by having the following in `<patch>/global.js`:
+The limits can be configured by writing another thcrap patch to apply after this patch.  In that patch, you can put the the following in `<patch>/global.js`:
 
 ```json
-{
-    "codecaves": {
-        "bullet-cap": "00000fa0"
-    }
-}
+{"codecaves": {
+    "bullet-cap": "00007d00",
+    "laser-cap": "00001000",
+    "cancel-cap": "00008000"
+}}
 ```
 
-The string (which must contain 8 hexadecimal characters) is a 4-byte integer encoded in **big-endian hexadecimal**.  The example value shown here is `0xfa0`, i.e. the default setting of 4000.
+The strings (which must contain 8 hexadecimal characters) are 4-byte integers encoded in **big-endian hexadecimal**.  The example value shown here is `0x7d00` bullets, `0x1000` lasers, and `0x8000` cancel items, which are the default settings in this patch for MoF.
 
 To configure this on a per-game basis, you can put this in e.g. `<patch>/th11.v1.00a.js` instead.
 
