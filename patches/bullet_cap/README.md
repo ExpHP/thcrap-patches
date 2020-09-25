@@ -4,9 +4,9 @@
 
 This patch can be used to increase or reduce the following caps:
 
-* Bullet cap (which is 2000 in all games TH10-TH17).
-* Laser cap (which is either 256 or 512 in all games since TH10).
-* Cancel item cap (which is either 2048 or 4096 in all games since TH10).
+* **Bullet cap** (2000 in all games TH10-TH17).
+* **Laser cap** (256 in MoF, 512 in WBaWC).
+* **Cancel item cap** (2048 in MoF, 4096 in WBaWC).
 
 **By default, all three caps will be increased by a factor of 16.**
 
