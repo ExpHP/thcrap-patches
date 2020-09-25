@@ -5,12 +5,15 @@
         "ExpHP.bullet-cap.bullet-replacements": "D0070000 // 10090000 // D0070000 // 00000000 // FFFFFFFF // 90C34100 // 53904500 // 08B84600 // 00000000 // D1070000 // 00000000 // FFFFFFFF00000000 // 16D24600 // 01000000 // FFFFFFFF00000000 // 74D64600 // 01000000 // FFFFFFFF00000000 // 78D64600 // 01000000 // FFFFFFFF00000000 // 10D64600 // 01000000 // FFFFFFFF00000000 // 00000000",
         "ExpHP.bullet-cap.laser-replacements": "00010000 // 00000000 // 00010000 // 00000000 // 01000000 // FD4D4200 // 1D674200 // 466D4200 // 7E7B4200 // D1814200 // 00000000 // 00000000",
         "ExpHP.bullet-cap.cancel-replacements": "00080000 // 78040000 // 96080000 // 00000000 // FFFFFFFF00000000 // 645E2600 // 01000000 // FFFFFFFF00000000 // 685E2600 // 01000000 // FFFFFFFF00000000 // 6C5E2600 // 01000000 // FFFFFFFF00000000 // 705E2600 // 01000000 // FFFFFFFF00000000 // 505E2600 // 01000000 // FFFFFFFF00000000 // 00000000",
+        "ExpHP.bullet-cap.perf-fix-data": "68324C00 // 2C567B00 // 00000000",
         "ExpHP.bullet-cap.iat-funcs": "B8B14800 // 00000000 // 74B14800 // 70B14800",
         "bullet-cap": "00007d00",
         "laser-cap": "00001000",
         "cancel-cap": "00008000",
+        "bullet-cap-config.mof-sa-lag-spike-size": "00002000",
         "of(ExpHP.bullet-cap.install)": "E8[codecave:ExpHP.bullet-cap.initialize] // BE703A4C00 // E800000000 // C7042423A54200 // C3",
-        "of(ExpHP.bullet-cap.fix-next-cancel)": "51 // E8[codecave:ExpHP.bullet-cap.next-cancel-index] // 89C1 // E800000000 // C704245E454200 // C3"
+        "of(ExpHP.bullet-cap.fix-next-cancel)": "51 // E8[codecave:ExpHP.bullet-cap.next-cancel-index] // 89C1 // E800000000 // C704245E454200 // C3",
+        "of(ExpHP.bullet-cap.cancel-perf-fix)": "52 // 51 // 51 // E8[codecave:ExpHP.bullet-cap.less-spikey-find-world-vm] // 59 // 5A // 85C0 // 7403 // C20400 // 56 // E800000000 // C7042405624500 // C3"
     },
     "binhacks": {
         "ExpHP.bullet-cap.install": {
@@ -22,6 +25,11 @@
             "addr": "0x42454d",
             "expected": "4181e1ff070080",
             "code": "E9 [codecave:of(ExpHP.bullet-cap.fix-next-cancel)] // CCCC"
+        },
+        "ExpHP.bullet-cap.cancel-perf-fix": {
+            "addr": "0x4561ed",
+            "expected": "8b822c567b00",
+            "code": "E9 [codecave:of(ExpHP.bullet-cap.cancel-perf-fix)] // CC"
         }
     }
 }

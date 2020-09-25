@@ -93,6 +93,13 @@ iend
 
     dd LIST_END
 
+perf_fix_data:  ; HEADER: AUTO
+istruc PerfFixData
+    at PerfFixData.anm_manager_ptr, dd 0x491c10
+    at PerfFixData.world_list_head_offset, dd 0x72dad4
+    at PerfFixData.anm_id_offset, dd 0
+iend
+
 iat_funcs:  ; HEADER: ExpHP.bullet-cap.iat-funcs
 .GetLastError: dd 0x45fadc
 .GetModuleHandleA: dd 0x466198

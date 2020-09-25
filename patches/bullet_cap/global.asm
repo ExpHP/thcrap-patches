@@ -9,6 +9,7 @@
 %include "common.asm"
 
 %define PAGE_EXECUTE_READWRITE 0x40
+%define LAG_SPIKE_CUTOFF 50000
 
 iat_funcs:  ; DELETE
 .GetLastError: dd 0  ; DELETE
@@ -24,10 +25,12 @@ game_data:  ; DELETE
 bullet_replacements:  ; DELETE
 cancel_replacements:  ; DELETE
 laser_replacements:  ; DELETE
+perf_fix_data:  ; DELETE
 
 new_bullet_cap_bigendian:  ; DELETE
 new_laser_cap_bigendian:  ; DELETE
 new_cancel_cap_bigendian:  ; DELETE
+config_lag_spike_cutoff_bigendian:  ; DELETE
 
 ; __stdcall Initialize()
 initialize:  ; HEADER: AUTO
@@ -401,6 +404,87 @@ memcpy_or_bust:  ; HEADER: AUTO
     leave
     ret  0xc
     %pop
+
+; Replacement for the world list search in AnmManager::get_vm_by_id in TH10 and TH11 that
+; makes the quadratic lag spikes become linear beyond a point.  Basically the problem is that
+; the game keeps searching for VMs that it just inserted at the very end of the list, so this
+; function checks that spot early after a number of iterations.
+;
+; (we don't just check the spot immediately because honestly the lag spikes are kinda hype as
+; long as they're only several seconds long at most)
+;
+; __stdcall AnmVm* PerfFixFindVmAtTail(int id)
+less_spikey_find_world_vm:  ; HEADER: AUTO
+    %push
+    %define %$desired_id ebp+0x08
+    enter 0x10, 0
+    %define %$manager    ebp-0x04
+    %define %$list_node  ebp-0x08
+    %define %$vm         ebp-0x0c
+    %define %$tail_delay ebp-0x10
+
+    mov  eax, dword [config_lag_spike_cutoff_bigendian]  ; REWRITE: <codecave:bullet-cap-config.mof-sa-lag-spike-size>
+    bswap eax
+    inc  eax  ; this is so that we can check ZF after doing `dec`
+    mov  [%$tail_delay], eax
+
+    mov  edx, perf_fix_data  ; REWRITE: <codecave:AUTO>
+    mov  eax, [edx + PerfFixData.anm_manager_ptr]
+    mov  eax, [eax]
+    test eax, eax
+    jz   .fail
+    mov  [%$manager], eax
+
+    add  eax, [edx + PerfFixData.world_list_head_offset]
+    mov  eax, [eax]
+    mov  [%$list_node], eax
+
+.iter:
+    mov  eax, [%$list_node]
+    test eax, eax
+    jz   .fail  ; entire list searched
+
+    ; on the 'tail_delay'th iteration, we check the tail before continuing
+    dec  dword [%$tail_delay]
+    jnz  .no_check_tail
+
+    mov  eax, [%$manager]
+    add  eax, [edx + PerfFixData.world_list_head_offset]
+    add  eax, 0x4  ; tail is after head
+    mov  eax, [eax]  ; read list node
+    mov  eax, [eax]  ; read vm
+    mov  [%$vm], eax
+
+    add  eax, [edx + PerfFixData.anm_id_offset]
+    mov  eax, [eax]  ; read id
+    cmp  eax, [%$desired_id]
+    je   .succeed
+
+.no_check_tail:
+    ; check current list entry
+    mov  eax, [%$list_node]
+    mov  eax, [eax]  ; read vm
+    mov  [%$vm], eax
+
+    add  eax, [edx + PerfFixData.anm_id_offset]
+    mov  eax, [eax]  ; read id
+    cmp  eax, [%$desired_id]
+    je   .succeed
+
+    ; follow 'next' pointer
+    mov  eax, [%$list_node]
+    mov  eax, [eax + ZunList.next]
+    mov  [%$list_node], eax
+    jmp  .iter
+
+.fail:
+    xor  eax, eax
+    jmp  .end
+.succeed:
+    mov  eax, [%$vm]
+.end:
+    leave
+    ret  0x4
 
 data:  ; HEADER: ExpHP.bullet-cap.data
 wstrings:

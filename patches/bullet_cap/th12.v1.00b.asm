@@ -96,6 +96,9 @@ iend
 
     dd LIST_END
 
+perf_fix_data:  ; HEADER: AUTO
+    dd 0  ; unused
+
 iat_funcs:  ; HEADER: ExpHP.bullet-cap.iat-funcs
 .GetLastError: dd 0x4980e4
 .GetModuleHandleA: dd 0

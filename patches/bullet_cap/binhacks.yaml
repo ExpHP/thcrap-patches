@@ -3,6 +3,13 @@ codecaves:
   laser-cap: "00001000"
   cancel-cap: "00008000"
 
+  # Lag spike "softening" constant for big cancels in MoF and SA.
+  # Bigger number = more lag.
+  #
+  # On my FX-8170 (3.8GHz), this default value makes 32000 cancels in SA
+  # take about 4s, and larger cancels go linear with the number of bullets.
+  bullet-cap-config.mof-sa-lag-spike-size: "00002000"
+
 binhacks:
   ExpHP.bullet-cap.install:
     /fields-if(th10):
@@ -94,3 +101,33 @@ binhacks:
         - "0x427b5d"  # involves PLAYER, seems to be dead code though
       expected: "580a0000"
       code: "680a0000"
+
+  /fields-if(any(th10, th11)):
+    ExpHP.bullet-cap.cancel-perf-fix:
+      /fields-if(th10):
+        addr: "0x4491cd"
+        expected: "8b82d4da7200"
+      /fields-if(th11):
+        addr: "0x4561ed"
+        expected: "8b822c567b00"
+      codecave:
+        - "52                " # push edx  ; save
+        - "51                " # push ecx  ; save
+        - "51                " # push ecx  ; argument
+        - "E8[codecave:ExpHP.bullet-cap.less-spikey-find-world-vm]" # call less_spikey_find_world_vm
+        - "59                " # pop  ecx
+        - "5A                " # pop  edx
+
+        - "85C0              " # test eax, eax
+        - "7403              " # jz   .continue
+
+        # .success:
+        - "C20400            " # ret  0x4  ; exit early from this function
+
+        # .continue:
+        # go to part that checks UI list
+        - "56                " # push esi  ; stack operation in code we're skipping over
+        - "E800000000        " # call %%next
+        - /item-if(th10): "C70424E5914400    " # mov dword [esp], %1
+        - /item-if(th11): "C7042405624500    " # mov dword [esp], %1
+        - "C3                " # ret

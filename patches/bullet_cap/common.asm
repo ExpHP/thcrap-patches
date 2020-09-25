@@ -1,12 +1,3 @@
-
-struc GameData  ; DELETE
-    .bullet_count: resd 1  ; old bullet cap  ; DELETE
-    .bullet_size:  resd 1  ; size of bullet  ; DELETE
-    .cancel_count: resd 1  ; old cancel item cap  ; DELETE
-    .item_size:    resd 1  ; size of item  ; DELETE
-    .laser_count:  resd 1  ; old laser cap  ; DELETE
-endstruc  ; DELETE
-
 struc ListHeader  ; DELETE
     ; "old cap" should be whatever the maximum amount is of something in the vanilla game,
     ; regardless of the length of the underlying array. (e.g. in TH10 the bullet array
@@ -46,3 +37,16 @@ endstruc  ; DELETE
 
 %define LIST_END 0
 
+; ===============================
+
+struc PerfFixData  ; DELETE
+    .anm_manager_ptr: resd 1  ; DELETE
+    .world_list_head_offset: resd 1  ; DELETE
+    .anm_id_offset: resd 1  ; DELETE
+endstruc  ; DELETE
+
+struc ZunList  ; DELETE
+    .entry: resd 1  ; DELETE
+    .next: resd 1  ; DELETE
+    .prev: resd 1  ; DELETE
+endstruc

@@ -12,7 +12,7 @@ This patch can be used to increase or reduce the following caps:
 
 ## Configuration
 
-The limits can be configured by writing another thcrap patch to apply after this patch.  In that patch, you can put the the following in `<patch>/global.js`:
+The limits can be configured by writing another thcrap patch to apply after this patch.  In that patch, you can put the the following in `<patch>/global.js` (or e.g. `<patch>/th11.v1.00a.js` to configure per-game):
 
 ```json
 {"codecaves": {
@@ -24,7 +24,17 @@ The limits can be configured by writing another thcrap patch to apply after this
 
 The strings (which must contain 8 hexadecimal characters) are 4-byte integers encoded in **big-endian hexadecimal**.  The example value shown here is `0x7d00` bullets, `0x1000` lasers, and `0x8000` cancel items, which are the default settings in this patch for MoF.
 
-To configure this on a per-game basis, you can put this in e.g. `<patch>/th11.v1.00a.js` instead.
+### Additional options
+
+Here are some additional options, with their default values.  As above, all strings must be zero-padded to the correct number of digits, and all integers are big endian hexadecimal.
+
+```json
+{"codecaves": {
+    "bullet-cap-config.mof-sa-lag-spike-size": "00002000"
+}}
+```
+
+* **`bullet-cap-config.mof-sa-lag-spike-size`**:  This patch automatically softens some quadratic lag spike behavior when canceling many bullets in MoF and SA.  You can configure the softening here; bigger number here = more lag. `"00000000"` will remove the lag spikes completely, while `"7fffffff"` will bring back the full vanilla behavior (but be prepared to wait several minutes if you cancel 50k+ bullets at once!).
 
 ---
 
@@ -41,9 +51,3 @@ Granted, obviously, not every instance of the number 2000 is related to bullet c
 ## `bullet_cap` breaks my patch!
 
 This patch can potentially break other patches if they contain a binhack whose new code *incidentally* contains a copy of one of the values replaced by this patch.  If this happens to you, [leave an issue](https://github.com/ExpHP/thcrap-patches/issues/new) and we can try to work something out.  (please do not try to modify the blacklist from your patch if you are publishing to `thcrap_configure` as I may change its format in the future!)
-
-## I canceled 50000 bullets at once and the game froze
-
-That sounds like a "you" problem.
-
-...but seriously, go grab a cup of tea and wait a few minutes, the game's not frozen.  I did look into why this happens and I might be able to slip in a simple performance "cure" for it later.

@@ -72,6 +72,34 @@ fix_next_cancel_12:  ; HEADER: AUTO
     mov  edx, eax
     abs_jmp_hack 0x42786a
 
+; ==========================================
+; Fixes the huge lag spikes that causes the game to appear to freeze when
+; canceling >10000 bullets.
+
+; TH10: 0x4491cd  (8b82d4da7200)
+; TH11: 0x4561ed  (8b822c567b00)
+perf_hack_10_11:
+    push edx  ; save
+    push ecx  ; save
+    push ecx  ; argument
+    call less_spikey_find_world_vm  ; REWRITE: [codecave:AUTO]
+    pop  ecx
+    pop  edx
+
+    test eax, eax
+    jz   .continue
+
+.success:
+    ret  0x4  ; exit early from this function
+
+.continue:
+    ; go to part that checks UI list
+    push esi  ; stack operation in code we're skipping over
+    abs_jmp_hack 0x4491e5 ; TH10
+    abs_jmp_hack 0x456205 ; TH11
+
+; ==========================================
 ; defined in global.yaml  ; DELETE
 initialize:  ; DELETE
 next_cancel_index:  ; DELETE
+less_spikey_find_world_vm:  ; DELETE
