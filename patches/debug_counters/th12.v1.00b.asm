@@ -19,7 +19,7 @@ drawf_debug_int:  ; HEADER: AUTO
     mov  ecx, [ASCII_MANAGER_PTR]
     mov  [ecx+ASCIIMGR_COLOR], eax
 
-    ; UFO has a weird calling convention
+    ; MoF-GFW have a weird calling convention
     mov  esi, [ASCII_MANAGER_PTR]
     mov  ebx, [ebp+0x08] ; pos
     push dword [ebp+0x14] ; arg

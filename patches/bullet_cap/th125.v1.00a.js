@@ -11,7 +11,7 @@
         "laser-cap": "00001000",
         "cancel-cap": "00000c80",
         "bullet-cap-config.mof-sa-lag-spike-size": "00002000",
-        "of(ExpHP.bullet-cap.install)": "E8[codecave:ExpHP.bullet-cap.initialize] // B8A0A14200 // FFD0 // E800000000 // C70424A8D94100 // C3"
+        "of(ExpHP.bullet-cap.install)": "E8[codecave:ExpHP.bullet-cap.initialize] // B8A0A14200 // FFD0 // E800000000C70424 a8d94100 C3"
     },
     "binhacks": {
         "ExpHP.bullet-cap.install": {

@@ -23,10 +23,7 @@ binhacks:
         # original code
         - "B850C14400        " # mov   eax, 0x44c150
         - "FFD0              " # call  eax
-        # abs_jmp_hack 0x420ecd
-        - "E800000000        " # call %%next
-        - "C70424CD0E4200    " # mov dword [esp], %1
-        - "C3                " # ret
+        - "E800000000C70424 cd0e4200 C3" # jump to 0x420ecd
 
     /fields-if(th11):
       addr: "0x42a51e"
@@ -36,10 +33,7 @@ binhacks:
 
         # original code
         - "BE703A4C00        " # mov   esi, 0x4c3a70
-        # abs_jmp_hack 0x42a523
-        - "E800000000        " # call %%next
-        - "C7042423A54200    " # mov dword [esp], %1
-        - "C3                " # ret
+        - "E800000000C70424 23a54200 C3" # jump to 0x42a523
 
     /fields-if(th12):
       addr: "0x43051e"
@@ -49,10 +43,7 @@ binhacks:
 
         # original code
         - "BED8F04C00        " # mov   esi, 0x4cf0d8
-        # abs_jmp_hack 0x430523
-        - "E800000000        " # call %%next
-        - "C7042423054300    " # mov dword [esp], %1
-        - "C3                " # ret
+        - "E800000000C70424 23054300 C3" # jump to 0x430523
 
     /fields-if(th125):
       addr: "0x41d9a3"
@@ -63,11 +54,18 @@ binhacks:
         # original code
         - "B8A0A14200        " # mov   eax, 0x42a1a0
         - "FFD0              " # call  eax
-        # abs_jmp_hack 0x41d9a8
-        - "E800000000        " # call %%next
-        - "C70424A8D94100    " # mov dword [esp], %1
-        - "C3                " # ret
+        - "E800000000C70424 a8d94100 C3" # jump to 0x41d9a8
 
+    /fields-if(th128):
+      addr: "0x426970"
+      expected: "e83be30000"
+      codecave:
+        - "E8[codecave:ExpHP.bullet-cap.initialize]" # call initialize
+
+        # original code
+        - "B8B04C4300        " # mov   eax, 0x434cb0
+        - "FFD0              " # call  eax
+        - "E800000000C70424 75694200 C3" # jump to 0x426975
 
   /fields-if(any(th10, th11, th12)):
     ExpHP.bullet-cap.fix-next-cancel:
@@ -78,10 +76,7 @@ binhacks:
           - "52                " # push edx
           - "E8[codecave:ExpHP.bullet-cap.next-cancel-index]" # call next_cancel_index
           - "89C2              " # mov  edx, eax
-          # abs_jmp_hack 0x41be0a
-          - "E800000000        " # call %%next
-          - "C704240ABE4100    " # mov dword [esp], %1
-          - "C3                " # ret
+          - "E800000000C70424 0abe4100 C3" # jump to 0x41be0a
 
       /fields-if(th11):
         addr: "0x42454d"
@@ -90,10 +85,7 @@ binhacks:
           - "51                " # push ecx
           - "E8[codecave:ExpHP.bullet-cap.next-cancel-index]" # call next_cancel_index
           - "89C1              " # mov  ecx, eax
-          # abs_jmp_hack 0x42455e
-          - "E800000000        " # call %%next
-          - "C704245E454200    " # mov dword [esp], %1
-          - "C3                " # ret
+          - "E800000000C70424 5e454200 C3" # jump to 0x42455e
 
       /fields-if(th12):
         addr: "0x427859"
@@ -102,22 +94,25 @@ binhacks:
           - "52                " # push edx
           - "E8[codecave:ExpHP.bullet-cap.next-cancel-index]" # call next_cancel_index
           - "89C2              " # mov  edx, eax
-          # abs_jmp_hack 0x42786a
-          - "E800000000        " # call %%next
-          - "C704246A784200    " # mov dword [esp], %1
-          - "C3                " # ret
+          - "E800000000C70424 6a784200 C3" # jump to 0x42786a
 
-  # UFO actually has a bug in some of its loops over items where it misses the
+  # UFO (and GFW) actually has a bug in some of its loops over items where it misses the
   # last 16 cancel items because he forgot to include UFOs in the iteration count.
   #
   # Fix these now so that they get picked up by our search and replace.
-  /fields-if(th12):
+  /fields-if(any(th12, th128)):
     ExpHP.bullet-cap.fix-ufo-item-bugs:
-      addr:
-        - "0x427243"  # ItemManager::on_draw
-        - "0x427b5d"  # involves PLAYER, seems to be dead code though
-      expected: "580a0000"
-      code: "680a0000"
+      /fields-if(th12):
+        addr:
+          - "0x427243"  # ItemManager::on_draw
+          - "0x427b5d"  # involves PLAYER, seems to be dead code though
+        expected: "580a0000"
+        code: "680a0000"
+
+      /fields-if(th128):
+        addr: "0x429223"  # ItemManager::on_draw
+        expected: "bc020000"
+        code: "cc020000"
 
   /fields-if(any(th10, th11)):
     ExpHP.bullet-cap.cancel-perf-fix:
@@ -144,7 +139,5 @@ binhacks:
         # .continue:
         # go to part that checks UI list
         - "56                " # push esi  ; stack operation in code we're skipping over
-        - "E800000000        " # call %%next
-        - /item-if(th10): "C70424E5914400    " # mov dword [esp], %1
-        - /item-if(th11): "C7042405624500    " # mov dword [esp], %1
-        - "C3                " # ret
+        - /item-if(th10): "E800000000C70424 e5914400 C3" # jump to 0x4491e5
+        - /item-if(th11): "E800000000C70424 05624500 C3" # jump to 0x456205

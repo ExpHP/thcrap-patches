@@ -177,6 +177,7 @@ bullet-cap: \
 	$(BULLET_CAP_PATCH)/$(TH11_VER).js \
 	$(BULLET_CAP_PATCH)/$(TH12_VER).js \
 	$(BULLET_CAP_PATCH)/$(TH125_VER).js \
+	$(BULLET_CAP_PATCH)/$(TH128_VER).js \
 
 $(BULLET_CAP_PATCH)/global.yaml: $(BULLET_CAP_PATCH)/global.asm
 	@echo "# this yaml file is auto-generated" >$@
@@ -205,6 +206,7 @@ debug-counters: \
 	$(DEBUG_COUNTERS_PATCH)/$(TH11_VER).js \
 	$(DEBUG_COUNTERS_PATCH)/$(TH12_VER).js \
 	$(DEBUG_COUNTERS_PATCH)/$(TH125_VER).js \
+	$(DEBUG_COUNTERS_PATCH)/$(TH128_VER).js \
 
 $(DEBUG_COUNTERS_PATCH)/global.yaml: $(DEBUG_COUNTERS_PATCH)/global.asm
 	@echo "# this yaml file is auto-generated" >$@
@@ -233,6 +235,7 @@ sprite-death-fix: \
 	$(SPRITE_DEATH_PATCH)/$(TH11_VER).js \
 	$(SPRITE_DEATH_PATCH)/$(TH12_VER).js \
 	$(SPRITE_DEATH_PATCH)/$(TH125_VER).js \
+	$(SPRITE_DEATH_PATCH)/$(TH128_VER).js \
 
 $(SPRITE_DEATH_PATCH)/th%.js: $(SPRITE_DEATH_PATCH)/binhacks.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)

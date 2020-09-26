@@ -11,9 +11,9 @@
         "laser-cap": "00001000",
         "cancel-cap": "00008000",
         "bullet-cap-config.mof-sa-lag-spike-size": "00002000",
-        "of(ExpHP.bullet-cap.install)": "E8[codecave:ExpHP.bullet-cap.initialize] // BE703A4C00 // E800000000 // C7042423A54200 // C3",
-        "of(ExpHP.bullet-cap.fix-next-cancel)": "51 // E8[codecave:ExpHP.bullet-cap.next-cancel-index] // 89C1 // E800000000 // C704245E454200 // C3",
-        "of(ExpHP.bullet-cap.cancel-perf-fix)": "52 // 51 // 51 // E8[codecave:ExpHP.bullet-cap.less-spikey-find-world-vm] // 59 // 5A // 85C0 // 7403 // C20400 // 56 // E800000000 // C7042405624500 // C3"
+        "of(ExpHP.bullet-cap.install)": "E8[codecave:ExpHP.bullet-cap.initialize] // BE703A4C00 // E800000000C70424 23a54200 C3",
+        "of(ExpHP.bullet-cap.fix-next-cancel)": "51 // E8[codecave:ExpHP.bullet-cap.next-cancel-index] // 89C1 // E800000000C70424 5e454200 C3",
+        "of(ExpHP.bullet-cap.cancel-perf-fix)": "52 // 51 // 51 // E8[codecave:ExpHP.bullet-cap.less-spikey-find-world-vm] // 59 // 5A // 85C0 // 7403 // C20400 // 56 // E800000000C70424 05624500 C3"
     },
     "binhacks": {
         "ExpHP.bullet-cap.install": {

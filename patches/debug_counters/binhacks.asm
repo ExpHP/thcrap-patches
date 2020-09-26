@@ -42,4 +42,11 @@ binhack_125:  ; HEADER: AUTO
     mov  edx, [0x4b6770] ; original code
     abs_jmp_hack 0x41af2b
 
+; 0x41fb30  (8b1520894b00)
+binhack_128:  ; HEADER: AUTO
+    call show_debug_data  ; REWRITE: [codecave:AUTO]
+
+    mov  edx, dword [0x4b8920] ; original code
+    abs_jmp_hack 0x41fb36
+
 show_debug_data:  ; DELETE

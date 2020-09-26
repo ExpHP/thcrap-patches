@@ -20,6 +20,11 @@
 %define BUFFER_OFFSET_125 0x4bd6ac
 %define CURSOR_OFFSET_125 0x83d6ac
 
+%define ANM_MANAGER_PTR_128 0x4d2e50
+%define FLUSH_SPRITES_128 0x45ef60
+%define BUFFER_OFFSET_128 0x4e96f0
+%define CURSOR_OFFSET_128 0x8696f0
+
 ; side-effect-free absolute jump
 %macro  abs_jmp_hack 1
         call %%next
@@ -27,6 +32,18 @@
         mov dword [esp], %1
         ret
 %endmacro
+
+;======================================================================
+;              TH10 - TH128 (games without a bounds check)
+;
+; Astonishingly, the two functions involved (AnmManager::write_sprite
+; and AnmManager::flush_sprites) have the exact same ABI in all five of
+; these games, which almost never happens.
+;
+; That said, each of these are still largely ABI-dependent code, which I
+; don't factor out because that would be false factoring, so this part
+; might feel like a bit of copy pasta.
+;=======================================================================
 
 ; 0x442fe4
 fix_10:  ; HEADER: AUTO
@@ -54,7 +71,6 @@ fix_10:  ; HEADER: AUTO
 
     abs_jmp_hack 0x442fea
 
-; Basically identical to MoF
 ; 0x44fda4  (8bb824567b00)
 fix_11:  ; HEADER: AUTO
     ; Games prior to DDC are missing this bounds check
@@ -81,7 +97,6 @@ fix_11:  ; HEADER: AUTO
 
     abs_jmp_hack 0x44fdaa
 
-; Basically identical to MoF
 ; 0x45a4a4  (8bb8a4568300)
 fix_12:  ; HEADER: AUTO
     ; Games prior to DDC are missing this bounds check
@@ -108,8 +123,6 @@ fix_12:  ; HEADER: AUTO
 
     abs_jmp_hack 0x45a4aa
 
-; Basically identical to MoF
-; (quite surprising that no function involved has changed its ABI yet)
 ; 0x458fb4  (8bb8acd68300)
 fix_125:  ; HEADER: AUTO
     ; Games prior to DDC are missing this bounds check
@@ -135,3 +148,29 @@ fix_125:  ; HEADER: AUTO
     mov  edi, dword [eax+CURSOR_OFFSET_125]
 
     abs_jmp_hack 0x458fba
+
+; 0x45f043  (8bb8f0968600)
+fix_128:  ; HEADER: AUTO
+    ; Games prior to DDC are missing this bounds check
+    push edx  ; save (it's an argument to the current function)
+    mov  esi, [ANM_MANAGER_PTR_128]
+    lea  edi, [eax+CURSOR_OFFSET_128]  ; write ptr
+    mov  eax, [edi]
+    add  eax, 0xa8
+    cmp  eax, edi
+    jl   .noreset
+
+    ; requires ANM_MANAGER in esi
+    mov  eax, FLUSH_SPRITES_128
+    call eax
+    lea  eax, [esi+BUFFER_OFFSET_128]
+    mov  [esi+CURSOR_OFFSET_128+0x0], eax  ; write cursor
+    mov  [esi+CURSOR_OFFSET_128+0x4], eax  ; read cursor
+
+.noreset:
+    pop  edx
+    ; original code
+    mov  eax, [ANM_MANAGER_PTR_128]
+    mov  edi, dword [eax+CURSOR_OFFSET_128]
+
+    abs_jmp_hack 0x45f049

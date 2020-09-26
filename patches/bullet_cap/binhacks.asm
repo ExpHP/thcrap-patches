@@ -54,6 +54,15 @@ install_125:  ; HEADER: AUTO
     call  eax
     abs_jmp_hack 0x41d9a8
 
+; 0x426970  (e83be30000)
+install_128:  ; HEADER: AUTO
+    call initialize  ; REWRITE: [codecave:AUTO]
+
+    ; original code
+    mov   eax, 0x434cb0
+    call  eax
+    abs_jmp_hack 0x426975
+
 ; ==========================================
 ; Patch for where games without cancel item freelists increment the next index.
 ;
