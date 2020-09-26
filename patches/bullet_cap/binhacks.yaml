@@ -1,7 +1,9 @@
 codecaves:
   bullet-cap: "00007d00"
   laser-cap: "00001000"
-  cancel-cap: "00008000"
+  cancel-cap:
+    /value-if(not(th125)): "00008000"
+    /value-if(th125): "00000c80"
 
   # Lag spike "softening" constant for big cancels in MoF and SA.
   # Bigger number = more lag.
@@ -51,6 +53,21 @@ binhacks:
         - "E800000000        " # call %%next
         - "C7042423054300    " # mov dword [esp], %1
         - "C3                " # ret
+
+    /fields-if(th125):
+      addr: "0x41d9a3"
+      expected: "e8f8c70000"
+      codecave:
+        - "E8[codecave:ExpHP.bullet-cap.initialize]" # call initialize
+
+        # original code
+        - "B8A0A14200        " # mov   eax, 0x42a1a0
+        - "FFD0              " # call  eax
+        # abs_jmp_hack 0x41d9a8
+        - "E800000000        " # call %%next
+        - "C70424A8D94100    " # mov dword [esp], %1
+        - "C3                " # ret
+
 
   /fields-if(any(th10, th11, th12)):
     ExpHP.bullet-cap.fix-next-cancel:

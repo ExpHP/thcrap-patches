@@ -91,12 +91,6 @@ show_debug_data:  ; HEADER: AUTO
     push eax
     call drawf_spec  ; REWRITE: [codecave:AUTO]
 
-    next_y
-
-
-.nobullets:
-
-    next_y
     leave
     ret
     %pop
@@ -123,6 +117,9 @@ drawf_spec:  ; HEADER: AUTO
 
     cmp  eax, KIND_LASER
     jz near drawf_laser_spec  ; REWRITE: [codecave:AUTO]
+
+    cmp  eax, KIND_ZERO
+    jz near drawf_zero_spec  ; REWRITE: [codecave:AUTO]
 
     int 3
 
@@ -302,6 +299,31 @@ count_array_items_with_nonzero_byte:  ; HEADER: AUTO
     pop  ebx
     epilogue_sd
     ret  0x8
+    %pop
+
+; __stdcall void DrawfZeroSpec(Float3*, ZeroSpec*, char* fmt)
+drawf_zero_spec:  ; HEADER: AUTO
+    %push
+    %define %$pos_ptr  ebp+0x08
+    %define %$spec_ptr ebp+0x0c
+    %define %$fmt      ebp+0x10
+    prologue_sd
+
+    mov esi, [%$spec_ptr]
+    mov eax, [esi + AnmidSpec.struct_ptr]
+    mov edi, [eax]  ; AnmManager pointer
+    test edi, edi
+    jz .nostruct
+
+    push 0
+    push dword [%$fmt]
+    push 10
+    push dword [%$pos_ptr]
+    call drawf_debug_int  ; REWRITE: [codecave:AUTO]
+
+.nostruct:
+    epilogue_sd
+    ret 0xc
     %pop
 
 ; D3DCOLOR GetColor(int amount, int limit)

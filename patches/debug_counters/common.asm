@@ -6,6 +6,7 @@
 %define KIND_ARRAY        1
 %define KIND_ANMID        2
 %define KIND_LASER        3
+%define KIND_ZERO         4
 
 struc ArraySpec  ; DELETE
     .struct_ptr: resd 1 ; address of (possibly null) pointer to struct that holds the array  ; DELETE
@@ -32,4 +33,9 @@ struc AnmidSpec  ; DELETE
     .ui_head_ptr_offset: resd 1  ; DELETE
     ; Check AnmManager::initialize for the first array it initializes
     .num_fast_vms: resd 1  ; size of the "fast VM" array.  Technically the number of VMs can surpass this. DELETE
+endstruc  ; DELETE
+
+; Counter that's always zero
+struc ZeroSpec  ; DELETE
+    .struct_ptr: resd 1  ; Display the counter whenever this pointer is non-null.  ; DELETE
 endstruc  ; DELETE

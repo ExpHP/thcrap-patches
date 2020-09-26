@@ -32,8 +32,26 @@ new_laser_cap_bigendian:  ; DELETE
 new_cancel_cap_bigendian:  ; DELETE
 config_lag_spike_cutoff_bigendian:  ; DELETE
 
+; Used as a datacave to avoid running multiple times
+runonce:  ; HEADER: AUTO
+    dd 0
+
 ; __stdcall Initialize()
 initialize:  ; HEADER: AUTO
+    mov  eax, [runonce]  ; REWRITE: <codecave:AUTO>
+    test eax, eax
+    jnz  .norun
+
+    ; set runonce to 1, regardless of codecave permissions
+    push 1  ; put on stack so we can get pointer
+    mov  ecx, esp
+    mov  eax, runonce  ; REWRITE: <codecave:AUTO>
+    push 4
+    push ecx
+    push eax
+    call memcpy_or_bust  ; REWRITE: [codecave:AUTO]
+    add  esp, 0x4  ; dealloc the '1'
+
     mov  eax, [new_bullet_cap_bigendian]  ; REWRITE: <codecave:bullet-cap>
     bswap eax
     push eax
@@ -55,8 +73,7 @@ initialize:  ; HEADER: AUTO
     push eax
     call do_replacement_list  ; REWRITE: [codecave:AUTO]
 
-    ; mov  eax, new_laser_cap_bigendian  ; REWRITE: <codecave:laser-cap>
-    ; mov  eax, new_cancel_cap_bigendian  ; REWRITE: <codecave:cancel-cap>
+.norun:
     ret
 
 ; Increment the cancel item index in games without a freelist.
@@ -291,7 +308,7 @@ search_n_replace:  ; HEADER: AUTO
     ret 0x18
     %pop
 
-; Replaces instances of a sequence of bytes in an address range.
+; Replaces specified instances of a sequence of bytes.
 ;
 ; ReplaceWithWhitelist(pattern*, replacement*, pattern_len, whitelist*)
 replace_with_whitelist:  ; HEADER: AUTO
@@ -308,17 +325,10 @@ replace_with_whitelist:  ; HEADER: AUTO
     cmp  %$target, WHITELIST_END
     je .end
 
-    ; Expect either the old bytes or the new bytes to be there:
+    ; Expect to find the old bytes there:
     push dword [%$length]
     push %$target
     push dword [%$pattern]
-    call mem_compare  ; REWRITE: [codecave:AUTO]
-    test eax, eax
-    jz   .do_it
-
-    push dword [%$length]
-    push %$target
-    push dword [%$repl]
     call mem_compare  ; REWRITE: [codecave:AUTO]
     test eax, eax
     jz   .do_it
@@ -375,6 +385,8 @@ memcpy_or_bust:  ; HEADER: AUTO
     enter 0x8, 0
     %define %$VirtualProtect ebp-0x04
     %define %$old_protect    ebp-0x08
+    push esi
+    push edi
 
     call get_VirtualProtect  ; REWRITE: [codecave:AUTO]
     mov  [%$VirtualProtect], eax
@@ -401,6 +413,8 @@ memcpy_or_bust:  ; HEADER: AUTO
     push dword [%$dest]
     call [%$VirtualProtect]
 
+    pop edi
+    pop esi
     leave
     ret  0xc
     %pop

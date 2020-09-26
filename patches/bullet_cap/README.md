@@ -1,6 +1,6 @@
 # `bullet_cap`
 
-**Supports:** TH10, TH11, TH12.
+**Supports:** TH10-TH12, TH125.
 
 This patch can be used to increase or reduce the following caps:
 

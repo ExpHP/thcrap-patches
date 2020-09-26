@@ -94,3 +94,35 @@ binhacks:
         - "E800000000        " # call %%next
         - "C70424AAA44500    " # mov dword [esp], %1
         - "C3                " # ret
+
+  /fields-if(th125):
+    ExpHP.sprite-death-fix.hack:
+      addr: "0x458fb4"
+      expected: "8bb8acd68300"
+      codecave:
+        # Games prior to DDC are missing this bounds check
+        - "52                " # push edx  ; save (it's an argument to the current function)
+        - "8B35B40C4D00      " # mov  esi, [ANM_MANAGER_PTR_125]
+        - "8DB8ACD68300      " # lea  edi, [eax+CURSOR_OFFSET_125]  ; write ptr
+        - "8B07              " # mov  eax, [edi]
+        - "05A8000000        " # add  eax, 0xa8
+        - "39F8              " # cmp  eax, edi
+        - "7C19              " # jl   .noreset
+
+        # requires ANM_MANAGER in esi
+        - "B8D08E4500        " # mov  eax, FLUSH_SPRITES_125
+        - "FFD0              " # call eax
+        - "8D86ACD64B00      " # lea  eax, [esi+BUFFER_OFFSET_125]
+        - "8986ACD68300      " # mov  [esi+CURSOR_OFFSET_125+0x0], eax  ; write cursor
+        - "8986B0D68300      " # mov  [esi+CURSOR_OFFSET_125+0x4], eax  ; read cursor
+
+        # .noreset:
+        - "5A                " # pop  edx
+        # original code
+        - "A1B40C4D00        " # mov  eax, [ANM_MANAGER_PTR_125]
+        - "8BB8ACD68300      " # mov  edi, dword [eax+CURSOR_OFFSET_125]
+
+        # abs_jmp_hack 0x458fba
+        - "E800000000        " # call %%next
+        - "C70424BA8F4500    " # mov dword [esp], %1
+        - "C3                " # ret

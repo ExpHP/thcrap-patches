@@ -15,6 +15,11 @@
 %define BUFFER_OFFSET_12 0x4b56a4
 %define CURSOR_OFFSET_12 0x8356a4
 
+%define ANM_MANAGER_PTR_125 0x4d0cb4
+%define FLUSH_SPRITES_125 0x458ed0
+%define BUFFER_OFFSET_125 0x4bd6ac
+%define CURSOR_OFFSET_125 0x83d6ac
+
 ; side-effect-free absolute jump
 %macro  abs_jmp_hack 1
         call %%next
@@ -102,3 +107,31 @@ fix_12:  ; HEADER: AUTO
     mov  edi, dword [eax+CURSOR_OFFSET_12]
 
     abs_jmp_hack 0x45a4aa
+
+; Basically identical to MoF
+; (quite surprising that no function involved has changed its ABI yet)
+; 0x458fb4  (8bb8acd68300)
+fix_125:  ; HEADER: AUTO
+    ; Games prior to DDC are missing this bounds check
+    push edx  ; save (it's an argument to the current function)
+    mov  esi, [ANM_MANAGER_PTR_125]
+    lea  edi, [eax+CURSOR_OFFSET_125]  ; write ptr
+    mov  eax, [edi]
+    add  eax, 0xa8
+    cmp  eax, edi
+    jl   .noreset
+
+    ; requires ANM_MANAGER in esi
+    mov  eax, FLUSH_SPRITES_125
+    call eax
+    lea  eax, [esi+BUFFER_OFFSET_125]
+    mov  [esi+CURSOR_OFFSET_125+0x0], eax  ; write cursor
+    mov  [esi+CURSOR_OFFSET_125+0x4], eax  ; read cursor
+
+.noreset:
+    pop  edx
+    ; original code
+    mov  eax, [ANM_MANAGER_PTR_125]
+    mov  edi, dword [eax+CURSOR_OFFSET_125]
+
+    abs_jmp_hack 0x458fba
