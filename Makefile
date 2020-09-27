@@ -207,13 +207,16 @@ debug-counters: \
 	$(DEBUG_COUNTERS_PATCH)/$(TH12_VER).js \
 	$(DEBUG_COUNTERS_PATCH)/$(TH125_VER).js \
 	$(DEBUG_COUNTERS_PATCH)/$(TH128_VER).js \
+	$(DEBUG_COUNTERS_PATCH)/$(TH13_VER).js \
+	$(DEBUG_COUNTERS_PATCH)/$(TH14_VER).js \
+	$(DEBUG_COUNTERS_PATCH)/$(TH15_VER).js \
 
-$(DEBUG_COUNTERS_PATCH)/global.yaml: $(DEBUG_COUNTERS_PATCH)/global.asm
+$(DEBUG_COUNTERS_PATCH)/global.yaml: $(DEBUG_COUNTERS_PATCH)/global.asm $(DEBUG_COUNTERS_PATCH)/common.asm
 	@echo "# this yaml file is auto-generated" >$@
 	@echo "codecaves:" >>$@
 	scripts/list-asm $< >>$@
 
-$(DEBUG_COUNTERS_PATCH)/th%.yaml: $(DEBUG_COUNTERS_PATCH)/th%.asm
+$(DEBUG_COUNTERS_PATCH)/th%.yaml: $(DEBUG_COUNTERS_PATCH)/th%.asm $(DEBUG_COUNTERS_PATCH)/common.asm
 	@echo "# this yaml file is auto-generated" >$@
 	@echo "codecaves:" >>$@
 	scripts/list-asm $< >>$@

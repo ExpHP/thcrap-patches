@@ -29,7 +29,10 @@ cat "$TEMPFILE" |
     sed -E '/# (pro|epi)logue_sd$/{n;N;N;N;d}' | # delete 4 lines following prologue_sd or epilogue_sd
     sed -e 's@# prologue_sd$@- "55 89E5 56 57     " # prologue w/ esi edi@' |
     sed -e 's@# epilogue_sd$@- "5F 5E 89EC 5D     " # epilogue w/ esi edi@' |
-    fgrep -v '# %%next:' |
+    # (abs_jmp_hack is a frequent source of noise, but compressing it with sed is tricky due to little endian encoding;
+    #  we will require exactly 6 hexadecimal digits for simplicity)
+    sed -E '/# abs_jmp_hack +0x[0-9a-fA-F]{6} *(;.+)?$/{n;N;N;N;d}' | # delete 4 lines following abs_jmp_hack
+    sed -E 's@# abs_jmp_hack +0x([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})( *;(.+))?$@- "E800000000C70424 \3\2\100 C3" # jump to 0x\1\2\3\4@' |
     
     # Alright, everything else is too hard to sed.
     python3 scripts/list-asm-postprocess.py

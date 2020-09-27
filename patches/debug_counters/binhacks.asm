@@ -63,6 +63,13 @@ binhack_14:  ; HEADER: AUTO
     mov  eax, dword [0x4db520] ; original code
     abs_jmp_hack 0x42e658
 
+; 0x433773  (a1589a4e00)
+binhack_15:  ; HEADER: AUTO
+    call show_debug_data  ; REWRITE: [codecave:AUTO]
+
+    mov  eax, dword [0x4e9a58] ; original code
+    abs_jmp_hack 0x433778
+
 line_info_strings:  ; HEADER: AUTO
     ; The line info codecave is maintained in yaml where there are conditional flags.
     ; These are here just for the ASCII conversion.

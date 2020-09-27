@@ -24,10 +24,35 @@ show_debug_data:  ; HEADER: AUTO
     %define %$limit   ebp-0x14
     push edi
 
-    mov dword [%$pos_x], __float32__(548.0)
-    mov dword [%$pos_y], __float32__(470.0)
-    mov dword [%$pos_z], __float32__(0.0)
-    mov dword [%$delta_y], __float32__(10.0)
+    mov  eax, color_data  ; REWRITE: <codecave:AUTO>
+    mov  eax, [eax + ColorData.positioning]
+    cmp  eax, POSITIONING_MOF
+    je   .pos_mof
+    cmp  eax, POSITIONING_TD
+    je   .pos_td
+    cmp  eax, POSITIONING_DDC
+    je   .pos_ddc
+    int  3
+
+.pos_mof:
+    mov  dword [%$pos_x], __float32__(548.0)
+    mov  dword [%$pos_y], __float32__(470.0)
+    mov  dword [%$pos_z], __float32__(0.0)
+    mov  dword [%$delta_y], __float32__(10.0)
+    jmp  .pos_done
+.pos_td:
+    mov  dword [%$pos_x], __float32__(546.0)
+    mov  dword [%$pos_y], __float32__(470.0)
+    mov  dword [%$pos_z], __float32__(0.0)
+    mov  dword [%$delta_y], __float32__(10.0)
+    jmp  .pos_done
+.pos_ddc:
+    mov  dword [%$pos_x], __float32__(552.0)
+    mov  dword [%$pos_y], __float32__(470.0)
+    mov  dword [%$pos_z], __float32__(0.0)
+    mov  dword [%$delta_y], __float32__(10.0)
+
+.pos_done:
 
     mov  edi, line_info  ; REWRITE: <codecave:AUTO>
 

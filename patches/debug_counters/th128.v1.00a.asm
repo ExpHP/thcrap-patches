@@ -11,6 +11,7 @@ color_data:  ; HEADER: AUTO
 istruc ColorData
     at ColorData.ascii_manager_ptr, dd 0x4b8920
     at ColorData.color_offset, dd 0x1c84c
+    at ColorData.positioning, dd POSITIONING_TD
 iend
 
 ; __stdcall void DrawfDebugInt(AsciiManager*, Float3*, char*, int current)

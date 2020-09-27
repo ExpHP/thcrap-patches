@@ -63,6 +63,16 @@ binhacks:
         - "A120B54D00        " # mov  eax, dword [0x4db520] ; original code
         - "E800000000C70424 58e64200 C3" # jump to 0x42e658
 
+    /fields-if(th15):
+      addr: "0x433773"
+      expected: "a1589a4e00"
+      codecave:
+        - "E8[codecave:ExpHP.debug-counters.show-debug-data]" # call show_debug_data
+
+        - "A1589A4E00        " # mov  eax, dword [0x4e9a58] ; original code
+        - "E800000000C70424 78374300 C3" # jump to 0x433778
+
+
 codecaves:
   ExpHP.debug-counters.line-info:
     - "<codecave:ExpHP.debug-counters.anmid-data>"

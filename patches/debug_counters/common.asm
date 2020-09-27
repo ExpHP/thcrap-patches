@@ -7,10 +7,14 @@
 %define KIND_ANMID        2
 %define KIND_FIELD        3
 %define KIND_ZERO         4
+%define POSITIONING_MOF   1
+%define POSITIONING_TD    2
+%define POSITIONING_DDC   3
 
 struc ColorData  ; DELETE
     .ascii_manager_ptr: resd 1  ; DELETE
     .color_offset: resd 1  ; DELETE
+    .positioning: resd 1  ; DELETE
 endstruc  ; DELETE
 
 struc LineInfoEntry  ; DELETE
