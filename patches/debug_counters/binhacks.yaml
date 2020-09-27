@@ -63,6 +63,15 @@ binhacks:
         - "A120B54D00        " # mov  eax, dword [0x4db520] ; original code
         - "E800000000C70424 58e64200 C3" # jump to 0x42e658
 
+    /fields-if(th143):
+      addr: "0x42bf53"
+      expected: "a1f8694e00"
+      codecave:
+        - "E8[codecave:ExpHP.debug-counters.show-debug-data]" # call show_debug_data
+
+        - "A1F8694E00        " # mov  eax, dword [0x4e69f8] ; original code
+        - "E800000000C70424 58bf4200 C3" # jump to 0x42bf58
+
     /fields-if(th15):
       addr: "0x433773"
       expected: "a1589a4e00"
@@ -72,6 +81,32 @@ binhacks:
         - "A1589A4E00        " # mov  eax, dword [0x4e9a58] ; original code
         - "E800000000C70424 78374300 C3" # jump to 0x433778
 
+    /fields-if(th16):
+      addr: "0x426473"
+      expected: "a1986d4a00"
+      codecave:
+        - "E8[codecave:ExpHP.debug-counters.show-debug-data]" # call show_debug_data
+
+        - "A1986D4A00        " # mov  eax, dword [0x4a6d98] ; original code
+        - "E800000000C70424 78644200 C3" # jump to 0x426478
+
+    /fields-if(th165):
+      addr: "0x424267"
+      expected: "a1f8544b00"
+      codecave:
+        - "E8[codecave:ExpHP.debug-counters.show-debug-data]" # call show_debug_data
+
+        - "A1F8544B00        " # mov  eax, dword [0x4b54f8] ; original code
+        - "E800000000C70424 6c424200 C3" # jump to 0x42426c
+
+    /fields-if(th17):
+      addr: "0x429fc3"
+      expected: "a178764b00"
+      codecave:
+        - "E8[codecave:ExpHP.debug-counters.show-debug-data]" # call show_debug_data
+
+        - "A178764B00        " # mov  eax, dword [0x4b7678] ; original code
+        - "E800000000C70424 c89f4200 C3" # jump to 0x429fc8
 
 codecaves:
   ExpHP.debug-counters.line-info:

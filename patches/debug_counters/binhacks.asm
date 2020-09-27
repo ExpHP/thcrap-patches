@@ -14,6 +14,9 @@
 
 ; AUTO_PREFIX: ExpHP.debug-counters.
 
+;=================================
+; Main binhack:  We put this immediately after the call to AsciiManager::drawf_debug in FpsCounter::on_draw.
+
 ; 0x413653
 binhack_10:  ; HEADER: AUTO
     call show_debug_data  ; REWRITE: [codecave:AUTO]
@@ -63,12 +66,40 @@ binhack_14:  ; HEADER: AUTO
     mov  eax, dword [0x4db520] ; original code
     abs_jmp_hack 0x42e658
 
+; 0x42bf53  (a1f8694e00)
+binhack_143:  ; HEADER: AUTO
+    call show_debug_data  ; REWRITE: [codecave:AUTO]
+
+    mov  eax, dword [0x4e69f8] ; original code
+    abs_jmp_hack 0x42bf58
+
 ; 0x433773  (a1589a4e00)
 binhack_15:  ; HEADER: AUTO
     call show_debug_data  ; REWRITE: [codecave:AUTO]
 
     mov  eax, dword [0x4e9a58] ; original code
     abs_jmp_hack 0x433778
+
+; 0x426473  (a1986d4a00)
+binhack_16:  ; HEADER: AUTO
+    call show_debug_data  ; REWRITE: [codecave:AUTO]
+
+    mov  eax, dword [0x4a6d98] ; original code
+    abs_jmp_hack 0x426478
+
+; 0x424267  (a1f8544b00)
+binhack_165:  ; HEADER: AUTO
+    call show_debug_data  ; REWRITE: [codecave:AUTO]
+
+    mov  eax, dword [0x4b54f8] ; original code
+    abs_jmp_hack 0x42426c
+
+; 0x429fc3  (a178764b00)
+binhack_17:  ; HEADER: AUTO
+    call show_debug_data  ; REWRITE: [codecave:AUTO]
+
+    mov  eax, dword [0x4b7678] ; original code
+    abs_jmp_hack 0x429fc8
 
 line_info_strings:  ; HEADER: AUTO
     ; The line info codecave is maintained in yaml where there are conditional flags.
