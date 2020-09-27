@@ -4,31 +4,28 @@
 
 ; AUTO_PREFIX: ExpHP.debug-counters.
 
-%define ASCII_MANAGER_PTR 0x4776e0
-%define ASCIIMGR_COLOR    0x8974
 ; the drawf function that is only used by FpsCounter and DebugSprtView
 %define DRAWF_DEBUG       0x401690
-%define COLOR_WHITE       0xffffffff
 
-; __stdcall void DrawfDebugInt(Float3*, int limit, char*, int current)
+color_data:  ; HEADER: AUTO
+istruc ColorData
+    at ColorData.ascii_manager_ptr, dd 0x4776e0
+    at ColorData.color_offset, dd 0x8974
+iend
+
+; __stdcall void DrawfDebugInt(AsciiManager*, Float3*, char*, int current)
 drawf_debug_int:  ; HEADER: AUTO
     prologue_sd
-    push dword [ebp+0x0c] ; limit
-    push dword [ebp+0x14] ; current
-    call get_color  ; REWRITE: [codecave:AUTO]
-    mov  ecx, [ASCII_MANAGER_PTR]
-    mov  [ecx+ASCIIMGR_COLOR], eax
-
-    ; MoF-GFW have a weird calling convention
-    mov  esi, [ASCII_MANAGER_PTR]
-    mov  ebx, [ebp+0x08] ; pos
+    push ebx
+    ; MoF-TD have a weird calling convention
     push dword [ebp+0x14] ; arg
     push dword [ebp+0x10] ; template
+    mov  ebx, [ebp+0x0c] ; pos
+    mov  esi, [ebp+0x08] ; AsciiManager
     mov  eax, DRAWF_DEBUG
     call eax
     add  esp, 0x8  ; caller cleans stack for varargs
-
-    mov  dword [esi+ASCIIMGR_COLOR], COLOR_WHITE
+    pop ebx
     epilogue_sd
     ret 0x10
 
@@ -69,11 +66,11 @@ istruc ArraySpec
 iend
 
 laser_data:  ; HEADER: AUTO
-    dd KIND_LASER
-istruc LaserSpec
-    at LaserSpec.struct_ptr, dd 0x47781c
-    at LaserSpec.count_offset, dd 0x438
-    at LaserSpec.limit_addr, dd 0x41c51a - 4
+    dd KIND_FIELD
+istruc FieldSpec
+    at FieldSpec.struct_ptr, dd 0x47781c
+    at FieldSpec.count_offset, dd 0x438
+    at FieldSpec.limit_addr, dd 0x41c51a - 4
 iend
 
 anmid_data:  ; HEADER: AUTO

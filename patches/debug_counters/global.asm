@@ -4,23 +4,15 @@
 
 ; AUTO_PREFIX: ExpHP.debug-counters.
 
-anmid_data:  ; DELETE
-laser_data:  ; DELETE
-bullet_data: ; DELETE
-normal_item_data: ; DELETE
-cancel_item_data: ; DELETE
+line_info: ; DELETE
+color_data: ; DELETE
 
+; Each game.asm implements this to provide a stdcall wrapper around AsciiManager::drawf_debug
+; for a format string that takes a single DWORD integer:
+;
+; __stdcall DrawfDebugInt(AnmManager*, Float3*, char*, int)
 drawf_debug_int: ; DELETE
 
-data:  ; HEADER: AUTO
-strings:
-.enemy_msg: db "%7d enemy", 0
-.normal_item_msg: db "%7d itemN", 0
-.cancel_item_msg: db "%7d itemC", 0
-.bullet_msg: db "%7d etama", 0
-.laser_msg: db "%7d laser", 0,
-.anmid_msg: db "%7d anmid", 0
-.drawcall_msg: db "%7d draws", 0
 
 show_debug_data:  ; HEADER: AUTO
     %push
@@ -30,67 +22,37 @@ show_debug_data:  ; HEADER: AUTO
     %define %$pos_x ebp-0x0c
     %define %$delta_y ebp-0x10
     %define %$limit   ebp-0x14
+    push edi
+
     mov dword [%$pos_x], __float32__(548.0)
     mov dword [%$pos_y], __float32__(470.0)
     mov dword [%$pos_z], __float32__(0.0)
     mov dword [%$delta_y], __float32__(10.0)
 
-    %macro next_y 0
-        movss xmm0, [%$pos_y]
-        subss xmm0, [%$delta_y]
-        movss [%$pos_y], xmm0
-    %endmacro
+    mov  edi, line_info  ; REWRITE: <codecave:AUTO>
 
-    next_y
+.iter:
+    mov  eax, [edi + LineInfoEntry.data_ptr]
+    test eax, eax
+    jz   .end
 
-    mov  eax, data  ; REWRITE: <codecave:AUTO>
-    lea  eax, [eax + strings.anmid_msg - data]
+    ; move up to next display position
+    movss xmm0, [%$pos_y]
+    subss xmm0, [%$delta_y]
+    movss [%$pos_y], xmm0
+
+    lea  eax, [edi + LineInfoEntry.fmt_string]
     push eax
-    push anmid_data  ; REWRITE: <codecave:AUTO>
+    push dword [edi + LineInfoEntry.data_ptr]
     lea  eax, [%$pos_x]
     push eax
     call drawf_spec  ; REWRITE: [codecave:AUTO]
 
-    next_y
+    add  edi, LineInfoEntry_size
+    jmp .iter
+.end:
 
-    mov  eax, data  ; REWRITE: <codecave:AUTO>
-    lea  eax, [eax + strings.bullet_msg - data]
-    push eax
-    push bullet_data  ; REWRITE: <codecave:AUTO>
-    lea  eax, [%$pos_x]
-    push eax
-    call drawf_spec  ; REWRITE: [codecave:AUTO]
-
-    next_y
-
-    mov  eax, data  ; REWRITE: <codecave:AUTO>
-    lea  eax, [eax + strings.laser_msg - data]
-    push eax
-    push laser_data  ; REWRITE: <codecave:AUTO>
-    lea  eax, [%$pos_x]
-    push eax
-    call drawf_spec  ; REWRITE: [codecave:AUTO]
-
-    next_y
-
-    mov  eax, data  ; REWRITE: <codecave:AUTO>
-    lea  eax, [eax + strings.cancel_item_msg - data]
-    push eax
-    push cancel_item_data  ; REWRITE: <codecave:AUTO>
-    lea  eax, [%$pos_x]
-    push eax
-    call drawf_spec  ; REWRITE: [codecave:AUTO]
-
-    next_y
-
-    mov  eax, data  ; REWRITE: <codecave:AUTO>
-    lea  eax, [eax + strings.normal_item_msg - data]
-    push eax
-    push normal_item_data  ; REWRITE: <codecave:AUTO>
-    lea  eax, [%$pos_x]
-    push eax
-    call drawf_spec  ; REWRITE: [codecave:AUTO]
-
+    pop  edi
     leave
     ret
     %pop
@@ -115,14 +77,13 @@ drawf_spec:  ; HEADER: AUTO
     cmp  eax, KIND_ANMID
     jz near drawf_anmid_spec  ; REWRITE: [codecave:AUTO]
 
-    cmp  eax, KIND_LASER
-    jz near drawf_laser_spec  ; REWRITE: [codecave:AUTO]
+    cmp  eax, KIND_FIELD
+    jz near drawf_field_spec  ; REWRITE: [codecave:AUTO]
 
     cmp  eax, KIND_ZERO
     jz near drawf_zero_spec  ; REWRITE: [codecave:AUTO]
 
     int 3
-
 
 ; __stdcall void DrawfArraySpec(Float3*, ArraySpec*, char* fmt)
 drawf_array_spec:  ; HEADER: AUTO
@@ -148,15 +109,15 @@ drawf_array_spec:  ; HEADER: AUTO
     push dword [%$fmt]
     push dword [%$limit]
     push dword [%$pos_ptr]
-    call drawf_debug_int  ; REWRITE: [codecave:AUTO]
+    call drawf_debug_int_colorval  ; REWRITE: [codecave:AUTO]
 
 .nostruct:
     leave
     ret 0xc
     %pop
 
-; __stdcall void DrawfLaserSpec(Float3*, LaserSpec*, char* fmt)
-drawf_laser_spec:  ; HEADER: AUTO
+; __stdcall void DrawfFieldSpec(Float3*, FieldSpec*, char* fmt)
+drawf_field_spec:  ; HEADER: AUTO
     %push
     %define %$pos_ptr  ebp+0x08
     %define %$spec_ptr ebp+0x0c
@@ -166,18 +127,18 @@ drawf_laser_spec:  ; HEADER: AUTO
     push esi
 
     mov esi, [%$spec_ptr]
-    mov eax, [esi + LaserSpec.struct_ptr]
-    mov edi, [eax]  ; LaserManager pointer
+    mov eax, [esi + FieldSpec.struct_ptr]
+    mov edi, [eax]
     test edi, edi
     jz .nostruct
 
-    mov  eax, [esi + LaserSpec.count_offset]
+    mov  eax, [esi + FieldSpec.count_offset]
     push dword [edi+eax] ; count
     push dword [%$fmt]
-    mov  eax, [esi + LaserSpec.limit_addr]
+    mov  eax, [esi + FieldSpec.limit_addr]
     push dword [eax]
     push dword [%$pos_ptr]
-    call drawf_debug_int  ; REWRITE: [codecave:AUTO]
+    call drawf_debug_int_colorval  ; REWRITE: [codecave:AUTO]
 
 .nostruct:
     pop esi
@@ -221,7 +182,7 @@ drawf_anmid_spec:  ; HEADER: AUTO
     push dword [%$fmt]
     push dword [esi + AnmidSpec.num_fast_vms]
     push dword [%$pos_ptr]
-    call drawf_debug_int  ; REWRITE: [codecave:AUTO]
+    call drawf_debug_int_colorval  ; REWRITE: [codecave:AUTO]
 
 .nostruct:
     pop esi
@@ -319,7 +280,7 @@ drawf_zero_spec:  ; HEADER: AUTO
     push dword [%$fmt]
     push 10
     push dword [%$pos_ptr]
-    call drawf_debug_int  ; REWRITE: [codecave:AUTO]
+    call drawf_debug_int_colorval  ; REWRITE: [codecave:AUTO]
 
 .nostruct:
     epilogue_sd
@@ -352,3 +313,30 @@ get_color:  ; HEADER: AUTO
     epilogue_sd
     ret  0x8
     %pop
+
+; Wrapper around DrawfDebugInt that sets color based on value.
+;
+; DrawfDebugIntColorval(Float3*, int limit, char* fmt, int amount)
+drawf_debug_int_colorval:  ; HEADER: AUTO
+    prologue_sd
+    ; get ptr to AsciiManager color field
+    mov  edi, color_data  ; REWRITE: <codecave:AUTO>
+    mov  esi, [edi + ColorData.ascii_manager_ptr]
+    mov  esi, [esi]
+    add  esi, [edi + ColorData.color_offset]
+
+    push dword [ebp+0x0c] ; limit
+    push dword [ebp+0x14] ; current
+    call get_color  ; REWRITE: [codecave:AUTO]
+    mov  [esi], eax
+
+    push dword [ebp+0x14] ; arg
+    push dword [ebp+0x10] ; template
+    push dword [ebp+0x08] ; pos
+    mov  eax, [edi + ColorData.ascii_manager_ptr]
+    push dword [eax]
+    call drawf_debug_int  ; REWRITE: [codecave:AUTO]
+
+    mov  dword [esi], COLOR_WHITE
+    epilogue_sd
+    ret 0x10

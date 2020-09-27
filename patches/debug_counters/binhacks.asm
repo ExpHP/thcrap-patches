@@ -49,4 +49,28 @@ binhack_128:  ; HEADER: AUTO
     mov  edx, dword [0x4b8920] ; original code
     abs_jmp_hack 0x41fb36
 
+; 0x424b2c  (8b0d60214c00)
+binhack_13:  ; HEADER: AUTO
+    call show_debug_data  ; REWRITE: [codecave:AUTO]
+
+    mov  ecx, dword [0x4c2160] ; original code
+    abs_jmp_hack 0x424b32
+
+; 0x42e653  (a120b54d00)
+binhack_14:  ; HEADER: AUTO
+    call show_debug_data  ; REWRITE: [codecave:AUTO]
+
+    mov  eax, dword [0x4db520] ; original code
+    abs_jmp_hack 0x42e658
+
+line_info_strings:  ; HEADER: AUTO
+    ; The line info codecave is maintained in yaml where there are conditional flags.
+    ; These are here just for the ASCII conversion.
+    dd "%7d anmid"
+    dd "%7d etama"
+    dd "%7d laser"
+    dd "%7d itemN"
+    dd "%7d itemC"
+    dd "%7d lgods"
+
 show_debug_data:  ; DELETE

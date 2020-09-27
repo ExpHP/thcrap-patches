@@ -5,8 +5,18 @@
 %define COLOR_MAX         0xffff3429
 %define KIND_ARRAY        1
 %define KIND_ANMID        2
-%define KIND_LASER        3
+%define KIND_FIELD        3
 %define KIND_ZERO         4
+
+struc ColorData  ; DELETE
+    .ascii_manager_ptr: resd 1  ; DELETE
+    .color_offset: resd 1  ; DELETE
+endstruc  ; DELETE
+
+struc LineInfoEntry  ; DELETE
+    .data_ptr: resd 1  ; DELETE
+    .fmt_string: resd 3  ; DELETE
+endstruc  ; DELETE
 
 struc ArraySpec  ; DELETE
     .struct_ptr: resd 1 ; address of (possibly null) pointer to struct that holds the array  ; DELETE
@@ -18,7 +28,7 @@ struc ArraySpec  ; DELETE
     .stride: resd 1  ; size of each item in the array  ; DELETE
 endstruc  ; DELETE
 
-struc LaserSpec  ; DELETE
+struc FieldSpec  ; DELETE
     .struct_ptr: resd 1  ; DELETE
     ; Find these in the function that allocates a laser.
     ; (in the LASER_MANAGER crossrefs, about two down from LaserManager::operator new)

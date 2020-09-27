@@ -7,10 +7,7 @@ binhacks:
         - "E8[codecave:ExpHP.debug-counters.show-debug-data]" # call show_debug_data
 
         - "A1E0764700        " # mov  eax, [ASCII_MANAGER_PTR] ; original code
-        # abs_jmp_hack 0x413658
-        - "E800000000        " # call %%next
-        - "C7042458364100    " # mov dword [esp], %1
-        - "C3                " # ret
+        - "E800000000C70424 58364100 C3" # jump to 0x413658
 
     /fields-if(th11):
       addr: "0x419f2b"
@@ -19,10 +16,7 @@ binhacks:
         - "E8[codecave:ExpHP.debug-counters.show-debug-data]" # call show_debug_data
 
         - "8B0D588D4A00      " # mov  ecx, [ASCII_MANAGER_PTR] ; original code
-        # abs_jmp_hack 0x419f31
-        - "E800000000        " # call %%next
-        - "C70424319F4100    " # mov dword [esp], %1
-        - "C3                " # ret
+        - "E800000000C70424 319f4100 C3" # jump to 0x419f31
 
     /fields-if(th12):
       addr: "0x41cd20"
@@ -31,10 +25,7 @@ binhacks:
         - "E8[codecave:ExpHP.debug-counters.show-debug-data]" # call show_debug_data
 
         - "8B0DB8434B00      " # mov  ecx, [0x4b43b8] ; original code
-        # abs_jmp_hack 0x41cd26
-        - "E800000000        " # call %%next
-        - "C7042426CD4100    " # mov dword [esp], %1
-        - "C3                " # ret
+        - "E800000000C70424 26cd4100 C3" # jump to 0x41cd26
 
     /fields-if(th125):
       addr: "0x41af25"
@@ -43,10 +34,7 @@ binhacks:
         - "E8[codecave:ExpHP.debug-counters.show-debug-data]" # call show_debug_data
 
         - "8B1570674B00      " # mov  edx, [0x4b6770] ; original code
-        # abs_jmp_hack 0x41af2b
-        - "E800000000        " # call %%next
-        - "C704242BAF4100    " # mov dword [esp], %1
-        - "C3                " # ret
+        - "E800000000C70424 2baf4100 C3" # jump to 0x41af2b
 
     /fields-if(th128):
       addr: "0x41fb30"
@@ -55,7 +43,38 @@ binhacks:
         - "E8[codecave:ExpHP.debug-counters.show-debug-data]" # call show_debug_data
 
         - "8B1520894B00      " # mov  edx, dword [0x4b8920] ; original code
-        # abs_jmp_hack 0x41fb36
-        - "E800000000        " # call %%next
-        - "C7042436FB4100    " # mov dword [esp], %1
-        - "C3                " # ret
+        - "E800000000C70424 36fb4100 C3" # jump to 0x41fb36
+
+    /fields-if(th13):
+      addr: "0x424b2c"
+      expected: "8b0d60214c00"
+      codecave:
+        - "E8[codecave:ExpHP.debug-counters.show-debug-data]" # call show_debug_data
+
+        - "8B0D60214C00      " # mov  ecx, dword [0x4c2160] ; original code
+        - "E800000000C70424 324b4200 C3" # jump to 0x424b32
+
+    /fields-if(th14):
+      addr: "0x42e653"
+      expected: "a120b54d00"
+      codecave:
+        - "E8[codecave:ExpHP.debug-counters.show-debug-data]" # call show_debug_data
+
+        - "A120B54D00        " # mov  eax, dword [0x4db520] ; original code
+        - "E800000000C70424 58e64200 C3" # jump to 0x42e658
+
+codecaves:
+  ExpHP.debug-counters.line-info:
+    - "<codecave:ExpHP.debug-counters.anmid-data>"
+    - "25376420616E6D6964000000" # dd "%7d anmid"
+    - "<codecave:ExpHP.debug-counters.bullet-data>"
+    - "253764206574616D61000000" # dd "%7d etama"
+    - "<codecave:ExpHP.debug-counters.laser-data>"
+    - "253764206C61736572000000" # dd "%7d laser"
+    - "<codecave:ExpHP.debug-counters.normal-item-data>"
+    - "253764206974656D4E000000" # dd "%7d itemN"
+    - "<codecave:ExpHP.debug-counters.cancel-item-data>"
+    - "253764206974656D43000000" # dd "%7d itemC"
+    - /item-if(th13): "<codecave:ExpHP.debug-counters.spirit-data>"
+    - /item-if(th13): "253764206C676F6473000000" # dd "%7d lgods"
+    - "00000000"

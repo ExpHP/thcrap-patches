@@ -10,9 +10,10 @@ Legend:
 
 * `itemN`: Number of normal items onscreen.
 * `itemC`: Number of cancel items onscreen (includes season items in TH16).  These have their own count because they live in a separate, *significantly larger* array.
-* `laser`: Number of lasers.
-* `etama`: Number of bullets.
+* `laser`: Number of lasers onscreen.
+* `etama`: Number of bullets onscreen.
 * `anmid`: Number of automatically-managed ANM VMs.  This counts certain types of sprites that the game refers to by ID rather than storing them directly on a game object.
+* `lgods`: (TH13) Number of divine spirits onscreen.
 
 The numbers are colored orange when within 75% of maximum capacity, and red when they hit the max.  (`anmid` doesn't really have a maximum, but it is colored red when the count exceeds the length of the "fast VM" array, which is expected to impact performance).
 
