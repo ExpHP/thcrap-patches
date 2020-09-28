@@ -18,10 +18,16 @@ endstruc  ; DELETE
 ;
 ;    SCALE_SIZE_DIV(n) :  The value should be adjusted as  `value -> value + (new_cap - old_cap) * elem_size / n`.
 ;                         Needed to handle things like `rep stosd`.
+;
+;       SCALE_1_DIV(n) :  The value should be adjusted as  `value -> value + (new_cap - old_cap) / n`.
+;                         Both `old_cap` and `new_cap` must be divisible by `n`. If `new_cap` isn't, a user-facing error is displayed.
+;                         This is used to deal with some stupidly-unrolled loops in some games until I have
+;                         the time and energy to write more binhacks to un-unroll them.
 
-%define SCALE_1           0
+%define SCALE_1           -1
 %define SCALE_SIZE        1
 %define SCALE_SIZE_DIV(n) n
+%define SCALE_1_DIV(n)    -n
 
 ; After that is either a whitelist of addresses to replace, or a blacklist of addresses to NOT replace.
 

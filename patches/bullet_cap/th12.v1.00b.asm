@@ -99,8 +99,9 @@ iend
 perf_fix_data:  ; HEADER: AUTO
     dd 0  ; unused
 
-iat_funcs:  ; HEADER: ExpHP.bullet-cap.iat-funcs
+iat_funcs:  ; HEADER: AUTO
 .GetLastError: dd 0x4980e4
 .GetModuleHandleA: dd 0
 .GetModuleHandleW: dd 0x498174
 .GetProcAddress: dd 0x498170
+.MessageBoxA: dd 0x49824c

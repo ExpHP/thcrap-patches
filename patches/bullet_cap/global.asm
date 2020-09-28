@@ -8,14 +8,15 @@
 %include "util.asm"
 %include "common.asm"
 
+%define MB_OK 0
 %define PAGE_EXECUTE_READWRITE 0x40
-%define LAG_SPIKE_CUTOFF 50000
 
 iat_funcs:  ; DELETE
 .GetLastError: dd 0  ; DELETE
 .GetModuleHandleA: dd 0  ; DELETE
 .GetModuleHandleW: dd 0  ; DELETE
 .GetProcAddress: dd 0  ; DELETE
+.MessageBoxA: dd 0  ; DELETE
 
 address_range:  ; DELETE
 .start: dd 0  ; DELETE
@@ -31,6 +32,15 @@ new_bullet_cap_bigendian:  ; DELETE
 new_laser_cap_bigendian:  ; DELETE
 new_cancel_cap_bigendian:  ; DELETE
 config_lag_spike_cutoff_bigendian:  ; DELETE
+
+data:  ; HEADER: ExpHP.bullet-cap.data
+wstrings:
+.kernel32: dw 'K', 'e', 'r', 'n', 'e', 'l', '3', '2', 0
+strings:
+.kernel32: db "Kernel32", 0
+.VirtualProtect: db "VirtualProtect", 0
+.error_title: db "bullet_cap mod error", 0
+.divisibility_error: db "Sorry, due to technical limitations, the bullet cap in Ten Desires must be divisible by 5, and the cancel cap must be divisible by 4.", 0
 
 ; Used as a datacave to avoid running multiple times
 runonce:  ; HEADER: AUTO
@@ -162,23 +172,45 @@ determine_new_value:  ; HEADER: AUTO
     enter 0x4, 0
     %define %$scale       ebp-0x04
 
-    mov  dword [%$scale], 1
-    cmp  dword [%$scale_const], SCALE_1
-    je   .scale_done
+    cmp  dword [%$scale_const], 0
+    jg   .pos_scale
+    jl   .neg_scale
+    int  3  ; 0 is invalid
 
-    ; scale constant nonzero; must be SCALE_SIZE_DIV(n)
-    xor  edx, edx
+.pos_scale:  ; positive scale constant is SCALE_SIZE_DIV(n)
     mov  eax, [%$item_size]
-    div  dword [%$scale_const]
     mov  [%$scale], eax
+    jmp  .scale_done
+.neg_scale:  ; negative scale constant is SCALE_1_DIV(n)
+    mov  dword [%$scale], 1
+    neg  dword [%$scale_const]  ;  abs(x)
 
 .scale_done:
-
     mov  eax, [%$new_cap]
     sub  eax, [%$old_cap]
     imul eax, [%$scale]
-    add  eax, [%$old_value]
+    cdq
+    idiv dword [%$scale_const]
+    add  eax, dword [%$old_value]
 
+    ; keep eax from division for return value
+    test edx, edx  ; check remainder
+    jz   .done
+
+.divisibility_error:
+    mov  ecx, data  ; REWRITE: <codecave:AUTO>
+    push MB_OK  ; uType
+    lea  eax, [ecx + strings.error_title - data]
+    push eax  ; lpCaption
+    lea  eax, [ecx + strings.divisibility_error - data]
+    push eax  ; lpText
+    push 0  ; hWnd
+    mov  eax, iat_funcs  ; REWRITE: <codecave:AUTO>
+    mov  eax, [eax + iat_funcs.MessageBoxA - iat_funcs]
+    call [eax]
+    int  3
+
+.done:
     leave
     ret  0x14
     %pop
@@ -437,8 +469,15 @@ less_spikey_find_world_vm:  ; HEADER: AUTO
     %define %$vm         ebp-0x0c
     %define %$tail_delay ebp-0x10
 
+    ; deprecated name;  use if not negative
     mov  eax, dword [config_lag_spike_cutoff_bigendian]  ; REWRITE: <codecave:bullet-cap-config.mof-sa-lag-spike-size>
     bswap eax
+    test eax, eax
+    jns  .done_config
+
+    mov  eax, dword [config_lag_spike_cutoff_bigendian]  ; REWRITE: <codecave:bullet-cap-config.anm-search-lag-spike-size>
+    bswap eax
+.done_config:
     inc  eax  ; this is so that we can check ZF after doing `dec`
     mov  [%$tail_delay], eax
 
@@ -499,13 +538,6 @@ less_spikey_find_world_vm:  ; HEADER: AUTO
 .end:
     leave
     ret  0x4
-
-data:  ; HEADER: ExpHP.bullet-cap.data
-wstrings:
-.kernel32: dw 'K', 'e', 'r', 'n', 'e', 'l', '3', '2', 0
-strings:
-.kernel32: db "Kernel32", 0
-.VirtualProtect: db "VirtualProtect", 0
 
 get_VirtualProtect:  ; HEADER: AUTO
     prologue_sd

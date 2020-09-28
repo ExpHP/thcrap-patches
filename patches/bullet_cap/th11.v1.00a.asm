@@ -97,8 +97,9 @@ istruc PerfFixData
     at PerfFixData.anm_id_offset, dd 0
 iend
 
-iat_funcs:  ; HEADER: ExpHP.bullet-cap.iat-funcs
+iat_funcs:  ; HEADER: AUTO
 .GetLastError: dd 0x48b1b8
 .GetModuleHandleA: dd 0
 .GetModuleHandleW: dd 0x48b174
 .GetProcAddress: dd 0x48b170
+.MessageBoxA: dd 0x48b24c

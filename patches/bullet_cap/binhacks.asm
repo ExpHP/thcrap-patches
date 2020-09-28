@@ -63,6 +63,15 @@ install_128:  ; HEADER: AUTO
     call  eax
     abs_jmp_hack 0x426975
 
+; 0x42c4f0  (e88bed0000)
+install_13:  ; HEADER: AUTO
+    call initialize  ; REWRITE: [codecave:AUTO]
+
+    ; original code
+    mov   eax, 0x43b280
+    call  eax
+    abs_jmp_hack 0x42c4f5
+
 ; ==========================================
 ; Patch for where games without cancel item freelists increment the next index.
 ;
@@ -96,6 +105,7 @@ fix_next_cancel_12:  ; HEADER: AUTO
 
 ; TH10: 0x4491cd  (8b82d4da7200)
 ; TH11: 0x4561ed  (8b822c567b00)
+; TH13: 0x46fbae  (8b820882f400)
 perf_hack_10_11:
     push edx  ; save
     push ecx  ; save
@@ -108,6 +118,7 @@ perf_hack_10_11:
     jz   .continue
 
 .success:
+    pop  ebp  ; !!! TH13 only
     ret  0x4  ; exit early from this function
 
 .continue:
@@ -115,6 +126,7 @@ perf_hack_10_11:
     push esi  ; stack operation in code we're skipping over
     abs_jmp_hack 0x4491e5 ; TH10
     abs_jmp_hack 0x456205 ; TH11
+    abs_jmp_hack 0x46fbd1 ; TH13
 
 ; ==========================================
 ; defined in global.yaml  ; DELETE

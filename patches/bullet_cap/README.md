@@ -1,6 +1,6 @@
 # `bullet_cap`
 
-**Supports:** TH10-TH12, TH125.
+**Supports:** TH10-TH13, TH125, TH128.
 
 This patch can be used to increase or reduce the following caps:
 
@@ -22,7 +22,11 @@ The limits can be configured by writing another thcrap patch to apply after this
 }}
 ```
 
-The strings (which must contain 8 hexadecimal characters) are 4-byte integers encoded in **big-endian hexadecimal**.  The example value shown here is `0x7d00` bullets, `0x1000` lasers, and `0x8000` cancel items, which are the default settings in this patch for MoF.
+The strings (which must contain 8 hexadecimal characters) are 4-byte integers encoded in **big-endian hexadecimal**.  The example value shown here is `0x7d00` bullets, `0x1000` lasers, and `0x8000` cancel items, which are the default settings in this patch for MoF.  **NOTICE:** There are currently some technical limitations in specific games, due to how the compiler compiled various loops:
+
+* Various games may crash if a cap is set to zero.
+* In **TH13**, `bullet-cap` must be divisible by 5.
+* In **TH13**, `cancel-cap` must be divisible by 4.
 
 ### Additional options
 
@@ -30,11 +34,12 @@ Here are some additional options, with their default values.  As above, all stri
 
 ```json
 {"codecaves": {
-    "bullet-cap-config.mof-sa-lag-spike-size": "00002000"
+    "bullet-cap-config.anm-search-lag-spike-size": "00002000"
 }}
 ```
 
-* **`bullet-cap-config.mof-sa-lag-spike-size`**:  This patch automatically softens some quadratic lag spike behavior when canceling many bullets in MoF and SA.  You can configure the softening here; bigger number here = more lag. `"00000000"` will remove the lag spikes completely, while `"7fffffff"` will bring back the full vanilla behavior (but be prepared to wait several minutes if you cancel 50k+ bullets at once!).
+* **`bullet-cap-config.anm-search-lag-spike-size`**:  This patch automatically softens some quadratic lag spike behavior when canceling many bullets in the following games: MoF, SA, TD (other games do not have the issue).  You can configure the softening here; bigger number here = more lag. `"00000000"` will remove the lag spikes completely, while `"7fffffff"` will bring back the full vanilla behavior (but be prepared to wait several minutes if you cancel 50k+ bullets at once!).<br>
+  *Compatability note: This option was previously named `bullet-cap-config.mof-sa-lag-spike-size`. This old name is still supported for backwards compatibility but is deprecated.*
 
 ---
 
@@ -51,3 +56,7 @@ Granted, obviously, not every instance of the number 2000 is related to bullet c
 ## `bullet_cap` breaks my patch!
 
 This patch can potentially break other patches if they contain a binhack whose new code *incidentally* contains a copy of one of the values replaced by this patch.  If this happens to you, [leave an issue](https://github.com/ExpHP/thcrap-patches/issues/new) and we can try to work something out.  (please do not try to modify the blacklist from your patch if you are publishing to `thcrap_configure` as I may change its format in the future!)
+
+## GFW has huge lag spikes when I freeze many bullets!
+
+Correct.
