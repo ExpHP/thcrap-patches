@@ -1,5 +1,14 @@
 binhacks:
   ExpHP.debug-counters.draw:
+    /fields-if(th08):
+      addr: "0x447225"
+      expected: "a1b4d06401"
+      codecave:
+        - "E8[codecave:ExpHP.debug-counters.show-debug-data]" # call show_debug_data
+
+        - "A1B4D06401        " # mov  eax, [0x164d0b4] ; original code
+        - "E800000000C70424 2a724400 C3" # jump to 0x44722a
+
     /fields-if(th10):
       addr: "0x413653"
       expected: "a1e0764700"
@@ -109,17 +118,34 @@ binhacks:
         - "E800000000C70424 c89f4200 C3" # jump to 0x429fc8
 
 codecaves:
-  ExpHP.debug-counters.line-info:
-    - "<codecave:ExpHP.debug-counters.anmid-data>"
-    - "25376420616E6D6964000000" # dd "%7d anmid"
-    - "<codecave:ExpHP.debug-counters.bullet-data>"
-    - "253764206574616D61000000" # dd "%7d etama"
-    - "<codecave:ExpHP.debug-counters.laser-data>"
-    - "253764206C61736572000000" # dd "%7d laser"
-    - "<codecave:ExpHP.debug-counters.normal-item-data>"
-    - "253764206974656D4E000000" # dd "%7d itemN"
-    - "<codecave:ExpHP.debug-counters.cancel-item-data>"
-    - "253764206974656D43000000" # dd "%7d itemC"
-    - /item-if(th13): "<codecave:ExpHP.debug-counters.spirit-data>"
-    - /item-if(th13): "253764206C676F6473000000" # dd "%7d lgods"
-    - "00000000"
+  /fields-if(not(th08)):
+    ExpHP.debug-counters.line-info:
+      - "<codecave:ExpHP.debug-counters.anmid-data>"
+      - "25376420616E6D6964000000" # dd "%7d anmid"
+      - "<codecave:ExpHP.debug-counters.bullet-data>"
+      - "253764206574616D61000000" # dd "%7d etama"
+      - "<codecave:ExpHP.debug-counters.laser-data>"
+      - "253764206C61736572000000" # dd "%7d laser"
+      - "<codecave:ExpHP.debug-counters.normal-item-data>"
+      - "253764206974656D4E000000" # dd "%7d itemN"
+      - "<codecave:ExpHP.debug-counters.cancel-item-data>"
+      - "253764206974656D43000000" # dd "%7d itemC"
+      - /item-if(th13): "<codecave:ExpHP.debug-counters.spirit-data>"
+      - /item-if(th13): "253764206C676F6473000000" # dd "%7d lgods"
+      - "00000000"
+
+  /fields-if(th08):
+    ExpHP.debug-counters.line-info:
+      - "<codecave:ExpHP.debug-counters.effect-3-data>"
+      - "253764206566662E33000000" # dd "%7d eff.3"
+      - "<codecave:ExpHP.debug-counters.effect-2-data>"
+      - "253764206566662E32000000" # dd "%7d eff.2"
+      - "<codecave:ExpHP.debug-counters.effect-1-data>"
+      - "253764206566662E31000000" # dd "%7d eff.1"
+      - "<codecave:ExpHP.debug-counters.bullet-data>"
+      - "253764206574616D61000000" # dd "%7d etama"
+      - "<codecave:ExpHP.debug-counters.laser-data>"
+      - "253764206C61736572000000" # dd "%7d laser"
+      - "<codecave:ExpHP.debug-counters.normal-item-data>"
+      - "253764206974656D73000000" # dd "%7d items"
+      - "00000000"

@@ -26,6 +26,8 @@ show_debug_data:  ; HEADER: AUTO
 
     mov  eax, color_data  ; REWRITE: <codecave:AUTO>
     mov  eax, [eax + ColorData.positioning]
+    cmp  eax, POSITIONING_IN
+    je   .pos_in
     cmp  eax, POSITIONING_MOF
     je   .pos_mof
     cmp  eax, POSITIONING_TD
@@ -34,6 +36,12 @@ show_debug_data:  ; HEADER: AUTO
     je   .pos_ddc
     int  3
 
+.pos_in:
+    mov  dword [%$pos_x], __float32__(447.0)
+    mov  dword [%$pos_y], __float32__(464.0)
+    mov  dword [%$pos_z], __float32__(0.0)
+    mov  dword [%$delta_y], __float32__(14.0)
+    jmp  .pos_done
 .pos_mof:
     mov  dword [%$pos_x], __float32__(548.0)
     mov  dword [%$pos_y], __float32__(470.0)
@@ -94,8 +102,7 @@ drawf_spec:  ; HEADER: AUTO
     ret  0xc  ; for zero write nothing; this lets lines be disabled for debugging and gradual implementation
 
 .nonzero:
-
-    ; 'near' forces a 4 byte operand
+    ; 'near' forces a 4 byte operand so we can rewrite it
     cmp  eax, KIND_ARRAY
     jz near drawf_array_spec  ; REWRITE: [codecave:AUTO]
 
@@ -107,6 +114,9 @@ drawf_spec:  ; HEADER: AUTO
 
     cmp  eax, KIND_ZERO
     jz near drawf_zero_spec  ; REWRITE: [codecave:AUTO]
+
+    cmp  eax, KIND_EMBEDDED
+    jz near drawf_embedded_spec  ; REWRITE: [codecave:AUTO]
 
     int 3
 
@@ -296,7 +306,7 @@ drawf_zero_spec:  ; HEADER: AUTO
     prologue_sd
 
     mov esi, [%$spec_ptr]
-    mov eax, [esi + AnmidSpec.struct_ptr]
+    mov eax, [esi + ZeroSpec.struct_ptr]
     mov edi, [eax]  ; AnmManager pointer
     test edi, edi
     jz .nostruct
@@ -306,6 +316,55 @@ drawf_zero_spec:  ; HEADER: AUTO
     push 10
     push dword [%$pos_ptr]
     call drawf_debug_int_colorval  ; REWRITE: [codecave:AUTO]
+
+.nostruct:
+    epilogue_sd
+    ret 0xc
+    %pop
+
+; __stdcall void DrawfEmbeddedSpec(Float3*, EmbeddedSpec*, char* fmt)
+drawf_embedded_spec:  ; HEADER: AUTO
+    %push
+    %define %$pos_ptr  ebp+0x08
+    %define %$spec_ptr ebp+0x0c
+    %define %$fmt      ebp+0x10
+    prologue_sd
+
+    mov esi, [%$spec_ptr]
+    mov eax, [esi + EmbeddedSpec.show_when_nonzero]
+    mov edi, [eax]
+    test edi, edi
+    jz .nostruct
+
+    ; Construct a copy of the spec we're delegating to.
+    sub  esp, [esi + EmbeddedSpec.spec_size]
+    mov  edi, esp  ; edi points to our copy
+
+    push esi  ; save
+    push edi  ; save
+    mov  ecx, [esi + EmbeddedSpec.spec_size]  ; len
+    lea  esi, [esi + EmbeddedSpec.spec]
+    rep movsb
+    pop  edi  ; go back to beginning of our copy
+    pop  esi  ; point to beginning of EmbeddedSpec again
+
+    ; First field of the delegated spec is .struct_ptr; i.e. a pointer to pointer to struct.
+    ; Since the EmbeddedSpec holds a pointer to the struct, we make a pointer to that pointer.
+    lea  eax, [esi + EmbeddedSpec.struct_base]
+    mov  [edi + ZeroSpec.struct_ptr], eax
+
+    ; Write the kind at the address before the copied spec.
+    push dword [esi + EmbeddedSpec.spec_kind]
+
+    ; esp now points to a completed, functional copy of the data expected by drawf_spec
+    mov  edi, esp
+    push dword [%$fmt]
+    push edi
+    push dword [%$pos_ptr]
+    call drawf_spec  ; REWRITE: [codecave:AUTO]
+
+    add  esp, 0x4  ; cleanup spec kind
+    add  esp, [esi + EmbeddedSpec.spec_size]  ; cleanup spec copy
 
 .nostruct:
     epilogue_sd

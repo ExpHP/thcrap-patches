@@ -7,9 +7,11 @@
 %define KIND_ANMID        2
 %define KIND_FIELD        3
 %define KIND_ZERO         4
+%define KIND_EMBEDDED     5
 %define POSITIONING_MOF   1
 %define POSITIONING_TD    2
 %define POSITIONING_DDC   3
+%define POSITIONING_IN    4
 
 struc ColorData  ; DELETE
     .ascii_manager_ptr: resd 1  ; DELETE
@@ -52,4 +54,14 @@ endstruc  ; DELETE
 ; Counter that's always zero
 struc ZeroSpec  ; DELETE
     .struct_ptr: resd 1  ; Display the counter whenever this pointer is non-null.  ; DELETE
+endstruc  ; DELETE
+
+; Spec that adapts one of the other spec types to a struct that is directly embedded in static memory
+; rather than living behind a pointer, for early games.
+struc EmbeddedSpec  ; DELETE
+    .show_when_nonzero: resd 1  ; display only when this address contains nonzero  ; DELETE
+    .struct_base: resd 1  ; base address of struct  ; DELETE
+    .spec_kind: resd 1  ; kind constant of .spec field  ; DELETE
+    .spec_size: resd 1  ; length of .spec in bytes  ; DELETE
+    .spec: ; a spec to delegate to (placed inline), whose first field (.struct_ptr) will be ignored  ; DELETE
 endstruc  ; DELETE

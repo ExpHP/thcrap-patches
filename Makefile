@@ -2,6 +2,9 @@
 # Meta flag
 .DELETE_ON_ERROR:
 
+# uncomment to debug errors in convert-yaml.py
+# .PRECIOUS: %.yaml
+
 .PHONY: all
 all: \
 	subseason-patches \
@@ -203,6 +206,7 @@ DEBUG_COUNTERS_PATCH=$(REPO)/debug_counters
 .PHONY: debug-counters
 debug-counters: \
 	$(DEBUG_COUNTERS_PATCH)/global.js \
+	$(DEBUG_COUNTERS_PATCH)/$(TH08_VER).js \
 	$(DEBUG_COUNTERS_PATCH)/$(TH10_VER).js \
 	$(DEBUG_COUNTERS_PATCH)/$(TH11_VER).js \
 	$(DEBUG_COUNTERS_PATCH)/$(TH12_VER).js \

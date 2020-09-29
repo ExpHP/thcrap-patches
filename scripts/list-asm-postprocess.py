@@ -72,6 +72,8 @@ def main():
     ).parse_args()
 
     lines = list(join_long_lines(sys.stdin))
+    if any('codecave:auto' in line for line in lines):
+        print('!! Warning: codecave:auto (lower) is probably a typo!', file=sys.stderr)
     auto_prefix = find_auto_prefix(lines)
     lines = list(handle_rewrites(lines, auto_prefix))
     lines = list(handle_headers(lines, auto_prefix))

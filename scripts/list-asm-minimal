@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# list-asm-minimal:  This is list-asm without any of the post-processing into YAML. (it just outputs nasm's output)
+
+# nasm can't list to STDOUT, grumble grumble
+TEMPFILE=$(mktemp)
+
+args=(
+    nasm "$1"
+    -f WIN32
+    -l "$TEMPFILE"
+    -i "$(dirname "$1")/"  # support relative includes
+    -o /dev/null  # don't make an .obj file
+); "${args[@]}" || { rm -f "$TEMPFILE"; exit 1; }
+
+cat "$TEMPFILE"
+rm -f "$TEMPFILE"

@@ -1,17 +1,6 @@
 #!/usr/bin/env bash
 
-# nasm can't list to STDOUT, grumble grumble
-TEMPFILE=$(mktemp)
-
-args=(
-    nasm "$1"
-    -f WIN32
-    -l "$TEMPFILE"
-    -i "$(dirname "$1")/"  # support relative includes
-    -o /dev/null  # don't make an .obj file
-); "${args[@]}" || { rm -f "$TEMPFILE"; exit 1; }
-
-cat "$TEMPFILE" |
+"$(dirname "$0")/list-asm-minimal" "$@" |
     # These make *almost* everything into yaml
     sed -E 's@^( *[0-9]+ +[^ ;].+FIXUP)@!!\1@' |   # prevent lines with the word FIXUP from matching other
                                                    # regexes so that they stand out in the generated output.
@@ -19,8 +8,8 @@ cat "$TEMPFILE" |
                                                    #
                                                    # The " *[0-9]+ +[^ ;]" checks that the entire line isn't commented out.
     sed -E 's@ <[0-9]+>@@' |    # kill <1>, <2>... in expanded macros
-    sed -E 's@^( *[0-9]+ [0-9A-F]{8} [0-9A-Z]{18})-@\1@' |    # kill continuation dashes
-    sed -E 's@^ *[0-9]+ [0-9A-F]{8} ([0-9A-Z].{17}) *@    - "\1" # @' |    # format as sequence items
+    sed -E 's@^( *[0-9]+ [0-9A-F]{8} [0-9A-Z\[]{18})-@\1@' |    # kill continuation dashes
+    sed -E 's@^ *[0-9]+ [0-9A-F]{8} ([0-9A-Z\[].{17}) *@    - "\1" # @' |    # format as sequence items
     sed -E 's@^ *[0-9]+ +;@    #@' |    # Turn whole-line ; comments to # comments
     sed -E 's@^ *[0-9]+ *$@@' |    # strip line numbers from empty lines
     sed -E 's@^ *[0-9]+     +@    # @' |   # turn lines without hex code into comments
