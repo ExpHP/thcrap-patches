@@ -176,6 +176,7 @@ BULLET_CAP_PATCH=$(REPO)/bullet_cap
 .PHONY: bullet-cap
 bullet-cap: \
 	$(BULLET_CAP_PATCH)/global.js \
+	$(BULLET_CAP_PATCH)/$(TH08_VER).js \
 	$(BULLET_CAP_PATCH)/$(TH10_VER).js \
 	$(BULLET_CAP_PATCH)/$(TH11_VER).js \
 	$(BULLET_CAP_PATCH)/$(TH12_VER).js \
@@ -196,7 +197,7 @@ $(BULLET_CAP_PATCH)/th%.yaml: $(BULLET_CAP_PATCH)/th%.asm
 $(BULLET_CAP_PATCH)/global.js: $(BULLET_CAP_PATCH)/global.yaml
 	scripts/convert-yaml.py $^ >$@
 
-$(BULLET_CAP_PATCH)/th%.js: $(BULLET_CAP_PATCH)/th%.yaml $(BULLET_CAP_PATCH)/binhacks.yaml
+$(BULLET_CAP_PATCH)/th%.js: $(BULLET_CAP_PATCH)/th%.yaml $(BULLET_CAP_PATCH)/binhacks.yaml  $(BULLET_CAP_PATCH)/pointerify.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
 
 #================================================

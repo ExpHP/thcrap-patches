@@ -4,8 +4,7 @@
 
 ; AUTO_PREFIX: ExpHP.debug-counters.
 
-%define FUNC_SPRINTF          0x4a4857
-%define FUNC_DRAW_ASCII       0x402920
+%define FUNC_DRAWF       0x402a30
 
 %define REPLAY_MANAGER_PTR  0x18b8a28
 %define BULLET_MANAGER_BASE 0xf54e90
@@ -30,21 +29,15 @@ ascii_manager_ptr:  ; HEADER: AUTO
 ; __stdcall void DrawfDebugInt(AsciiManager*, Float3*, char*, int current)
 drawf_debug_int:  ; HEADER: AUTO
     prologue_sd
-    sub  esp, 0x100
-    lea  edi, [ebp-0x100]
+    push ebx
     push dword [ebp+0x14] ; arg
     push dword [ebp+0x10] ; template
-    push edi  ; buffer
-    mov  eax, FUNC_SPRINTF
-    call eax
-    add  esp, 0x0c  ; caller cleans stack for varargs
-
-    push edi  ; string
     push dword [ebp+0x0c] ; pos
-    mov  ecx, [ebp+0x08] ; AsciiManager
-    mov  eax, FUNC_DRAW_ASCII
+    push dword [ebp+0x08] ; AsciiManager
+    mov  eax, FUNC_DRAWF
     call eax
-    add  esp, 0x100
+    add  esp, 0x10  ; caller cleans stack for varargs
+    pop ebx
     epilogue_sd
     ret 0x10
 
@@ -53,17 +46,15 @@ bullet_data:  ; HEADER: AUTO
 istruc EmbeddedSpec
     at EmbeddedSpec.show_when_nonzero, dd REPLAY_MANAGER_PTR
     at EmbeddedSpec.struct_base, dd BULLET_MANAGER_BASE
-    at EmbeddedSpec.spec_kind, dd KIND_ARRAY
-    at EmbeddedSpec.spec_size, dd ArraySpec_size
+    at EmbeddedSpec.spec_kind, dd KIND_FIELD
+    at EmbeddedSpec.spec_size, dd FieldSpec_size
 iend
-istruc ArraySpec
-    at ArraySpec.struct_ptr, dd 0xDEADBEEF ; unused
-    at ArraySpec.length_is_addr, dd 1
-    at ArraySpec.length_correction, dd -1
-    at ArraySpec.array_length, dd 0x42f446 - 4
-    at ArraySpec.array_offset, dd BULLET_ARRAY_OFFSET
-    at ArraySpec.field_offset, dd 0xdb8
-    at ArraySpec.stride, dd 0x10b8
+    ; TH08 already tracks bullet count for us (for its cave slowdown feature), hooray!
+    ; Use this field instead of the array for easier compability with bullet_cap.
+istruc FieldSpec
+    at FieldSpec.struct_ptr, dd 0xDEADBEEF ; unused
+    at FieldSpec.count_offset, dd 0x6ba538
+    at FieldSpec.limit_addr, dd 0x4312ae - 4
 iend
 
 normal_item_data:  ; HEADER: AUTO
@@ -71,17 +62,13 @@ normal_item_data:  ; HEADER: AUTO
 istruc EmbeddedSpec
     at EmbeddedSpec.show_when_nonzero, dd REPLAY_MANAGER_PTR
     at EmbeddedSpec.struct_base, dd ITEM_MANAGER_BASE
-    at EmbeddedSpec.spec_kind, dd KIND_ARRAY
-    at EmbeddedSpec.spec_size, dd ArraySpec_size
+    at EmbeddedSpec.spec_kind, dd KIND_FIELD
+    at EmbeddedSpec.spec_size, dd FieldSpec_size
 iend
-istruc ArraySpec
-    at ArraySpec.struct_ptr, dd 0xDEADBEEF ; unused
-    at ArraySpec.length_is_addr, dd 1
-    at ArraySpec.length_correction, dd -1
-    at ArraySpec.array_length, dd 0x440021 - 4
-    at ArraySpec.array_offset, dd ITEM_ARRAY_OFFSET
-    at ArraySpec.field_offset, dd 0x2d5
-    at ArraySpec.stride, dd 0x2e4
+istruc FieldSpec
+    at FieldSpec.struct_ptr, dd 0xDEADBEEF ; unused
+    at FieldSpec.count_offset, dd 0x17ada8
+    at FieldSpec.limit_addr, dd 0x440187 - 4
 iend
 
 cancel_item_data:  ; HEADER: AUTO
@@ -95,6 +82,7 @@ istruc EmbeddedSpec
     at EmbeddedSpec.spec_kind, dd KIND_ARRAY
     at EmbeddedSpec.spec_size, dd ArraySpec_size
 iend
+    ; FIXME: This won't be compatible with bullet_cap.
 istruc ArraySpec
     at ArraySpec.struct_ptr, dd 0xDEADBEEF ; unused
     at ArraySpec.length_is_addr, dd 1

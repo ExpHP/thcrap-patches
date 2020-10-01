@@ -1,0 +1,154 @@
+# pointerify.yaml - Binhacks dedicated to the pointer-ification of embedded static arrays in early games.
+
+binhacks:
+  /fields-if(th08):
+    # Uncomment this to give yourself a chance to attach CE if you need to debug a crash in life before main.
+    # ExpHP.bullet-cap.loop:
+    #   addr: "0x42f421"
+    #   expected: "89E5"  # mov ebp, esp
+    #   code: "EBFE"
+    
+    # BulletManager::reset requires us to have done our search and replace work already,
+    # and there's no reason to be calling it in life before main anyways.  Nop this call out.
+    ExpHP.bullet-cap.dont-reset-before-main:
+      addr: "0x42f489"
+      code: "9090909090"
+
+    # 0x42f43c  (6800f54200)  (in BulletManager::constructor (life before main))
+    ExpHP.bullet-cap.pointerify-bullets-constructor:
+      addr: "0x42f43c"
+      expected: "6800f54200"
+      codecave:
+        # Allocate space for the bullets.
+        #
+        # This is different from the the original code, which called default value initializers
+        # on a static bullet array.  (and we don't bother with doing that to our allocation because
+        # they're gonna get memset to 0 before they get used anyways)
+        - "A1<codecave:bullet-cap>" # mov  eax, [new_bullet_cap_bigendian]
+        - "0FC8              " # bswap eax
+        - "40                " # inc  eax
+        - "69C0B8100000      " # imul eax, BULLET_SIZE
+        - "50                " # push eax
+        - "B8D4434A00        " # mov  eax, FUNC_MALLOC
+        - "FFD0              " # call eax
+        - "A310F7F600        " # mov  [BULLET_ARRAY_PTR], eax
+        - "E800000000C70424 5af44200 C3" # jump to 0x42f45a
+
+    ExpHP.bullet-cap.pointerify-keep-the-pointer:
+      addr: "0x42f36a"
+      expected: "b95ee91a00"
+      codecave:
+        - "56                " # push esi  ; save
+        # Keep the pointer when the struct is memset to 0.
+        - "FF3510F7F600      " # push dword [BULLET_ARRAY_PTR]
+
+        # memset the entire struct (this is the original code)
+        - "B95EE91A00        " # mov  ecx, BULLET_MANAGER_NUM_DWORDS
+        - "31C0              " # xor  eax, eax
+        - "8B7DF4            " # mov  edi, dword [ebp-0xc]
+        - "F3AB              " # rep stosd
+
+        - "8F0510F7F600      " # pop  dword [BULLET_ARRAY_PTR]
+
+        # we also have to memset our array now, too
+        - "8B35<codecave:bullet-cap>" # mov  esi, [new_bullet_cap_bigendian]
+        - "0FCE              " # bswap esi
+        - "46                " # inc  esi  ; plus dummy bullet
+        - "69F6B8100000      " # imul esi, BULLET_SIZE
+        - "89F1              " # mov  ecx, esi
+        - "8B3D10F7F600      " # mov  edi, [BULLET_ARRAY_PTR]
+        - "F3AA              " # rep stosb
+
+        # set the sentinel state on the dummy bullet (our other binhacks aren't enough to make this happen)
+        - "8B3D10F7F600      " # mov  edi, [BULLET_ARRAY_PTR]
+        - "66C7843700FDFFFF0600" # mov  word [edi + esi - BULLET_SIZE + BULLET_STATE], 6
+
+        - "5E                " # pop  esi
+        - "E800000000C70424 76f34200 C3" # jump to 0x42f376
+
+    # 0x423a6c  (c745f410f7f600)  (in a funcSet/funcCall func)
+    # 0x423e2c  (c745f410f7f600)  (in a funcSet/funcCall func)
+    # 0x4241ec  (c745f410f7f600)  (in a funcSet/funcCall func)
+    # 0x42529c  (c745f410f7f600)  (in a funcSet/funcCall func)
+    ExpHP.bullet-cap.pointerify-bullets-static-0c:
+      addr:
+        - "0x423a6c"
+        - "0x423e2c"
+        - "0x4241ec"
+        - "0x42529c"
+      expected: "c745f410f7f600"
+      call-codecave:
+        - "A110F7F600        " # mov  eax, [BULLET_ARRAY_PTR]
+        - "8945F4            " # mov  dword [ebp-0x0c], eax
+        - "C3                " # ret
+
+    # 0x424a2c  (c745f810f7f600)  (in a funcSet/funcCall func)
+    # 0x424c4c  (c745f810f7f600)  (in a funcSet/funcCall func)
+    # 0x424e5c  (c745f810f7f600)  (in a funcSet/funcCall func)
+    # 0x4250dc  (c745f810f7f600)  (in a funcSet/funcCall func)
+    # 0x4251e6  (c745f810f7f600)  (in a funcSet/funcCall func)
+    # 0042f3a0  (c745f810f7f600) (in BulletManager::reset_bullet_array)
+    ExpHP.bullet-cap.pointerify-bullets-static-08:
+      addr:
+        - "0x424a2c"
+        - "0x424c4c"
+        - "0x424e5c"
+        - "0x4250dc"
+        - "0x4251e6"
+        - "0x42f3a0"
+      expected: "c745f810f7f600"
+      call-codecave:
+        - "A110F7F600        " # mov  eax, [BULLET_ARRAY_PTR]
+        - "8945F8            " # mov  dword [ebp-0x08], eax
+        - "C3                " # ret
+
+    # 0x43083a  (c745e410f7f600) (in some cancel func)
+    ExpHP.bullet-cap.pointerify-bullets-static-1c:
+      addr: "0x43083a"
+      expected: "c745e410f7f600"
+      call-codecave:
+        - "A110F7F600        " # mov  eax, [BULLET_ARRAY_PTR]
+        - "8945E4            " # mov  dword [ebp-0x1c], eax
+        - "C3                " # ret
+
+    # 0x430abe  (c745e810f7f600) (in another cancel func)
+    ExpHP.bullet-cap.pointerify-bullets-static-18:
+      addr: "0x430abe"
+      expected: "c745e810f7f600"
+      call-codecave:
+        - "A110F7F600        " # mov  eax, [BULLET_ARRAY_PTR]
+        - "8945E8            " # mov  dword [ebp-0x18], eax
+        - "C3                " # ret
+
+    # 0x430d3a  (c745ec10f7f600) (in yet another cancel func)
+    ExpHP.bullet-cap.pointerify-bullets-static-14:
+      addr: "0x430d3a"
+      expected: "c745ec10f7f600"
+      call-codecave:
+        - "A110F7F600        " # mov  eax, [BULLET_ARRAY_PTR]
+        - "8945EC            " # mov  dword [ebp-0x14], eax
+        - "C3                " # ret
+
+    # 0x42f379  (0580a80100) (in BulletManager::reset_bullet_array)
+    # 0x431254  (0580a80100) (in BulletManager::on_tick)
+    ExpHP.bullet-cap.pointerify-bullets-offset-eax:
+      addr:
+        - "0x42f379"
+        - "0x431254"
+      expected: "0580a80100"
+      call-codecave:
+        - "0580A80100        " # add  eax, 0x1a880
+        - "8B00              " # mov  eax, [eax]
+        - "C3                " # ret
+
+    # 0x42f657  (81c280a80100) (in BulletManager::shoot_one_bullet)
+    # 0x42fe23  (81c280a80100) (in BulletManager::shoot_one_bullet)
+    ExpHP.bullet-cap.pointerify-bullets-offset-edx:
+      addr:
+        - "0x42f657"
+        - "0x42fe23"
+      expected: "81c280a80100"
+      call-codecave:
+        - "81C280A80100      " # add  edx, 0x1a880
+        - "8B12              " # mov  edx, [edx]
+        - "C3                " # ret

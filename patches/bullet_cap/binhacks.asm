@@ -17,8 +17,21 @@
 ; ==========================================
 ; There aren't many places that are guaranteed to run exactly once,
 ; so to avoid contention with other patches we choose an innocuous place
-; in the function that starts the game thread, and simply make our
+; in code that runs while starting a new game, and simply make our
 ; changes idempotent.
+
+; Early games:  Do it right before the call to BulletManager::initialize.
+
+; 0x43b414  (e8875dffff)
+install_08:  ; HEADER: AUTO
+    call initialize  ; REWRITE: [codecave:AUTO]
+
+    ; original code
+    mov   eax, 0x4311a0
+    call  eax
+    abs_jmp_hack 0x43b419
+
+; MoF onwards:  Do it right before spawning the game thread
 
 ; 0x420ec8  (e883b20200)
 install_10:  ; HEADER: AUTO

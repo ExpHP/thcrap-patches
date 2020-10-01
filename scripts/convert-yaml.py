@@ -5,6 +5,52 @@ import sys
 
 META_CHAR = '/'
 
+"""
+  This script provides the following features that help simplify the development of thcrap binhack json files:
+
+=== AUTOMATIC CODECAVES ===
+
+  Under the binhacks: mapping, you may use the field 'codecave:' instead of 'code:'.  When 'codecave:' is used, a codecave will be automatically generated in addition to the binhack, and the binhack will become a jump to that codecave.  This can be used to replace any piece of code (5 bytes or longer) with longer code that wouldn't normally fit.
+
+  You may also use 'call-codecave:'.  In this case, the binhack becomes a call instead of a jump.  The rest of the original code (as determined from the length of the 'expected:' field) is nopped out.  This is generally harder to use properly, because the call affects 'esp' and it does not let you choose where to jump at the end of the cave.  Its primary purpose is to help compress many codecaves with identical bodies (by putting a list of addresses in 'addr:', a vanilla thcrap feature) by letting you write a 'ret' at the end instead of the address of the next instruction.
+
+=== CONDITIONAL CODE ===
+
+  There are some special directives that enable conditional code. This is used to allow a single .yaml file to be used in the production of many game-specific .js files, in cases where this may reduce the burden of maintenence.  There are:
+
+Conditional sequence items:
+
+    - 1
+    - /item-if(foo): 2
+    - 3
+
+  The above is equivalent to [1, 2, 3] when --cfg foo is supplied, and [1, 3] otherwise.
+
+Conditional submappings:
+
+    foo: 1
+    /fields-if(foo):
+      bar: 2
+      baz: 3
+
+  The above is equivalent to {foo: 1, bar: 2, baz: 3} when --cfg foo is supplied, and {foo: 1} otherwise.
+
+Value switches:
+
+    thing:
+      /value-if(foo): 1
+      /value-if(bar): 2
+
+  The above is equivalent to {thing: 1} if --cfg foo is supplied, {thing: 2} if --cfg bar
+is supplied, and produces an error if both or neither is supplied.
+
+Logical expressions:
+
+  All of the conditional code directives simple logical expressions with 'any', 'all', and 'not' operators:
+
+    - /item-if(all(foo, not(bar)))
+"""
+
 def main():
     import argparse
     import json
@@ -75,11 +121,14 @@ def process_local_caves(json):
     codecaves = json['codecaves']
 
     for key, binhack in binhacks.items():
-        if 'codecave' not in binhack:
+        if 'codecave' not in binhack and 'call-codecave' not in binhack:
             continue
+        if 'codecave' in binhack and 'call-codecave' in binhack:
+            die("cannot have both 'codecave' and 'call-codecave")
+        is_call = 'call-codecave' in binhack
 
         # move to codecaves
-        cave_asm = binhack.pop('codecave')
+        cave_asm = binhack.pop('codecave', None) or binhack.pop('call-codecave')
         cave_name = f'of({key})'
         codecaves[cave_name] = cave_asm
 
@@ -89,10 +138,12 @@ def process_local_caves(json):
         if expected_len < 10:
             die(f'in {repr(key)}: expected code too short to insert jump')
 
-        # jmp [cave] followed by int3's
-        binhack['code'] = [f'E9 [codecave:{cave_name}]']
+        # jmp [cave] followed by int3's,  or call [cave] followed by nops
+        filler = '90' if is_call else 'CC'
+        opcode = 'E8' if is_call else 'E9'
+        binhack['code'] = [f'{opcode} [codecave:{cave_name}]']
         if expected_len > 10:
-            binhack['code'].append('C' * (expected_len - 10))
+            binhack['code'].append(filler * (expected_len // 2 - 5))
 
     for key, binhack in binhacks.items():
         if 'expected' in binhack:
@@ -116,42 +167,6 @@ def concat_code_sequences(val):
 
 #==============================================================================
 # Conditional code.
-#
-# There are some special directives:
-#
-# ## Conditional sequence items:
-#
-#    - 1
-#    - /item-if(foo): 2
-#    - 3
-#
-# This is equivalent to [1, 2, 3] when --cfg foo is supplied, and [1, 3] otherwise.
-#
-# ## Conditional submappings:
-#
-#    foo: 1
-#    /fields-if(foo):
-#      bar: 2
-#      baz: 3
-#
-# This is equivalent to {foo: 1, bar: 2, baz: 3} when --cfg foo is supplied,
-# and {foo: 1} otherwise.
-#
-# ## Value switches:
-#
-#    thing:
-#      /value-if(foo): 1
-#      /value-if(bar): 2
-#
-# This is equivalent to {thing: 1} if --cfg foo is supplied, {thing: 2} if --cfg bar
-# is supplied, and produces an error if both or neither is supplied.
-#
-# ## Logical expressions
-#
-# All of these special directives support simple logical expressions with 'any', 'all',
-# and 'not' operators:
-#
-# E.g.    - /item-if(all(foo, not(bar)))
 
 def resolve_conditional_code(d, defs):
     # /item-if
