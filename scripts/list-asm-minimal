@@ -10,6 +10,7 @@ args=(
     -f WIN32
     -l "$TEMPFILE"
     -i "$(dirname "$1")/"  # support relative includes
+    -i "$(dirname "$0")/"  # make util.asm available
     -o /dev/null  # don't make an .obj file
 ); "${args[@]}" || { rm -f "$TEMPFILE"; exit 1; }
 

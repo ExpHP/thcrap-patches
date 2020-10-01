@@ -4,10 +4,14 @@
         "ExpHP.sprite-death-fix.hack": {
             "addr": "0x442fe4",
             "expected": "8bb8ccda7200",
-            "code": "E9 [codecave:of(ExpHP.sprite-death-fix.hack)] // CC"
+            "code": "E8 [codecave:of(ExpHP.sprite-death-fix.hack)] // 90"
         }
     },
     "codecaves": {
-        "of(ExpHP.sprite-death-fix.hack)": "52 // 8B35101C4900 // 8DB8CCDA7200 // 8B07 // 05A8000000 // 39F8 // 7C19 // B8502F4400 // FFD0 // 8D86CCDA3A00 // 8986CCDA7200 // 8986D0DA7200 // 5A // A1101C4900 // 8BB8CCDA7200 // E800000000 // C70424EA2F4400 // C3"
+        "ExpHP.sprite-death-fix.data": "101C4900 // <codecave:ExpHP.sprite-death-fix.wrapper-esi> // 502F4400 // CCDA3A00 // CCDA7200",
+        "ExpHP.sprite-death-fix.wrapper-thiscall": "55 89E5 56 57 // 8B4D0C // FF5508 // 5F 5E 89EC 5D // C20800",
+        "ExpHP.sprite-death-fix.wrapper-esi": "55 89E5 56 57 // 8B750C // FF5508 // 5F 5E 89EC 5D // C20800",
+        "ExpHP.sprite-death-fix.fix": "55 89E5 56 57 // BF<codecave:ExpHP.sprite-death-fix.data> // 8B37 // 8B36 // 8B4710 // 8D0C06 // 8B01 // 8D80A8000000 // 39C8 // 7C17 // 56 // FF7708 // FF5704 // 8B470C // 8D0406 // 8B4F10 // 89040E // 89440E04 // 5F 5E 89EC 5D // C3",
+        "of(ExpHP.sprite-death-fix.hack)": "52 // E8[codecave:ExpHP.sprite-death-fix.fix] // BA<codecave:ExpHP.sprite-death-fix.data> // 8B02 // 8B00 // 8B7A10 // 8B3C07 // 5A // C3"
     }
 }

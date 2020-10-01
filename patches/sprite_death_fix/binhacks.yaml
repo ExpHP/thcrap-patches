@@ -1,186 +1,140 @@
 binhacks:
-  /fields-if(th10):
+  /fields-if(th08):
     ExpHP.sprite-death-fix.hack:
-      addr: "0x442fe4"
-      expected: "8bb8ccda7200"
-      codecave:
-        # Later games have this check but TH10 doesn't
-        - "52                " # push edx  ; save (it's an argument to the current function)
-        - "8B35101C4900      " # mov  esi, [ANM_MANAGER_PTR_10]
-        - "8DB8CCDA7200      " # lea  edi, [eax+CURSOR_OFFSET_10]  ; write ptr
-        - "8B07              " # mov  eax, [edi]
-        - "05A8000000        " # add  eax, 0xa8
-        - "39F8              " # cmp  eax, edi
-        - "7C19              " # jl   .noreset
-
-        # requires ANM_MANAGER in esi
-        - "B8502F4400        " # mov  eax, FLUSH_SPRITES_10
-        - "FFD0              " # call eax
-        - "8D86CCDA3A00      " # lea  eax, [esi+BUFFER_OFFSET_10]
-        - "8986CCDA7200      " # mov  [esi+CURSOR_OFFSET_10+0x0], eax  ; write cursor
-        - "8986D0DA7200      " # mov  [esi+CURSOR_OFFSET_10+0x4], eax  ; read cursor
-
-        # .noreset:
-        - "5A                " # pop  edx
+      addr: "0x462f19"
+      expected: "8b75088b45fc"
+      call-codecave:
+        - "E8[codecave:ExpHP.sprite-death-fix.fix]" # call fix
         # original code
-        - "A1101C4900        " # mov  eax, [ANM_MANAGER_PTR_10]
-        - "8BB8CCDA7200      " # mov  edi, dword [eax+CURSOR_OFFSET_10]
-
-        # abs_jmp_hack 0x442fea
-        - "E800000000        " # call %%next
-        - "C70424EA2F4400    " # mov dword [esp], %1
+        - "8B7508            " # mov  esi, dword [ebp+0x8]
+        - "8B45FC            " # mov  eax, dword [ebp-0x4]
         - "C3                " # ret
 
-  /fields-if(th11):
+  # Bizarre ABI era games, for which we can miraculously write a single binhack.
+  /fields-if(any(th10, th11, th12, th125, th128, th13)):
     ExpHP.sprite-death-fix.hack:
-      addr: "0x44fda4"
-      expected: "8bb824567b00"
-      codecave:
-        # Games prior to DDC are missing this bounds check
-        - "52                " # push edx  ; save (it's an argument to the current function)
-        - "8B3568324C00      " # mov  esi, [ANM_MANAGER_PTR_11]
-        - "8DB824567B00      " # lea  edi, [eax+CURSOR_OFFSET_11]  ; write ptr
-        - "8B07              " # mov  eax, [edi]
-        - "05A8000000        " # add  eax, 0xa8
-        - "39F8              " # cmp  eax, edi
-        - "7C19              " # jl   .noreset
-
-        # requires ANM_MANAGER in esi
-        - "B810FD4400        " # mov  eax, FLUSH_SPRITES_11
-        - "FFD0              " # call eax
-        - "8D8624564300      " # lea  eax, [esi+BUFFER_OFFSET_11]
-        - "898624567B00      " # mov  [esi+CURSOR_OFFSET_11+0x0], eax  ; write cursor
-        - "898628567B00      " # mov  [esi+CURSOR_OFFSET_11+0x4], eax  ; read cursor
-
-        # .noreset:
+      addr:
+        /value-if(th10):  "0x442fe4"
+        /value-if(th11):  "0x44fda4"
+        /value-if(th12):  "0x45a4a4"
+        /value-if(th125): "0x458fb4"
+        /value-if(th128): "0x45f043"
+        /value-if(th13):  "0x467a83"
+      expected:
+        /value-if(th10):  "8bb8ccda7200"
+        /value-if(th11):  "8bb824567b00"
+        /value-if(th12):  "8bb8a4568300"
+        /value-if(th125): "8bb8acd68300"
+        /value-if(th128): "8bb8f0968600"
+        /value-if(th13):  "8bb8f481ef00"
+      call-codecave:
+        - "52                " # push edx  ; save
+        - "E8[codecave:ExpHP.sprite-death-fix.fix]" # call fix
+        # need anm manager in eax, write cursor in edi, arg in edx
+        - "BA<codecave:ExpHP.sprite-death-fix.data>" # mov  edx, data
+        - "8B02              " # mov  eax, [edx+Data.anm_manager_ptr]
+        - "8B00              " # mov  eax, [eax]
+        - "8B7A10            " # mov  edi, dword [edx+Data.cursor_offset]
+        - "8B3C07            " # mov  edi, [edi+eax]
         - "5A                " # pop  edx
-        # original code
-        - "A168324C00        " # mov  eax, [ANM_MANAGER_PTR_11]
-        - "8BB824567B00      " # mov  edi, dword [eax+CURSOR_OFFSET_11]
-
-        # abs_jmp_hack 0x44fdaa
-        - "E800000000        " # call %%next
-        - "C70424AAFD4400    " # mov dword [esp], %1
         - "C3                " # ret
 
-  /fields-if(th12):
-    ExpHP.sprite-death-fix.hack:
-      addr: "0x45a4a4"
-      expected: "8bb8a4568300"
-      codecave:
-        # Games prior to DDC are missing this bounds check
-        - "52                " # push edx  ; save (it's an argument to the current function)
-        - "8B35CCE84C00      " # mov  esi, [ANM_MANAGER_PTR_12]
-        - "8DB8A4568300      " # lea  edi, [eax+CURSOR_OFFSET_12]  ; write ptr
-        - "8B07              " # mov  eax, [edi]
-        - "05A8000000        " # add  eax, 0xa8
-        - "39F8              " # cmp  eax, edi
-        - "7C19              " # jl   .noreset
+codecaves:
+  ExpHP.sprite-death-fix.data:
+    /value-if(th08):
+      - "90DC8B01          " # at Data.anm_manager_ptr, dd 0x18bdc90
+      - "<codecave:ExpHP.sprite-death-fix.wrapper-thiscall>" # at Data.flush_sprites_abi, dd wrapper_thiscall
+      - "402E4600          " # at Data.flush_sprites, dd  0x462e40
+      - "24250000          " # at Data.buffer_offset, dd 0x2524
+      - "24252A00          " # at Data.cursor_offset, dd 0x2a2524
 
-        # requires ANM_MANAGER in esi
-        - "B8C0A34500        " # mov  eax, FLUSH_SPRITES_12
-        - "FFD0              " # call eax
-        - "8D86A4564B00      " # lea  eax, [esi+BUFFER_OFFSET_12]
-        - "8986A4568300      " # mov  [esi+CURSOR_OFFSET_12+0x0], eax  ; write cursor
-        - "8986A8568300      " # mov  [esi+CURSOR_OFFSET_12+0x4], eax  ; read cursor
+    /value-if(th10):
+      - "101C4900          " # at Data.anm_manager_ptr, dd 0x491c10
+      - "<codecave:ExpHP.sprite-death-fix.wrapper-esi>" # at Data.flush_sprites_abi, dd wrapper_esi
+      - "502F4400          " # at Data.flush_sprites, dd 0x442f50
+      - "CCDA3A00          " # at Data.buffer_offset, dd 0x3adacc
+      - "CCDA7200          " # at Data.cursor_offset, dd 0x72dacc
 
-        # .noreset:
-        - "5A                " # pop  edx
-        # original code
-        - "A1CCE84C00        " # mov  eax, [ANM_MANAGER_PTR_12]
-        - "8BB8A4568300      " # mov  edi, dword [eax+CURSOR_OFFSET_12]
+    /value-if(th11):
+      - "68324C00          " # at Data.anm_manager_ptr, dd 0x4c3268
+      - "<codecave:ExpHP.sprite-death-fix.wrapper-esi>" # at Data.flush_sprites_abi, dd wrapper_esi
+      - "10FD4400          " # at Data.flush_sprites, dd  0x44fd10
+      - "24564300          " # at Data.buffer_offset, dd 0x435624
+      - "24567B00          " # at Data.cursor_offset, dd 0x7b5624
 
-        # abs_jmp_hack 0x45a4aa
-        - "E800000000        " # call %%next
-        - "C70424AAA44500    " # mov dword [esp], %1
-        - "C3                " # ret
+    /value-if(th12):
+      - "CCE84C00          " # at Data.anm_manager_ptr, dd 0x4ce8cc
+      - "<codecave:ExpHP.sprite-death-fix.wrapper-esi>" # at Data.flush_sprites_abi, dd wrapper_esi
+      - "C0A34500          " # at Data.flush_sprites, dd 0x45a3c0
+      - "A4564B00          " # at Data.buffer_offset, dd 0x4b56a4
+      - "A4568300          " # at Data.cursor_offset, dd 0x8356a4
 
-  /fields-if(th125):
-    ExpHP.sprite-death-fix.hack:
-      addr: "0x458fb4"
-      expected: "8bb8acd68300"
-      codecave:
-        # Games prior to DDC are missing this bounds check
-        - "52                " # push edx  ; save (it's an argument to the current function)
-        - "8B35B40C4D00      " # mov  esi, [ANM_MANAGER_PTR_125]
-        - "8DB8ACD68300      " # lea  edi, [eax+CURSOR_OFFSET_125]  ; write ptr
-        - "8B07              " # mov  eax, [edi]
-        - "05A8000000        " # add  eax, 0xa8
-        - "39F8              " # cmp  eax, edi
-        - "7C19              " # jl   .noreset
+    /value-if(th125):
+      - "B40C4D00          " # at Data.anm_manager_ptr, dd 0x4d0cb4
+      - "<codecave:ExpHP.sprite-death-fix.wrapper-esi>" # at Data.flush_sprites_abi, dd wrapper_esi
+      - "D08E4500          " # at Data.flush_sprites, dd 0x458ed0
+      - "ACD64B00          " # at Data.buffer_offset, dd 0x4bd6ac
+      - "ACD68300          " # at Data.cursor_offset, dd 0x83d6ac
 
-        # requires ANM_MANAGER in esi
-        - "B8D08E4500        " # mov  eax, FLUSH_SPRITES_125
-        - "FFD0              " # call eax
-        - "8D86ACD64B00      " # lea  eax, [esi+BUFFER_OFFSET_125]
-        - "8986ACD68300      " # mov  [esi+CURSOR_OFFSET_125+0x0], eax  ; write cursor
-        - "8986B0D68300      " # mov  [esi+CURSOR_OFFSET_125+0x4], eax  ; read cursor
+    /value-if(th128):
+      - "502E4D00          " # at Data.anm_manager_ptr, dd 0x4d2e50
+      - "<codecave:ExpHP.sprite-death-fix.wrapper-esi>" # at Data.flush_sprites_abi, dd wrapper_esi
+      - "60EF4500          " # at Data.flush_sprites, dd 0x45ef60
+      - "F0964E00          " # at Data.buffer_offset, dd 0x4e96f0
+      - "F0968600          " # at Data.cursor_offset, dd 0x8696f0
 
-        # .noreset:
-        - "5A                " # pop  edx
-        # original code
-        - "A1B40C4D00        " # mov  eax, [ANM_MANAGER_PTR_125]
-        - "8BB8ACD68300      " # mov  edi, dword [eax+CURSOR_OFFSET_125]
+    /value-if(th13):
+      - "88C64D00          " # at Data.anm_manager_ptr, dd 0x4dc688
+      - "<codecave:ExpHP.sprite-death-fix.wrapper-esi>" # at Data.flush_sprites_abi, dd wrapper_esi
+      - "A0794600          " # at Data.flush_sprites, dd 0x4679a0
+      - "F481B700          " # at Data.buffer_offset, dd 0xb781f4
+      - "F481EF00          " # at Data.cursor_offset, dd 0xef81f4
 
-        # abs_jmp_hack 0x458fba
-        - "E800000000        " # call %%next
-        - "C70424BA8F4500    " # mov dword [esp], %1
-        - "C3                " # ret
+  # Calls a 1-arg function with 'thiscall' convention.
+  # __stdcall WrapperThiscall(func, arg)
+  ExpHP.sprite-death-fix.wrapper-thiscall:
+    - "55 89E5 56 57     " # prologue w/ esi edi
+    - "8B4D0C            " # mov  ecx, [ebp+0x0c]
+    - "FF5508            " # call [ebp+0x8]
+    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
+    - "C20800            " # ret 0x8
 
-  /fields-if(th128):
-    ExpHP.sprite-death-fix.hack:
-      addr: "0x45f043"
-      expected: "8bb8f0968600"
-      codecave:
-        # Games prior to DDC are missing this bounds check
-        - "52                " # push edx  ; save (it's an argument to the current function)
-        - "8B35502E4D00      " # mov  esi, [ANM_MANAGER_PTR_128]
-        - "8DB8F0968600      " # lea  edi, [eax+CURSOR_OFFSET_128]  ; write ptr
-        - "8B07              " # mov  eax, [edi]
-        - "05A8000000        " # add  eax, 0xa8
-        - "39F8              " # cmp  eax, edi
-        - "7C19              " # jl   .noreset
+  # Calls a function that takes an arg in esi.
+  # __stdcall WrapperEsi(func, arg)
+  ExpHP.sprite-death-fix.wrapper-esi:
+    - "55 89E5 56 57     " # prologue w/ esi edi
+    - "8B750C            " # mov  esi, [ebp+0x0c]
+    - "FF5508            " # call [ebp+0x8]
+    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
+    - "C20800            " # ret 0x8
 
-        # requires ANM_MANAGER in esi
-        - "B860EF4500        " # mov  eax, FLUSH_SPRITES_128
-        - "FFD0              " # call eax
-        - "8D86F0964E00      " # lea  eax, [esi+BUFFER_OFFSET_128]
-        - "8986F0968600      " # mov  [esi+CURSOR_OFFSET_128+0x0], eax  ; write cursor
-        - "8986F4968600      " # mov  [esi+CURSOR_OFFSET_128+0x4], eax  ; read cursor
+  # __stdcall Fix()
+  ExpHP.sprite-death-fix.fix:
+    - "55 89E5 56 57     " # prologue w/ esi edi
+    - "BF<codecave:ExpHP.sprite-death-fix.data>" # mov  edi, data
+    - "8B37              " # mov  esi, [edi+Data.anm_manager_ptr]
+    - "8B36              " # mov  esi, [esi]
 
-        # .noreset:
-        - "5A                " # pop  edx
-        # original code
-        - "A1502E4D00        " # mov  eax, [ANM_MANAGER_PTR_128]
-        - "8BB8F0968600      " # mov  edi, dword [eax+CURSOR_OFFSET_128]
+    # Check if there is enough room for one more sprite.
+    - "8B4710            " # mov  eax, [edi+Data.cursor_offset]
+    - "8D0C06            " # lea  ecx, [esi+eax]  ; location of write ptr is also end of array
+    - "8B01              " # mov  eax, [ecx]  ; write ptr
+    - "8D80A8000000      " # lea  eax, [eax+0xa8]  ; amount of data written for one sprite
+    - "39C8              " # cmp  eax, ecx  ; compare to end of array
+    - "7C17              " # jl   .noreset
 
-        - "E800000000C70424 49f04500 C3" # jump to 0x45f049
+    # Not enough room? Flush anything not yet drawn...
+    - "56                " # push esi
+    - "FF7708            " # push dword [edi+Data.flush_sprites]
+    - "FF5704            " # call [edi+Data.flush_sprites_abi]
 
-  /fields-if(th13):
-    ExpHP.sprite-death-fix.hack:
-      addr: "0x467a83"
-      expected: "8bb8f481ef00"
-      codecave:
-        # Games prior to DDC are missing this bounds check
-        - "52                " # push edx  ; save (it's an argument to the current function)
-        - "8B3588C64D00      " # mov  esi, [ANM_MANAGER_PTR_13]
-        - "8DB8F481EF00      " # lea  edi, [eax+CURSOR_OFFSET_13]  ; write ptr
-        - "8B07              " # mov  eax, [edi]
-        - "05A8000000        " # add  eax, 0xa8
-        - "39F8              " # cmp  eax, edi
-        - "7C19              " # jl   .noreset
+    # ...and go back to the beginning of the buffer.
+    - "8B470C            " # mov  eax, [edi+Data.buffer_offset]
+    - "8D0406            " # lea  eax, [esi+eax]
+    - "8B4F10            " # mov  ecx, [edi+Data.cursor_offset]
+    - "89040E            " # mov  [esi+ecx+0x0], eax  ; write cursor
+    - "89440E04          " # mov  [esi+ecx+0x4], eax  ; read cursor
 
-        # requires ANM_MANAGER in esi
-        - "B8A0794600        " # mov  eax, FLUSH_SPRITES_13
-        - "FFD0              " # call eax
-        - "8D86F481B700      " # lea  eax, [esi+BUFFER_OFFSET_13]
-        - "8986F481EF00      " # mov  [esi+CURSOR_OFFSET_13+0x0], eax  ; write cursor
-        - "8986F881EF00      " # mov  [esi+CURSOR_OFFSET_13+0x4], eax  ; read cursor
-
-        # .noreset:
-        - "5A                " # pop  edx
-        # original code
-        - "A188C64D00        " # mov  eax, [ANM_MANAGER_PTR_13]
-        - "8BB8F481EF00      " # mov  edi, dword [eax+CURSOR_OFFSET_13]
-
-        - "E800000000C70424 897a4600 C3" # jump to 0x467a89
+    # .noreset:
+    - "5F 5E 89EC 5D     " # epilogue w/ esi edi
+    - "C3                " # ret

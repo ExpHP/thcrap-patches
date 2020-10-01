@@ -1,6 +1,6 @@
 # `sprite_death_fix`
 
-**Supports:** TH10-TH13, TH125, TH128. <br/>
+**Supports:** TH08, TH10-TH13, TH125, TH128. <br/>
 *Can be easily adapted to add support for all STG titles TH10-TH17.*
 
 Fixes crashes in games prior to DDC that occur when so many sprites are drawn in one frame.  It probably also fixes that thing that you see in later games where the screen can go black except for a few borders and gradients.  I dunno.

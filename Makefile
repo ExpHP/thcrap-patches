@@ -244,6 +244,7 @@ SPRITE_DEATH_PATCH=$(REPO)/sprite_death_fix
 
 .PHONY: sprite-death-fix
 sprite-death-fix: \
+	$(SPRITE_DEATH_PATCH)/$(TH08_VER).js \
 	$(SPRITE_DEATH_PATCH)/$(TH10_VER).js \
 	$(SPRITE_DEATH_PATCH)/$(TH11_VER).js \
 	$(SPRITE_DEATH_PATCH)/$(TH12_VER).js \
