@@ -176,6 +176,7 @@ BULLET_CAP_PATCH=$(REPO)/bullet_cap
 .PHONY: bullet-cap
 bullet-cap: \
 	$(BULLET_CAP_PATCH)/global.js \
+	$(BULLET_CAP_PATCH)/$(TH08_VER).js \
 	$(BULLET_CAP_PATCH)/$(TH10_VER).js \
 	$(BULLET_CAP_PATCH)/$(TH11_VER).js \
 	$(BULLET_CAP_PATCH)/$(TH12_VER).js \

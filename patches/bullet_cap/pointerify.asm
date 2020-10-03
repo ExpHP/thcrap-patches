@@ -14,11 +14,18 @@
 
 %define BULLET_MANAGER_BASE 0xf54e90
 %define BULLET_ARRAY_PTR    0xf6f710
+%define LASER_ARRAY_PTR     0x14ccdb0
 %define BULLET_MANAGER_NUM_DWORDS 0x1ae95e
 
 %define BULLET_SIZE 0x10b8
 %define BULLET_STATE 0xdb8
+%define LASER_SIZE 0x59c
 
+%define FUNC_ITEM_CONSTRUCTOR 0x440050
+%define ITEM_ARRAY_PTR 0x1653648
+%define ITEM_SIZE 0x2e4
+
+%define FUNC_INITIALIZE_VECTOR 0x406850
 %define FUNC_MALLOC 0x4a43d4
 
 new_bullet_cap_bigendian:  ; DELETE
@@ -26,8 +33,6 @@ new_laser_cap_bigendian:  ; DELETE
 new_cancel_cap_bigendian:  ; DELETE
 
 ; ==========================================
-; OHGOD OHGOD OHGOD OHGOD OHGOD OHGOD OHGOD
-
 
 ; 0x42f43c  (6800f54200)  (in BulletManager::constructor (life before main))
 pointerify_bullets_constructor:  ; HEADER: AUTO
@@ -43,14 +48,26 @@ pointerify_bullets_constructor:  ; HEADER: AUTO
     push eax
     mov  eax, FUNC_MALLOC
     call eax
+    add  esp, 0x4  ; caller cleans stack
     mov  [BULLET_ARRAY_PTR], eax
-    abs_jmp_hack 0x42f45a
+
+    ; oh and uhhh lasers too cause they're on the same struct
+    mov  eax, [new_laser_cap_bigendian]  ; REWRITE: <codecave:laser-cap>
+    bswap eax
+    imul eax, LASER_SIZE
+    push eax
+    mov  eax, FUNC_MALLOC
+    call eax
+    add  esp, 0x4  ; caller cleans stack
+    mov  [LASER_ARRAY_PTR], eax
+    abs_jmp_hack 0x42f478
 
 ; 0x42f36a  (b95ee91a00)  (in BulletManager::reset)
-pointerify_keep_the_pointer:  ; HEADER: AUTO
+pointerify_bullets_keep_the_pointers:  ; HEADER: AUTO
     push esi  ; save
     ; Keep the pointer when the struct is memset to 0.
     push dword [BULLET_ARRAY_PTR]
+    push dword [LASER_ARRAY_PTR]
 
     ; memset the entire struct (this is the original code)
     mov  ecx, BULLET_MANAGER_NUM_DWORDS
@@ -58,9 +75,10 @@ pointerify_keep_the_pointer:  ; HEADER: AUTO
     mov  edi, dword [ebp-0xc]
     rep stosd
 
+    pop  dword [LASER_ARRAY_PTR]
     pop  dword [BULLET_ARRAY_PTR]
 
-    ; we also have to memset our array now, too
+    ; we also have to memset our arrays now, too
     mov  esi, [new_bullet_cap_bigendian]  ; REWRITE: <codecave:bullet-cap>
     bswap esi
     inc  esi  ; plus dummy bullet
@@ -69,13 +87,19 @@ pointerify_keep_the_pointer:  ; HEADER: AUTO
     mov  edi, [BULLET_ARRAY_PTR]
     rep stosb
 
-    ; set the sentinel state on the dummy bullet (our other binhacks aren't enough to make this happen)
+    ; NOTE: keeping the bullet array size in esi
+    mov  ecx, [new_laser_cap_bigendian]  ; REWRITE: <codecave:laser-cap>
+    bswap ecx
+    imul ecx, LASER_SIZE
+    mov  edi, [LASER_ARRAY_PTR]
+    rep stosb
+
+    ; set the sentinel state on the dummy bullet (our other binhacks aren't enough to make this happen).
     mov  edi, [BULLET_ARRAY_PTR]
     mov  word [edi + esi - BULLET_SIZE + BULLET_STATE], 6
 
     pop  esi
     abs_jmp_hack 0x42f376
-
 
 ; 0x423a6c  (c745f410f7f600)  (in a funcSet/funcCall func)
 ; 0x423e2c  (c745f410f7f600)  (in a funcSet/funcCall func)
@@ -118,14 +142,100 @@ pointerify_bullets_static_14:  ; HEADER: AUTO
 ; 0x42f379  (0580a80100) (in BulletManager::reset_bullet_array)
 ; 0x431254  (0580a80100) (in BulletManager::on_tick)
 pointerify_bullets_offset_eax:  ; HEADER: AUTO
-    add  eax, 0x1a880
-    mov  eax, [eax]
+    mov  eax, [BULLET_ARRAY_PTR]
     ret
 
 ; 0x42f657  (81c280a80100) (in BulletManager::shoot_one_bullet)
 ; 0x42fe23  (81c280a80100) (in BulletManager::shoot_one_bullet)
 pointerify_bullets_offset_edx:  ; HEADER: AUTO
-    add  edx, 0x1a880
-    mov  edx, [edx]
+    mov  edx, [BULLET_ARRAY_PTR]
     ret
 
+; 0x0042f46e  (81c238096600)  (in BulletManager::constructor)
+; 0x00430943  (81c238096600)  (in a cancel func)
+pointerify_lasers_offset_edx:  ; HEADER: AUTO
+    mov  edx, [LASER_ARRAY_PTR]
+    ret
+
+; 0x00430bcc  (0538096600)  (in another cancel func)
+; 0x00430f2d  (0538096600)  (in BulletManager::shoot_lasers)
+; 0x00431b76  (0538096600)  (in BulletManager::on_tick)
+pointerify_lasers_offset_eax:  ; HEADER: AUTO
+    mov  eax, [LASER_ARRAY_PTR]
+    ret
+
+; 0x00432b7d  (81c138096600)  (in BulletManager::on_draw)
+pointerify_lasers_offset_ecx:  ; HEADER: AUTO
+    mov  ecx, [LASER_ARRAY_PTR]
+    ret
+
+; ==============================================
+
+; 0x440021 (68e4020000)
+pointerify_items_constructor:  ; HEADER: AUTO
+    ; The line before this pushed the cancel cap + 1 (and we couldn't replace
+    ; it because bullet_cap promises to preserve and replace such values).
+    ;
+    ; However we can't use it because this runs before our search and
+    ; replace code, so just ignore it.
+    add  esp, 0x4
+
+    mov  eax, [new_bullet_cap_bigendian]  ; REWRITE: <codecave:bullet-cap>
+    bswap eax
+    inc  eax
+    push eax  ; save a copy of array length for later
+
+    imul eax, ITEM_SIZE
+    push eax
+    mov  eax, FUNC_MALLOC
+    call eax
+    add  esp, 0x4  ; caller cleans stack
+    mov  [ITEM_ARRAY_PTR], eax
+
+    pop  eax  ; saved copy of array length
+    push FUNC_ITEM_CONSTRUCTOR
+    push eax
+    push ITEM_SIZE
+    push dword [ITEM_ARRAY_PTR]
+    mov  eax, FUNC_INITIALIZE_VECTOR
+    call eax
+
+    abs_jmp_hack 0x44002f
+
+; 0x4337ff  (8b7dfcf3ab)
+pointerify_items_keep_the_pointer:  ; HEADER: AUTO
+    ; avoid zeroing out the pointer during this memcpy
+    push dword [ITEM_ARRAY_PTR]
+    mov  edi, [ebp-0x4]  ; original code
+    rep stosd            ; original code
+    pop  dword [ITEM_ARRAY_PTR]
+    abs_jmp_hack 0x433804
+
+; 0x4400b8  (8b55f403d1)
+pointerify_items_spawn:  ; HEADER: AUTO
+    mov  edx, [ebp-0xc]
+    mov  edx, [edx]  ; follow pointer
+    add  edx, ecx
+    abs_jmp_hack 0x4400bd
+
+; 0x4401b0  (8b45f405c0aa1700)
+pointerify_items_spawn_2_eax:
+    mov  eax, [new_cancel_cap_bigendian]  ; REWRITE: <codecave:cancel-cap>
+    bswap eax
+    imul eax, ITEM_SIZE
+    add  eax, [ITEM_ARRAY_PTR]
+    ret
+
+pointerify_items_spawn_2_edx:
+    mov  edx, [new_cancel_cap_bigendian]  ; REWRITE: <codecave:cancel-cap>
+    bswap edx
+    imul edx, ITEM_SIZE
+    add  edx, [ITEM_ARRAY_PTR]
+    ret
+
+; 0x440196  (8b4df4894df8)
+pointerify_items_spawn_wrap:
+    mov  ecx, [ebp-0xc]
+    mov  ecx, [ecx]   ; added instruction
+    mov  [ebp-0x8], ecx
+    abs_jmp_hack 0x4401aa
