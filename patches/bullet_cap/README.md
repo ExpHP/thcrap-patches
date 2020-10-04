@@ -107,9 +107,5 @@ You can access this from a binhack or codecave of your own using thcrap's angle 
                                              |
 6a 10f7f600                                  |    push BULLET_ARRAY
 e8[codecave:base-exphp.adjust-bullet_array]  |    call adjust_bullet_array
-a9 02000000                                  |    test eax,0x2
-74 02                                        |    jz   .noptr
-8b09                                         |    mov  ecx, [ecx]
-                                             | .noptr:
-                                             |    ; ecx now points to the array
+                                             |    ; eax now points to the array
 ```
