@@ -8,10 +8,15 @@
 %define KIND_FIELD        3
 %define KIND_ZERO         4
 %define KIND_EMBEDDED     5
+%define KIND_ARRAY_V2     6
 %define POSITIONING_MOF   1
 %define POSITIONING_TD    2
 %define POSITIONING_DDC   3
 %define POSITIONING_IN    4
+
+%define BCAPFLAG__BULLET_PTR 0x02
+%define BCAPFLAG__LASER_PTR  0x04
+%define BCAPFLAG__CANCEL_PTR 0x08
 
 struc ColorData  ; DELETE
     .ascii_manager_ptr: resd 1  ; DELETE
@@ -32,6 +37,12 @@ struc ArraySpec  ; DELETE
     .array_offset: resd 1  ; offset of array in struct  ; DELETE
     .field_offset: resd 1  ; offset of a byte in an array item that is nonzero if and only if the item is in use  ; DELETE
     .stride: resd 1  ; size of each item in the array  ; DELETE
+endstruc  ; DELETE
+
+; Extended version of ArraySpec so that we don't need to add these fields to all of the existing ones and have to test all of those games.
+struc ArraySpecV2  ; DELETE
+    .v1: resb ArraySpec_size  ; DELETE
+    .bullet_cap_ptr_flag: resd 1  ; flag in `base-exphp.bullet-cap-status` that indicates pointerification of this array (0 if none)  ; DELETE
 endstruc  ; DELETE
 
 struc FieldSpec  ; DELETE

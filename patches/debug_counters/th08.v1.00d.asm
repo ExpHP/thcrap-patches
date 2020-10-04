@@ -79,18 +79,20 @@ laser_data:  ; HEADER: AUTO
 istruc EmbeddedSpec
     at EmbeddedSpec.show_when_nonzero, dd REPLAY_MANAGER_PTR
     at EmbeddedSpec.struct_base, dd BULLET_MANAGER_BASE
-    at EmbeddedSpec.spec_kind, dd KIND_ARRAY
-    at EmbeddedSpec.spec_size, dd ArraySpec_size
+    at EmbeddedSpec.spec_kind, dd KIND_ARRAY_V2
+    at EmbeddedSpec.spec_size, dd ArraySpecV2_size
 iend
-    ; FIXME: This won't be compatible with bullet_cap.
-istruc ArraySpec
-    at ArraySpec.struct_ptr, dd 0xDEADBEEF ; unused
-    at ArraySpec.length_is_addr, dd 1
-    at ArraySpec.length_correction, dd 0
-    at ArraySpec.array_length, dd 0x42f464 - 4
-    at ArraySpec.array_offset, dd LASER_ARRAY_OFFSET
-    at ArraySpec.field_offset, dd 0x584
-    at ArraySpec.stride, dd 0x59c
+istruc ArraySpecV2
+    at ArraySpecV2.v1, istruc ArraySpec
+        at ArraySpec.struct_ptr, dd 0xDEADBEEF ; unused
+        at ArraySpec.length_is_addr, dd 1
+        at ArraySpec.length_correction, dd 0
+        at ArraySpec.array_length, dd 0x42f464 - 4
+        at ArraySpec.array_offset, dd LASER_ARRAY_OFFSET
+        at ArraySpec.field_offset, dd 0x584
+        at ArraySpec.stride, dd 0x59c
+    iend
+    at ArraySpecV2.bullet_cap_ptr_flag, dd BCAPFLAG__LASER_PTR
 iend
 
 effect_1_data:  ; HEADER: AUTO

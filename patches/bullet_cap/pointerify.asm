@@ -13,8 +13,8 @@
 %include "common.asm"
 
 %define BULLET_MANAGER_BASE 0xf54e90
-%define BULLET_ARRAY_PTR    0xf6f710
-%define LASER_ARRAY_PTR     0x14ccdb0
+%define BULLET_ARRAY_PTR    (BULLET_MANAGER_BASE + 0x1a880)
+%define LASER_ARRAY_PTR     (BULLET_MANAGER_BASE + 0x660938)
 %define BULLET_MANAGER_NUM_DWORDS 0x1ae95e
 
 %define BULLET_SIZE 0x10b8

@@ -6,13 +6,13 @@
 
 line_info: ; DELETE
 color_data: ; DELETE
+bullet_cap_status:  ; DELETE
 
 ; Each game.asm implements this to provide a stdcall wrapper around AsciiManager::drawf_debug
 ; for a format string that takes a single DWORD integer:
 ;
 ; __stdcall DrawfDebugInt(AnmManager*, Float3*, char*, int)
 drawf_debug_int: ; DELETE
-
 
 show_debug_data:  ; HEADER: AUTO
     %push
@@ -106,6 +106,9 @@ drawf_spec:  ; HEADER: AUTO
     cmp  eax, KIND_ARRAY
     jz near drawf_array_spec  ; REWRITE: [codecave:AUTO]
 
+    cmp  eax, KIND_ARRAY_V2
+    jz near drawf_array_v2_spec  ; REWRITE: [codecave:AUTO]
+
     cmp  eax, KIND_ANMID
     jz near drawf_anmid_spec  ; REWRITE: [codecave:AUTO]
 
@@ -122,6 +125,38 @@ drawf_spec:  ; HEADER: AUTO
 
 ; __stdcall void DrawfArraySpec(Float3*, ArraySpec*, char* fmt)
 drawf_array_spec:  ; HEADER: AUTO
+    %push
+    %define %$pos_ptr  ebp+0x08
+    %define %$spec_ptr ebp+0x0c
+    %define %$fmt      ebp+0x10
+
+    ; delegate to V2
+    enter ArraySpecV2_size, 0
+    %define %$spec_v2  ebp - ArraySpecV2_size
+
+    push esi ; save
+    push edi ; save
+    mov  ecx, ArraySpec_size
+    mov  esi, [%$spec_ptr]
+    lea  edi, [%$spec_v2]
+    rep movsb  ; copy v1 fields
+    pop  edi ; restore
+    pop  esi ; restore
+    mov  dword [%$spec_v2 + ArraySpecV2.bullet_cap_ptr_flag], 0
+
+    push dword [%$fmt]
+    lea  eax, [%$spec_v2]
+    push eax
+    push dword [%$pos_ptr]
+    call drawf_array_v2_spec  ; REWRITE: [codecave:AUTO]
+
+.nostruct:
+    leave
+    ret 0xc
+    %pop
+
+; __stdcall void DrawfArraySpec(Float3*, ArraySpecV2*, char* fmt)
+drawf_array_v2_spec:  ; HEADER: AUTO
     %push
     %define %$pos_ptr  ebp+0x08
     %define %$spec_ptr ebp+0x0c
@@ -250,14 +285,23 @@ count_array_items_with_nonzero_byte:  ; HEADER: AUTO
     push ebx
     %define %$data_ptr      ebp+0x8
     %define %$limit_out_ptr ebp+0xc
+    ; for this function, putting variables directly in registers saves a ton of verbosity,
+    ; but we must be super paranoid about function calls
     %define %$data         edx
-    %define %$bullet_mgr   esi
     %define %$state_iter   edi
     %define %$remaining    ecx
     %define %$used_count   ebx
 
-    mov  %$data, [%$data_ptr]
+    ; call this before using any variables so we don't have to think about which ones are in volatile registers.
+    push dword [%$data_ptr]
+    call get_array_from_spec  ; REWRITE: [codecave:AUTO]
 
+    ; get pointer to state field of first item
+    mov  %$data, [%$data_ptr]
+    add  eax, [%$data + ArraySpec.field_offset]
+    mov  %$state_iter, eax
+
+    ; get array length (= max count)
     mov  eax, [%$data + ArraySpec.length_is_addr]
     test eax, eax
     mov  %$remaining, [%$data + ArraySpec.array_length]
@@ -265,20 +309,11 @@ count_array_items_with_nonzero_byte:  ; HEADER: AUTO
     mov  %$remaining, [%$remaining]
     add  %$remaining, [%$data + ArraySpec.length_correction]
 .notaddr:
-
     mov  eax, [%$limit_out_ptr]
-    mov  [eax], %$remaining ; write max bullets for coloring purposes
+    mov  [eax], %$remaining ; write max count for coloring purposes
 
-    mov  eax, [%$data + ArraySpec.struct_ptr]
-    mov  %$bullet_mgr, [eax]
+    ; start countin'!
     xor  %$used_count, %$used_count
-    test %$bullet_mgr, %$bullet_mgr
-    jz  .end
-
-    mov  eax, %$bullet_mgr
-    add  eax, [%$data + ArraySpec.array_offset]
-    add  eax, [%$data + ArraySpec.field_offset]
-    mov  %$state_iter, eax
 .iter:
     dec  %$remaining
     js   .end
@@ -295,6 +330,28 @@ count_array_items_with_nonzero_byte:  ; HEADER: AUTO
     pop  ebx
     epilogue_sd
     ret  0x8
+    %pop
+
+; __stdcall void* get_array_from_spec(ArraySpecV2* spec)
+get_array_from_spec:  ; HEADER: AUTO
+    %push
+    prologue_sd
+    mov  esi, [ebp+0x8]  ; spec
+
+    mov  eax, [esi + ArraySpec.struct_ptr]
+    mov  eax, [eax]  ; get struct
+    add  eax, [esi + ArraySpec.array_offset]  ; get array
+
+    ; if bullet_cap is installed, it might have moved the array behind a pointer.
+    ; This is signalled by setting a flag in bullet-cap-status.
+    mov  ecx, [esi + ArraySpecV2.bullet_cap_ptr_flag]  ; bitmask for a specific array's flag]
+
+    test [bullet_cap_status], ecx  ; REWRITE: <codecave:base-exphp.bullet-cap-status>
+    jz   .noptr
+    mov  eax, [eax]  ; dereference it!
+.noptr:
+    epilogue_sd
+    ret 0x4
     %pop
 
 ; __stdcall void DrawfZeroSpec(Float3*, ZeroSpec*, char* fmt)

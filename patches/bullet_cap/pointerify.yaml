@@ -41,7 +41,7 @@ binhacks:
         - "B8D4434A00        " # mov  eax, FUNC_MALLOC
         - "FFD0              " # call eax
         - "83C404            " # add  esp, 0x4  ; caller cleans stack
-        - "A3B0CD4C01        " # mov  [LASER_ARRAY_PTR], eax
+        - "A3C8575B01        " # mov  [LASER_ARRAY_PTR], eax
         - "E800000000C70424 78f44200 C3" # jump to 0x42f478
 
     ExpHP.bullet-cap.pointerify-keep-the-pointers:
@@ -51,7 +51,7 @@ binhacks:
         - "56                " # push esi  ; save
         # Keep the pointer when the struct is memset to 0.
         - "FF3510F7F600      " # push dword [BULLET_ARRAY_PTR]
-        - "FF35B0CD4C01      " # push dword [LASER_ARRAY_PTR]
+        - "FF35C8575B01      " # push dword [LASER_ARRAY_PTR]
 
         # memset the entire struct (this is the original code)
         - "B95EE91A00        " # mov  ecx, BULLET_MANAGER_NUM_DWORDS
@@ -59,7 +59,7 @@ binhacks:
         - "8B7DF4            " # mov  edi, dword [ebp-0xc]
         - "F3AB              " # rep stosd
 
-        - "8F05B0CD4C01      " # pop  dword [LASER_ARRAY_PTR]
+        - "8F05C8575B01      " # pop  dword [LASER_ARRAY_PTR]
         - "8F0510F7F600      " # pop  dword [BULLET_ARRAY_PTR]
 
         # we also have to memset our arrays now, too
@@ -75,10 +75,10 @@ binhacks:
         - "8B0D<codecave:laser-cap>" # mov  ecx, [new_laser_cap_bigendian]
         - "0FC9              " # bswap ecx
         - "69C99C050000      " # imul ecx, LASER_SIZE
-        - "8B3DB0CD4C01      " # mov  edi, [LASER_ARRAY_PTR]
+        - "8B3DC8575B01      " # mov  edi, [LASER_ARRAY_PTR]
         - "F3AA              " # rep stosb
 
-        # set the sentinel state on the dummy bullet (our other binhacks aren't enough to make this happen)
+        # set the sentinel state on the dummy bullet (our other binhacks aren't enough to make this happen).
         - "8B3D10F7F600      " # mov  edi, [BULLET_ARRAY_PTR]
         - "66C7843700FDFFFF0600" # mov  word [edi + esi - BULLET_SIZE + BULLET_STATE], 6
 
@@ -159,7 +159,7 @@ binhacks:
         - "0x430941"  # (in a cancel func)
       expected: "81c238096600"
       call-codecave:
-        - "8B15B0CD4C01      " # mov  edx, [LASER_ARRAY_PTR]
+        - "8B15C8575B01      " # mov  edx, [LASER_ARRAY_PTR]
         - "C3                " # ret
 
     ExpHP.bullet-cap.pointerify-lasers-offset-eax:
@@ -169,14 +169,14 @@ binhacks:
         - "0x431b75"  # (in BulletManager::on_tick)
       expected: "0538096600"
       call-codecave:
-        - "A1B0CD4C01        " # mov  eax, [LASER_ARRAY_PTR]
+        - "A1C8575B01        " # mov  eax, [LASER_ARRAY_PTR]
         - "C3                " # ret
 
     ExpHP.bullet-cap.pointerify-lasers-offset-ecx:
       addr: "0x432b7b"  # (in BulletManager::on_draw)
       expected: "81c138096600"
       call-codecave:
-        - "8B0DB0CD4C01      " # mov  ecx, [LASER_ARRAY_PTR]
+        - "8B0DC8575B01      " # mov  ecx, [LASER_ARRAY_PTR]
         - "C3                " # ret
 
     ExpHP.bullet-cap.pointerify-items-constructor:

@@ -7,7 +7,7 @@
         "ExpHP.debug-counters.bullet-data": "05000000 // 288A8B01 // 904EF500 // 03000000 // 0C000000 // EFBEADDE // 38A56B00 // AA124300",
         "ExpHP.debug-counters.normal-item-data": "05000000 // 288A8B01 // 48366501 // 03000000 // 0C000000 // EFBEADDE // A8AD1700 // 83014400",
         "ExpHP.debug-counters.cancel-item-data": "00000000",
-        "ExpHP.debug-counters.laser-data": "05000000 // 288A8B01 // 904EF500 // 01000000 // 1C000000 // EFBEADDE // 01000000 // 00000000 // 60F44200 // 38096600 // 84050000 // 9C050000",
+        "ExpHP.debug-counters.laser-data": "05000000 // 288A8B01 // 904EF500 // 06000000 // 20000000 // EFBEADDE // 01000000 // 00000000 // 60F44200 // 38096600 // 84050000 // 9C050000 // 04000000",
         "ExpHP.debug-counters.effect-1-data": "05000000 // 288A8B01 // 60CE4E00 // 01000000 // 1C000000 // EFBEADDE // 01000000 // 00000000 // 64544200 // 1C000000 // 50030000 // 60030000",
         "ExpHP.debug-counters.effect-2-data": "05000000 // 288A8B01 // 60CE4E00 // 01000000 // 1C000000 // EFBEADDE // 01000000 // 00000000 // A55B4200 // 1CC00600 // 50030000 // 60030000",
         "ExpHP.debug-counters.effect-3-data": "05000000 // 288A8B01 // 60CE4E00 // 01000000 // 1C000000 // EFBEADDE // 00000000 // 00000000 // 0D000000 // 1C700800 // 50030000 // 60030000",

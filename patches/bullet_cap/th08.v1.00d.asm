@@ -67,6 +67,7 @@ iend
     dd 0x100
     dd SCALE_1
     dd WHITELIST_BEGIN
+    dd 0x42f464 - 4  ; in BulletManager::constructor
     ; To find these, search for the laser size then scour all of the functions you find.
     dd 0x430977 - 4  ; in some cancel func
     dd 0x430c00 - 4  ; in another cancel func

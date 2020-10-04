@@ -1,6 +1,7 @@
 {
 	"dependencies": [
-		"nmlgc/base_tsa"
+		"nmlgc/base_tsa",
+		"ExpHP/base_exphp"
 	],
 	"id": "debug_counters",
 	"servers": [
