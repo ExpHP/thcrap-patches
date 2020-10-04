@@ -53,6 +53,8 @@ Basically, this patch changes the size of that array by searching for and replac
 
 Granted, obviously, not every instance of the number 2000 is related to bullet cap (though the *vast majority* of them are), so there are also blacklists of addresses not to replace.
 
+**In TH06, TH07, and TH08, things are more complicated!**  In these games, the bullet array lives in static memory, making it impossible to resize safely.  The patch changes these games to instead allocate an array on the heap, storing a pointer to it at the beginning of where the array normally reside.
+
 ## `bullet_cap` breaks my patch!
 
 This patch can potentially break other patches if they contain a binhack whose new code *incidentally* contains a copy of one of the values replaced by this patch.  If this happens to you, [leave an issue](https://github.com/ExpHP/thcrap-patches/issues/new) and we can try to work something out.  (please do not try to modify the blacklist from your patch if you are publishing to `thcrap_configure` as I may change its format in the future!)
@@ -92,3 +94,27 @@ And for some examples of what **not** to use, from the same game:
   0042f371  8b7df4             mov     edi, dword [ebp-0xc]
   0042f374  f3ab               rep stosd dword [edi]
   ```
+
+## My patch for EoSD, PCB, or IN, needs to access one of the arrays!  How can it be made compatible without depending on `bullet_cap`?
+
+Add `ExpHP/base_exphp` as a dependency.  That patch defines a codecave, `codecave:base-exphp.bullet-cap-status`, which contains a **little-endian (native) dword:**
+
+* Bit 0 (1) is on if `bullet_cap` is installed.
+* Bit 1 (2) is on if `bullet_cap` is installed and the bullet array was moved to behind a pointer in this game.
+* Bit 2 (4) is on if `bullet_cap` is installed and the laser array was moved to behind a pointer in this game.
+* Bit 3 (8) is on if `bullet_cap` is installed and the item array was moved to behind a pointer in this game.
+* The other bits are reserved for future use.
+
+You can access this from a binhack or codecave of your own using thcrap's angle bracket syntax to get the absolute address of a registered function.
+
+```
+            THCRAP BINHACK STRING            |         ENCODED ASSEMBLY
+                                             |
+b9 10f7f600                                  |    mov  ecx, BULLET_ARRAY
+a1<codecave:base-exphp.bullet-cap-status>    |    mov  eax, [bullet_cap_status]
+a9 02000000                                  |    test eax,0x2
+74 02                                        |    jz   .noptr
+8b09                                         |    mov  ecx, [ecx]
+                                             | .noptr:
+                                             |    ; ecx now points to the array
+```

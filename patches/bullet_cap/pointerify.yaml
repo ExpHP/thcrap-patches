@@ -190,7 +190,7 @@ binhacks:
         # replace code, so just ignore it.
         - "83C404            " # add  esp, 0x4
 
-        - "A1<codecave:bullet-cap>" # mov  eax, [new_bullet_cap_bigendian]
+        - "A1<codecave:cancel-cap>" # mov  eax, [new_cancel_cap_bigendian]
         - "0FC8              " # bswap eax
         - "40                " # inc  eax
         - "50                " # push eax  ; save a copy of array length for later

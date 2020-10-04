@@ -180,7 +180,7 @@ pointerify_items_constructor:  ; HEADER: AUTO
     ; replace code, so just ignore it.
     add  esp, 0x4
 
-    mov  eax, [new_bullet_cap_bigendian]  ; REWRITE: <codecave:bullet-cap>
+    mov  eax, [new_cancel_cap_bigendian]  ; REWRITE: <codecave:cancel-cap>
     bswap eax
     inc  eax
     push eax  ; save a copy of array length for later

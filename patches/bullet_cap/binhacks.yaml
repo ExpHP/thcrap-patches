@@ -9,6 +9,10 @@ codecaves:
     /value-if(th125): "00000c80"
     /value-if(th128): "00000640"
 
+  base-exphp.bullet-cap-status:
+    /value-if(any(th10,th11,th12,th125,th128,th13)): "01000000"
+    /value-if(any(th08)): "07000000"
+
   # Lag spike "softening" constant for big cancels in MoF and SA.
   # Bigger number = more lag.
   #

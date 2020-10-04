@@ -25,7 +25,7 @@
         "of(ExpHP.bullet-cap.pointerify-lasers-offset-edx)": "8B15B0CD4C01 // C3",
         "of(ExpHP.bullet-cap.pointerify-lasers-offset-eax)": "A1B0CD4C01 // C3",
         "of(ExpHP.bullet-cap.pointerify-lasers-offset-ecx)": "8B0DB0CD4C01 // C3",
-        "of(ExpHP.bullet-cap.pointerify-items-constructor)": "83C404 // A1<codecave:bullet-cap> // 0FC8 // 40 // 50 // 69C0E4020000 // 50 // B8D4434A00 // FFD0 // 83C404 // A348366501 // 58 // 6850004400 // 50 // 68E4020000 // FF3548366501 // B850684000 // FFD0 // E800000000C70424 2f004400 C3",
+        "of(ExpHP.bullet-cap.pointerify-items-constructor)": "83C404 // A1<codecave:cancel-cap> // 0FC8 // 40 // 50 // 69C0E4020000 // 50 // B8D4434A00 // FFD0 // 83C404 // A348366501 // 58 // 6850004400 // 50 // 68E4020000 // FF3548366501 // B850684000 // FFD0 // E800000000C70424 2f004400 C3",
         "of(ExpHP.bullet-cap.pointerify-items-keep-the-pointer)": "FF3548366501 // 8B7DFC // F3AB // 8F0548366501 // E800000000C70424 04384300 C3",
         "of(ExpHP.bullet-cap.pointerify-items-spawn)": "8B55F4 // 8B12 // 01CA // E800000000C70424 bd004400 C3",
         "of(ExpHP.bullet-cap.pointerify-items-spawn-2-eax)": "A1<codecave:cancel-cap> // 0FC8 // 69C0E4020000 // 030548366501 // C3",

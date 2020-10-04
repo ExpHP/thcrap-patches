@@ -1,6 +1,7 @@
 {
 	"dependencies": [
 		"nmlgc/base_tsa",
+		"ExpHP/base_exphp",
 		"ExpHP/sprite_death_fix"
 	],
 	"id": "bullet_cap",

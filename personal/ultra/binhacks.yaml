@@ -1,0 +1,24 @@
+binhacks:
+  /fields-if(th08):
+    ExpHP.ultra.th08-1:
+      addr: "0x430e6c"
+      expected: "b9f85e7d01"
+      codecave:
+        - "8B4508            " # mov  eax, dword [ebp+0x8]
+        - "66C1A0F601000002  " # shl  word [eax+0x1f6], 0x2
+        - "66C1A0F401000002  " # shl  word [eax+0x1f4], 0x2
+        # original code
+        - "B9F85E7D01        " # mov  ecx, 0x17d5ef8
+        - "E800000000C70424 710e4300 C3" # jump to 0x430e71
+
+    ExpHP.ultra.th08-2:
+      addr: "0x430edd"
+      expected: "8b45088b88fc010000"
+      codecave:
+        - "8B4508            " # mov  eax, dword [ebp+0x8]
+        - "66C1A8F601000002  " # shr  word [eax+0x1f6], 0x2
+        - "66C1A8F401000002  " # shr  word [eax+0x1f4], 0x2
+        # original code
+        - "8B4508            " # mov  eax, dword [ebp+0x8]
+        - "8B88FC010000      " # mov  ecx, dword [eax+0x1fc]
+        - "E800000000C70424 e60e4300 C3" # jump to 0x430ee6

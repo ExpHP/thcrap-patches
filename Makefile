@@ -19,6 +19,7 @@ all: \
 	bullet-cap \
 	debug-counters \
 	sprite-death-fix \
+	ultra \
 
 REPO=patches
 PERSONAL=personal
@@ -237,7 +238,6 @@ $(DEBUG_COUNTERS_PATCH)/global.js: $(DEBUG_COUNTERS_PATCH)/global.yaml
 $(DEBUG_COUNTERS_PATCH)/th%.js: $(DEBUG_COUNTERS_PATCH)/th%.yaml $(DEBUG_COUNTERS_PATCH)/binhacks.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
 
-
 #================================================
 
 SPRITE_DEATH_PATCH=$(REPO)/sprite_death_fix
@@ -255,3 +255,13 @@ sprite-death-fix: \
 $(SPRITE_DEATH_PATCH)/th%.js: $(SPRITE_DEATH_PATCH)/binhacks.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
 
+#================================================
+
+ULTRA_PATCH=$(PERSONAL)/ultra
+
+.PHONY: ultra
+ultra: \
+	$(ULTRA_PATCH)/$(TH08_VER).js \
+
+$(ULTRA_PATCH)/th%.js: $(ULTRA_PATCH)/binhacks.yaml
+	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
