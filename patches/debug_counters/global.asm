@@ -142,7 +142,7 @@ drawf_array_spec:  ; HEADER: AUTO
     rep movsb  ; copy v1 fields
     pop  edi ; restore
     pop  esi ; restore
-    mov  dword [%$spec_v2 + ArraySpecV2.bullet_cap_ptr_flag], 0
+    mov  dword [%$spec_v2 + ArraySpecV2.adjust_array_func], 0
 
     push dword [%$fmt]
     lea  eax, [%$spec_v2]
@@ -342,14 +342,14 @@ get_array_from_spec:  ; HEADER: AUTO
     mov  eax, [eax]  ; get struct
     add  eax, [esi + ArraySpec.array_offset]  ; get array
 
-    ; if bullet_cap is installed, it might have moved the array behind a pointer.
-    ; This is signalled by setting a flag in bullet-cap-status.
-    mov  ecx, [esi + ArraySpecV2.bullet_cap_ptr_flag]  ; bitmask for a specific array's flag]
-
-    test [bullet_cap_status], ecx  ; REWRITE: <codecave:base-exphp.bullet-cap-status>
-    jz   .noptr
-    mov  eax, [eax]  ; dereference it!
-.noptr:
+    ; If bullet_cap is installed, it might have moved the array behind a pointer.
+    ; Support both games with and without bullet_cap by calling a func from base_exphp.
+    mov  ecx, [esi + ArraySpecV2.adjust_array_func]
+    test ecx, ecx
+    jz   .nofunc  ; was one provided in spec?
+    push eax
+    call ecx  ; get the true array!
+.nofunc:
     epilogue_sd
     ret 0x4
     %pop

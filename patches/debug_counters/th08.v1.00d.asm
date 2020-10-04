@@ -92,7 +92,7 @@ istruc ArraySpecV2
         at ArraySpec.field_offset, dd 0x584
         at ArraySpec.stride, dd 0x59c
     iend
-    at ArraySpecV2.bullet_cap_ptr_flag, dd BCAPFLAG__LASER_PTR
+    at ArraySpecV2.adjust_array_func, dd adjust_laser_array  ; REWRITE: <codecave:base-exphp.adjust-laser-array>
 iend
 
 effect_1_data:  ; HEADER: AUTO

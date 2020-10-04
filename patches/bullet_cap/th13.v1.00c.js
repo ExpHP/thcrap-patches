@@ -10,7 +10,6 @@
         "bullet-cap": "00007d00",
         "laser-cap": "00001000",
         "cancel-cap": "00008000",
-        "base-exphp.bullet-cap-status": "01000000",
         "bullet-cap-config.anm-search-lag-spike-size": "00002000",
         "bullet-cap-config.mof-sa-lag-spike-size": "ffffffff",
         "of(ExpHP.bullet-cap.install)": "E8[codecave:ExpHP.bullet-cap.initialize] // B880B24300 // FFD0 // E800000000C70424 f5c44200 C3",

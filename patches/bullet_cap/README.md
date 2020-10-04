@@ -1,6 +1,7 @@
 # `bullet_cap`
 
-**Supports:** TH10-TH13, TH125, TH128.
+**Supports:** TH10-TH13, TH125, TH128. <br>
+**In Beta:** TH08. [Please report bugs!](https://github.com/ExpHP/thcrap-patches/issues/new)
 
 This patch can be used to increase or reduce the following caps:
 
@@ -97,21 +98,15 @@ And for some examples of what **not** to use, from the same game:
 
 ## My patch for EoSD, PCB, or IN, needs to access one of the arrays!  How can it be made compatible without depending on `bullet_cap`?
 
-Add `ExpHP/base_exphp` as a dependency.  That patch defines a codecave, `codecave:base-exphp.bullet-cap-status`, which contains a **little-endian (native) dword:**
-
-* Bit 0 (1) is on if `bullet_cap` is installed.
-* Bit 1 (2) is on if `bullet_cap` is installed and the bullet array was moved to behind a pointer in this game.
-* Bit 2 (4) is on if `bullet_cap` is installed and the laser array was moved to behind a pointer in this game.
-* Bit 3 (8) is on if `bullet_cap` is installed and the item array was moved to behind a pointer in this game.
-* The other bits are reserved for future use.
+Add `ExpHP/base_exphp` as a dependency.  That patch defines the codecaves, `codecave:base-exphp.adjust-bullet-array`, `codecave:base-exphp.adjust-cancel-array`, and `codecave:base-exphp.adjust-laser-array`, which are callable functions that take the address where an array *normally* would be, and produce the address where the array *actually* is.  When `bullet_cap` is not installed, these functions will simply return the address you give it.  When `bullet_cap` is installed, these functions might do something else in some games like TH08.
 
 You can access this from a binhack or codecave of your own using thcrap's angle bracket syntax to get the absolute address of a registered function.
 
 ```
             THCRAP BINHACK STRING            |         ENCODED ASSEMBLY
                                              |
-b9 10f7f600                                  |    mov  ecx, BULLET_ARRAY
-a1<codecave:base-exphp.bullet-cap-status>    |    mov  eax, [bullet_cap_status]
+6a 10f7f600                                  |    push BULLET_ARRAY
+e8[codecave:base-exphp.adjust-bullet_array]  |    call adjust_bullet_array
 a9 02000000                                  |    test eax,0x2
 74 02                                        |    jz   .noptr
 8b09                                         |    mov  ecx, [ecx]

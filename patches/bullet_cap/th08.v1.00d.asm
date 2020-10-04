@@ -3,6 +3,26 @@
 %include "util.asm"
 %include "common.asm"
 
+; ===============================
+
+; Override functions from base_exphp.
+; REMINDER: These functions must additionally preserve ecx and edx.
+
+adjust_bullet_array:  ; HEADER: base-exphp.adjust-bullet-array
+    mov  eax, [esp+0x4]
+    mov  eax, [eax]  ; deref pointer
+    ret
+adjust_laser_array:  ; HEADER: base-exphp.adjust-laser-array
+    mov  eax, [esp+0x4]
+    mov  eax, [eax]  ; deref pointer
+    ret
+adjust_cancel_array:  ; HEADER: base-exphp.adjust-cancel-array
+    mov  eax, [esp+0x4]
+    mov  eax, [eax]  ; deref pointer
+    ret
+
+; ===============================
+
 ; Address range spanned by .text
 address_range:  ; HEADER: AUTO
     dd 0x401000

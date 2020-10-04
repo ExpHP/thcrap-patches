@@ -7,6 +7,7 @@
 
 .PHONY: all
 all: \
+	base-exphp \
 	subseason-patches \
 	sp-resources \
 	c-key \
@@ -265,3 +266,19 @@ ultra: \
 
 $(ULTRA_PATCH)/th%.js: $(ULTRA_PATCH)/binhacks.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
+
+#================================================
+
+BASE_EXPHP_PATCH=$(REPO)/base_exphp
+
+.PHONY: base-exphp
+base-exphp: \
+	$(BASE_EXPHP_PATCH)/global.js \
+
+$(BASE_EXPHP_PATCH)/global.yaml: $(BASE_EXPHP_PATCH)/global.asm
+	@echo "# this yaml file is auto-generated" >$@
+	@echo "codecaves:" >>$@
+	scripts/list-asm $< >>$@
+
+$(BASE_EXPHP_PATCH)/global.js: $(BASE_EXPHP_PATCH)/global.yaml
+	scripts/convert-yaml.py $^ >$@

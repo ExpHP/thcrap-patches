@@ -14,9 +14,10 @@
 %define POSITIONING_DDC   3
 %define POSITIONING_IN    4
 
-%define BCAPFLAG__BULLET_PTR 0x02
-%define BCAPFLAG__LASER_PTR  0x04
-%define BCAPFLAG__CANCEL_PTR 0x08
+; funcs from base-exphp
+adjust_bullet_array:  ; DELETE
+adjust_laser_array:  ; DELETE
+adjust_cancel_array:  ; DELETE
 
 struc ColorData  ; DELETE
     .ascii_manager_ptr: resd 1  ; DELETE
@@ -42,7 +43,7 @@ endstruc  ; DELETE
 ; Extended version of ArraySpec so that we don't need to add these fields to all of the existing ones and have to test all of those games.
 struc ArraySpecV2  ; DELETE
     .v1: resb ArraySpec_size  ; DELETE
-    .bullet_cap_ptr_flag: resd 1  ; flag in `base-exphp.bullet-cap-status` that indicates pointerification of this array (0 if none)  ; DELETE
+    .adjust_array_func: resd 1  ; func from `base_exphp` that may dereference a pointerified array (0 if none)  ; DELETE
 endstruc  ; DELETE
 
 struc FieldSpec  ; DELETE
