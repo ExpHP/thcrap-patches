@@ -3,7 +3,7 @@
 	"id": "ExpHP",
 	"patches": {
 		"base_exphp": "Provides functions that help other patches support patches like bullet_cap without directly depending on them.",
-		"bullet_cap": "(08 (in beta), 10-13, 125, 128) Makes the bullet cap, laser cap, and cancel cap configurable.\nDefaults to 16x everything. To configure, see https://github.com/ExpHP/thcrap-patches/tree/master/patches/bullet_cap#readme",
+		"bullet_cap": "(08 (in beta), 10-13, 125, 128) Makes the bullet cap, laser cap, and cancel cap configurable.\nDefaults to 16x everything. To configure, see http://exphp.github.io/thpages/#/mods/bullet-cap",
 		"c_key": "(17) Make Ctrl and C behave as separate keys internally, for use by other patches. (C maps to 0x4)",
 		"continue": "(10-12) Fixes the continue system. plz don't save cursed 3cc replays kthx",
 		"ctrl_speedup": "(10-17, 128) Makes Ctrl to speedup work outside of replays.",
