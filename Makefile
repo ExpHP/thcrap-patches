@@ -185,13 +185,14 @@ bullet-cap: \
 	$(BULLET_CAP_PATCH)/$(TH125_VER).js \
 	$(BULLET_CAP_PATCH)/$(TH128_VER).js \
 	$(BULLET_CAP_PATCH)/$(TH13_VER).js \
+	$(BULLET_CAP_PATCH)/$(TH16_VER).js \
 
-$(BULLET_CAP_PATCH)/global.yaml: $(BULLET_CAP_PATCH)/global.asm
+$(BULLET_CAP_PATCH)/global.yaml: $(BULLET_CAP_PATCH)/global.asm $(BULLET_CAP_PATCH)/common.asm
 	@echo "# this yaml file is auto-generated" >$@
 	@echo "codecaves:" >>$@
 	scripts/list-asm $< >>$@
 
-$(BULLET_CAP_PATCH)/th%.yaml: $(BULLET_CAP_PATCH)/th%.asm
+$(BULLET_CAP_PATCH)/th%.yaml: $(BULLET_CAP_PATCH)/th%.asm $(BULLET_CAP_PATCH)/common.asm
 	@echo "# this yaml file is auto-generated" >$@
 	@echo "codecaves:" >>$@
 	scripts/list-asm $< >>$@

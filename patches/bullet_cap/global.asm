@@ -169,33 +169,38 @@ determine_new_value:  ; HEADER: AUTO
     %define %$old_cap     ebp+0x10
     %define %$new_cap     ebp+0x14
     %define %$old_value   ebp+0x18
-    enter 0x4, 0
+    enter 0x04, 0
     %define %$scale       ebp-0x04
 
-    cmp  dword [%$scale_const], 0
-    jg   .pos_scale
-    jl   .neg_scale
-    int  3  ; 0 is invalid
-
-.pos_scale:  ; positive scale constant is SCALE_SIZE_DIV(n)
     mov  eax, [%$item_size]
+    movzx ecx, byte [%$scale_const + ScaleConst.size_mult]
+    imul eax, ecx
+    movzx ecx, byte [%$scale_const + ScaleConst.one_mult]
+    add  eax, ecx
+    cmp  eax, 0
+    jg   .goodscale
+    int 3  ; negative or zero scale, probably an error
+.goodscale:
     mov  [%$scale], eax
-    jmp  .scale_done
-.neg_scale:  ; negative scale constant is SCALE_1_DIV(n)
-    mov  dword [%$scale], 1
-    neg  dword [%$scale_const]  ;  abs(x)
 
-.scale_done:
     mov  eax, [%$new_cap]
     sub  eax, [%$old_cap]
     imul eax, [%$scale]
     cdq
-    idiv dword [%$scale_const]
+    movzx ecx, byte [%$scale_const + ScaleConst.divisor]
+    idiv ecx
     add  eax, dword [%$old_value]
 
-    ; keep eax from division for return value
+    ; keep eax for return value
     test edx, edx  ; check remainder
-    jz   .done
+    jnz  .divisibility_error
+    test eax, eax
+    jge  .done
+    int 3  ; new value is negative?  Probably bad scale constant!
+
+.done:
+    leave
+    ret  0x14
 
 .divisibility_error:
     mov  ecx, data  ; REWRITE: <codecave:AUTO>
@@ -209,19 +214,15 @@ determine_new_value:  ; HEADER: AUTO
     mov  eax, [eax + iat_funcs.MessageBoxA - iat_funcs]
     call [eax]
     int  3
-
-.done:
-    leave
-    ret  0x14
     %pop
 
-; Replace all instances in .text of a single dword value.  There may be a blacklist of addresses to not
+; Replace instances in .text of a single dword value.  There may be a blacklist of addresses to not
 ; replace (in which case the entire address space is searched), or a whitelist of addresses to replace
 ; (in which case only those are replaced).
 ;
 ; Returns a pointer to after the end of the blacklist or whitelist.
 ;
-; __stdcall PerformSingleReplacement(old_value, new_value, bwlist*)
+; __stdcall void* PerformSingleReplacement(old_value, new_value, bwlist**)
 perform_single_replacement:  ; HEADER: AUTO
     %push
     %define %$old_value   ebp+0x08
