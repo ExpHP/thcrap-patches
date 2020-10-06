@@ -162,6 +162,7 @@ ssa: \
 	$(SSA_PATCH)/$(TH11_VER).js \
 	$(SSA_PATCH)/$(TH14_VER).js \
 
+.INTERMEDIATE: $(SSA_PATCH)/common.yaml
 $(SSA_PATCH)/common.yaml: $(SSA_PATCH)/common.asm
 	@echo "# this yaml file is auto-generated" >$@
 	@echo "codecaves:" >>$@
@@ -187,6 +188,7 @@ bullet-cap: \
 	$(BULLET_CAP_PATCH)/$(TH13_VER).js \
 	$(BULLET_CAP_PATCH)/$(TH16_VER).js \
 
+.INTERMEDIATE: $(BULLET_CAP_PATCH)/global.yaml
 $(BULLET_CAP_PATCH)/global.yaml: $(BULLET_CAP_PATCH)/global.asm $(BULLET_CAP_PATCH)/common.asm
 	@echo "# this yaml file is auto-generated" >$@
 	@echo "codecaves:" >>$@
@@ -224,6 +226,7 @@ debug-counters: \
 	$(DEBUG_COUNTERS_PATCH)/$(TH165_VER).js \
 	$(DEBUG_COUNTERS_PATCH)/$(TH17_VER).js \
 
+.INTERMEDIATE: $(DEBUG_COUNTERS_PATCH)/global.yaml
 $(DEBUG_COUNTERS_PATCH)/global.yaml: $(DEBUG_COUNTERS_PATCH)/global.asm $(DEBUG_COUNTERS_PATCH)/common.asm
 	@echo "# this yaml file is auto-generated" >$@
 	@echo "codecaves:" >>$@
@@ -276,6 +279,7 @@ BASE_EXPHP_PATCH=$(REPO)/base_exphp
 base-exphp: \
 	$(BASE_EXPHP_PATCH)/global.js \
 
+.INTERMEDIATE: $(BASE_EXPHP_PATCH)/global.yaml
 $(BASE_EXPHP_PATCH)/global.yaml: $(BASE_EXPHP_PATCH)/global.asm
 	@echo "# this yaml file is auto-generated" >$@
 	@echo "codecaves:" >>$@
@@ -283,3 +287,4 @@ $(BASE_EXPHP_PATCH)/global.yaml: $(BASE_EXPHP_PATCH)/global.asm
 
 $(BASE_EXPHP_PATCH)/global.js: $(BASE_EXPHP_PATCH)/global.yaml
 	scripts/convert-yaml.py $^ >$@
+
