@@ -1,11 +1,11 @@
-%macro prologue_sd 0-1  0
+%macro prologue_sd 0.nolist
     push ebp
     mov  ebp, esp
     push esi
     push edi
 %endmacro
 
-%macro epilogue_sd 0
+%macro epilogue_sd 0.nolist
     pop  edi
     pop  esi
     mov  esp, ebp
@@ -13,7 +13,7 @@
 %endmacro
 
 ; side-effect-free absolute jump
-%macro  abs_jmp_hack 1
+%macro  abs_jmp_hack 1.nolist
         call %%next
     %%next:
         mov dword [esp], %1
