@@ -35,9 +35,7 @@ bullet_data:  ; HEADER: AUTO
     dd KIND_ARRAY
 istruc ArraySpec
     at ArraySpec.struct_ptr, dd 0x4b8930
-    at ArraySpec.length_is_addr, dd 1
-    at ArraySpec.length_correction, dd 0
-    at ArraySpec.array_length, dd 0x408d95 - 4
+    at ArraySpec.limit, dd LIMIT_ADDR(0x408d95-4)
     at ArraySpec.array_offset, dd 0x64
     at ArraySpec.field_offset, dd 0xa2a
     at ArraySpec.stride, dd 0x11b8
@@ -47,9 +45,7 @@ normal_item_data:  ; HEADER: AUTO
     dd KIND_ARRAY
 istruc ArraySpec
     at ArraySpec.struct_ptr, dd 0x4b8a5c
-    at ArraySpec.length_is_addr, dd 0
-    at ArraySpec.length_correction, dd 0
-    at ArraySpec.array_length, dd 600
+    at ArraySpec.limit, dd LIMIT_VALUE(600)
     at ArraySpec.array_offset, dd 0x14
     at ArraySpec.field_offset, dd 0xa18
     at ArraySpec.stride, dd 0xa40
@@ -59,9 +55,7 @@ cancel_item_data:  ; HEADER: AUTO
     dd KIND_ARRAY
 istruc ArraySpec
     at ArraySpec.struct_ptr, dd 0x4b8a5c
-    at ArraySpec.length_is_addr, dd 1
-    at ArraySpec.length_correction, dd -600-16  ; the extra 16 is left over from UFO
-    at ArraySpec.array_length, dd 0x428550 - 4
+    at ArraySpec.limit, dd LIMIT_ADDR_CORRECTED(0x428550-4, -600-16)  ; the extra 16 is left over from UFO
     at ArraySpec.array_offset, dd 0x18aa14
     at ArraySpec.field_offset, dd 0xa18
     at ArraySpec.stride, dd 0xa40
@@ -71,17 +65,25 @@ laser_data:  ; HEADER: AUTO
     dd KIND_FIELD
 istruc FieldSpec
     at FieldSpec.struct_ptr, dd 0x4b8a60
+    at FieldSpec.limit, dd LIMIT_ADDR(0x42a411-4)
     at FieldSpec.count_offset, dd 0x5d4
-    at FieldSpec.limit_addr, dd 0x42a411 - 4
 iend
 
 anmid_data:  ; HEADER: AUTO
     dd KIND_ANMID
 istruc AnmidSpec
     at AnmidSpec.struct_ptr, dd 0x4d2e50
+    at AnmidSpec.limit, dd LIMIT_VALUE(0x1000)
     at AnmidSpec.world_head_ptr_offset, dd 0x8b9704
     at AnmidSpec.ui_head_ptr_offset, dd 0x8b9708
-    at AnmidSpec.num_fast_vms, dd 0x1000
+iend
+
+enemy_data:  ; HEADER: AUTO
+    dd KIND_FIELD
+istruc FieldSpec
+    at FieldSpec.struct_ptr, dd 0x4b8948
+    at FieldSpec.limit, dd LIMIT_NONE
+    at FieldSpec.count_offset, dd 0xc0
 iend
 
 get_color:  ; DELETE

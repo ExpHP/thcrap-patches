@@ -34,9 +34,7 @@ bullet_data:  ; HEADER: AUTO
     dd KIND_ARRAY
 istruc ArraySpec
     at ArraySpec.struct_ptr, dd 0x4a8d68
-    at ArraySpec.length_is_addr, dd 1
-    at ArraySpec.length_correction, dd 0
-    at ArraySpec.array_length, dd 0x408d40 - 4
+    at ArraySpec.limit, dd LIMIT_ADDR(0x408d40-4)
     at ArraySpec.array_offset, dd 0x64
     at ArraySpec.field_offset, dd 0x4b2
     at ArraySpec.stride, dd 0x910
@@ -46,9 +44,7 @@ normal_item_data:  ; HEADER: AUTO
     dd KIND_ARRAY
 istruc ArraySpec
     at ArraySpec.struct_ptr, dd 0x4a8e90
-    at ArraySpec.length_is_addr, dd 0
-    at ArraySpec.length_correction, dd 0
-    at ArraySpec.array_length, dd 150
+    at ArraySpec.limit, dd LIMIT_VALUE(150)
     at ArraySpec.array_offset, dd 0x14
     at ArraySpec.field_offset, dd 0x464
     at ArraySpec.stride, dd 0x478
@@ -58,9 +54,7 @@ cancel_item_data:  ; HEADER: AUTO
     dd KIND_ARRAY
 istruc ArraySpec
     at ArraySpec.struct_ptr, dd 0x4a8e90
-    at ArraySpec.length_is_addr, dd 1
-    at ArraySpec.length_correction, dd -150 ; true cancel item cap never appears in code
-    at ArraySpec.array_length, dd 0x423490 - 4
+    at ArraySpec.limit, dd LIMIT_ADDR_CORRECTED(0x423490-4, -150)  ; true cancel item cap never appears in code
     at ArraySpec.array_offset, dd 0x29e64
     at ArraySpec.field_offset, dd 0x464
     at ArraySpec.stride, dd 0x478
@@ -70,17 +64,25 @@ laser_data:  ; HEADER: AUTO
     dd KIND_FIELD
 istruc FieldSpec
     at FieldSpec.struct_ptr, dd 0x4a8e94
+    at FieldSpec.limit, dd LIMIT_ADDR(0x424e01-4)
     at FieldSpec.count_offset, dd 0x454
-    at FieldSpec.limit_addr, dd 0x424e01 - 4
 iend
 
 anmid_data:  ; HEADER: AUTO
     dd KIND_ANMID
 istruc AnmidSpec
     at AnmidSpec.struct_ptr, dd 0x4c3268
+    at AnmidSpec.limit, dd LIMIT_VALUE(0x1000)
     at AnmidSpec.world_head_ptr_offset, dd 0x7b562c
     at AnmidSpec.ui_head_ptr_offset, dd 0x7b5634
-    at AnmidSpec.num_fast_vms, dd 0x1000
+iend
+
+enemy_data:  ; HEADER: AUTO
+    dd KIND_FIELD
+istruc FieldSpec
+    at FieldSpec.struct_ptr, dd 0x4a8d7c
+    at FieldSpec.limit, dd LIMIT_NONE
+    at FieldSpec.count_offset, dd 0x70
 iend
 
 get_color:  ; DELETE

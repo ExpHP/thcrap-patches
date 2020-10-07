@@ -120,5 +120,7 @@ line_info_strings:  ; HEADER: AUTO
     dd "%7d eff.1"
     dd "%7d eff.2"
     dd "%7d lgods"
+    dd "%7d enemy"
+    dd "%7d enmyA"
 
 show_debug_data:  ; DELETE

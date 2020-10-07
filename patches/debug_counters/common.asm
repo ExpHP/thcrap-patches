@@ -9,10 +9,20 @@
 %define KIND_ZERO         4
 %define KIND_EMBEDDED     5
 %define KIND_ARRAY_V2     6
+%define KIND_LIST         7
 %define POSITIONING_MOF   1
 %define POSITIONING_TD    2
 %define POSITIONING_DDC   3
 %define POSITIONING_IN    4
+
+; Quantity is unlimited.
+%define LIMIT_NONE             LIMIT_VALUE(0x7fffffff)
+; Limit is as given.
+%define LIMIT_VALUE(a)         0, a
+; Limit can be found at this address.
+%define LIMIT_ADDR(a)          LIMIT_ADDR_CORRECTED(a, 0)
+; Limit can be found by reading this address and then adding some adjustment.
+%define LIMIT_ADDR_CORRECTED(a, adjust)  a, adjust
 
 ; funcs from base-exphp
 adjust_bullet_array:  ; DELETE
@@ -32,9 +42,7 @@ endstruc  ; DELETE
 
 struc ArraySpec  ; DELETE
     .struct_ptr: resd 1 ; address of (possibly null) pointer to struct that holds the array  ; DELETE
-    .length_is_addr: resd 1  ; boolean.  If 1, the array_length field is an address where length can be found (to support bullet_cap patch)  ; DELETE
-    .length_correction: resd 1  ; when length_is_addr = 1, a correction can be added to the length after it is read from the address  ; DELETE
-    .array_length: resd 1  ; number of items in the array  ; DELETE
+    .limit: resd 2  ; for coloring ; DELETE
     .array_offset: resd 1  ; offset of array in struct  ; DELETE
     .field_offset: resd 1  ; offset of a byte in an array item that is nonzero if and only if the item is in use  ; DELETE
     .stride: resd 1  ; size of each item in the array  ; DELETE
@@ -48,19 +56,19 @@ endstruc  ; DELETE
 
 struc FieldSpec  ; DELETE
     .struct_ptr: resd 1  ; DELETE
+    .limit: resd 2  ; DELETE
     ; Find these in the function that allocates a laser.
     ; (in the LASER_MANAGER crossrefs, about two down from LaserManager::operator new)
     .count_offset: resd 1  ;  DELETE
-    .limit_addr: resd 1  ; DELETE
 endstruc  ; DELETE
 
 struc AnmidSpec  ; DELETE
     .struct_ptr: resd 1  ; DELETE
+    .limit: resd 2  ; size of the "fast VM" array.  Technically the number of VMs can surpass this. DELETE
     ; For these, check AnmManager's on_ticks.
     .world_head_ptr_offset: resd 1  ; DELETE
     .ui_head_ptr_offset: resd 1  ; DELETE
     ; Check AnmManager::initialize for the first array it initializes
-    .num_fast_vms: resd 1  ; size of the "fast VM" array.  Technically the number of VMs can surpass this. DELETE
 endstruc  ; DELETE
 
 ; Counter that's always zero
@@ -76,4 +84,10 @@ struc EmbeddedSpec  ; DELETE
     .spec_kind: resd 1  ; kind constant of .spec field  ; DELETE
     .spec_size: resd 1  ; length of .spec in bytes  ; DELETE
     .spec: ; a spec to delegate to (placed inline), whose first field (.struct_ptr) will be ignored  ; DELETE
+endstruc  ; DELETE
+
+struc ListSpec  ; DELETE
+    .struct_ptr: resd 1  ; DELETE
+    .limit: resd 2  ; DELETE
+    .head_ptr_offset: resd 1  ; DELETE
 endstruc  ; DELETE

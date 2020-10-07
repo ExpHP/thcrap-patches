@@ -35,9 +35,7 @@ bullet_data:  ; HEADER: AUTO
     dd KIND_ARRAY
 istruc ArraySpec
     at ArraySpec.struct_ptr, dd 0x4b677c
-    at ArraySpec.length_is_addr, dd 1
-    at ArraySpec.length_correction, dd 0
-    at ArraySpec.array_length, dd 0x408785 - 4
+    at ArraySpec.limit, dd LIMIT_ADDR(0x408785-4)
     at ArraySpec.array_offset, dd 0x64
     at ArraySpec.field_offset, dd 0x512
     at ArraySpec.stride, dd 0xa34
@@ -53,9 +51,7 @@ cancel_item_data:  ; HEADER: AUTO
     dd KIND_ARRAY
 istruc ArraySpec
     at ArraySpec.struct_ptr, dd 0x4b68a0
-    at ArraySpec.length_is_addr, dd 1
-    at ArraySpec.length_correction, dd 0  ; it's the whole array in this game
-    at ArraySpec.array_length, dd 0x41f320 - 4
+    at ArraySpec.limit, dd LIMIT_ADDR(0x41f320-4)  ; it's the whole array in this game
     at ArraySpec.array_offset, dd 0x14
     at ArraySpec.field_offset, dd 0x4f0
     at ArraySpec.stride, dd 0x4f4
@@ -65,17 +61,25 @@ laser_data:  ; HEADER: AUTO
     dd KIND_FIELD
 istruc FieldSpec
     at FieldSpec.struct_ptr, dd 0x4b68a4
+    at FieldSpec.limit, dd LIMIT_ADDR(0x420411-4)
     at FieldSpec.count_offset, dd 0x468
-    at FieldSpec.limit_addr, dd 0x420411 - 4
 iend
 
 anmid_data:  ; HEADER: AUTO
     dd KIND_ANMID
 istruc AnmidSpec
     at AnmidSpec.struct_ptr, dd 0x4d0cb4
+    at AnmidSpec.limit, dd LIMIT_VALUE(0x1000)
     at AnmidSpec.world_head_ptr_offset, dd 0x88d6c0
     at AnmidSpec.ui_head_ptr_offset, dd 0x88d6c8
-    at AnmidSpec.num_fast_vms, dd 0x1000
+iend
+
+enemy_data:  ; HEADER: AUTO
+    dd KIND_FIELD
+istruc FieldSpec
+    at FieldSpec.struct_ptr, dd 0x4b678c
+    at FieldSpec.limit, dd LIMIT_NONE
+    at FieldSpec.count_offset, dd 0xa8
 iend
 
 get_color:  ; DELETE

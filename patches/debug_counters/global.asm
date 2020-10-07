@@ -121,6 +121,9 @@ drawf_spec:  ; HEADER: AUTO
     cmp  eax, KIND_EMBEDDED
     jz near drawf_embedded_spec  ; REWRITE: [codecave:AUTO]
 
+    cmp  eax, KIND_LIST
+    jz near drawf_list_spec  ; REWRITE: [codecave:AUTO]
+
     int 3
 
 ; __stdcall void DrawfArraySpec(Float3*, ArraySpec*, char* fmt)
@@ -164,15 +167,20 @@ drawf_array_v2_spec:  ; HEADER: AUTO
     enter 0x08, 0
     %define %$spec     ebp-0x04
     %define %$limit    ebp-0x08
+    push esi
 
-    mov eax, [%$spec_ptr]
-    mov eax, [eax + ArraySpec.struct_ptr]
+    mov esi, [%$spec_ptr]
+    mov eax, [esi + ArraySpec.struct_ptr]
     mov eax, [eax]
     test eax, eax
     jz .nostruct
 
-    lea  eax, [%$limit]
-    push eax ; out pointer
+    lea  eax, [esi + ArraySpec.limit]
+    push eax
+    call parse_limit  ; REWRITE: [codecave:AUTO]
+    mov  [%$limit], eax
+
+    push dword [%$limit]
     push dword [%$spec_ptr]
     call count_array_items_with_nonzero_byte  ; REWRITE: [codecave:AUTO]
     push eax
@@ -182,6 +190,7 @@ drawf_array_v2_spec:  ; HEADER: AUTO
     call drawf_debug_int_colorval  ; REWRITE: [codecave:AUTO]
 
 .nostruct:
+    pop esi
     leave
     ret 0xc
     %pop
@@ -192,7 +201,8 @@ drawf_field_spec:  ; HEADER: AUTO
     %define %$pos_ptr  ebp+0x08
     %define %$spec_ptr ebp+0x0c
     %define %$fmt      ebp+0x10
-    enter 0x00, 0
+    enter 0x04, 0
+    %define %$limit    ebp-0x04
     push edi
     push esi
 
@@ -202,11 +212,54 @@ drawf_field_spec:  ; HEADER: AUTO
     test edi, edi
     jz .nostruct
 
+    lea  eax, [esi + FieldSpec.limit]
+    push eax
+    call parse_limit  ; REWRITE: [codecave:AUTO]
+    mov  [%$limit], eax
+
     mov  eax, [esi + FieldSpec.count_offset]
     push dword [edi+eax] ; count
     push dword [%$fmt]
-    mov  eax, [esi + FieldSpec.limit_addr]
-    push dword [eax]
+    push dword [%$limit]
+    push dword [%$pos_ptr]
+    call drawf_debug_int_colorval  ; REWRITE: [codecave:AUTO]
+
+.nostruct:
+    pop esi
+    pop edi
+    leave
+    ret 0xc
+    %pop
+
+; __stdcall void DrawfListSpec(Float3*, ListSpec*, char* fmt)
+drawf_list_spec:  ; HEADER: AUTO
+    %push
+    %define %$pos_ptr  ebp+0x08
+    %define %$spec_ptr ebp+0x0c
+    %define %$fmt      ebp+0x10
+    enter 0x04, 0
+    %define %$limit    ebp-0x04
+    push edi
+    push esi
+
+    mov esi, [%$spec_ptr]
+    mov eax, [esi + ListSpec.struct_ptr]
+    mov edi, [eax]  ; struct pointer
+    test edi, edi
+    jz .nostruct
+
+    lea  eax, [esi + ListSpec.limit]
+    push eax
+    call parse_limit  ; REWRITE: [codecave:AUTO]
+    mov  [%$limit], eax
+
+    mov  eax, [esi + ListSpec.head_ptr_offset]
+    push dword [edi+eax]
+    call count_linked_list  ; REWRITE: [codecave:AUTO]
+
+    push dword eax
+    push dword [%$fmt]
+    push dword [%$limit]
     push dword [%$pos_ptr]
     call drawf_debug_int_colorval  ; REWRITE: [codecave:AUTO]
 
@@ -223,8 +276,9 @@ drawf_anmid_spec:  ; HEADER: AUTO
     %define %$pos_ptr  ebp+0x08
     %define %$spec_ptr ebp+0x0c
     %define %$fmt      ebp+0x10
-    enter 0x04, 0
+    enter 0x08, 0
     %define %$total    ebp-0x04
+    %define %$limit    ebp-0x08
     push edi
     push esi
 
@@ -233,6 +287,11 @@ drawf_anmid_spec:  ; HEADER: AUTO
     mov edi, [eax]  ; AnmManager pointer
     test edi, edi
     jz .nostruct
+
+    lea  eax, [esi + AnmidSpec.limit]
+    push eax
+    call parse_limit  ; REWRITE: [codecave:AUTO]
+    mov  [%$limit], eax
 
     mov  dword [%$total], 0
 
@@ -250,7 +309,7 @@ drawf_anmid_spec:  ; HEADER: AUTO
 
     push dword [%$total]
     push dword [%$fmt]
-    push dword [esi + AnmidSpec.num_fast_vms]
+    push dword [%$limit]
     push dword [%$pos_ptr]
     call drawf_debug_int_colorval  ; REWRITE: [codecave:AUTO]
 
@@ -278,13 +337,13 @@ count_linked_list:  ; HEADER: AUTO
 
 ; Common implementation for counting used items in an array that lives on some struct.
 ; (Specifically, searches for items where a specific byte is nonzero.)
-; __stdcall int CountArrayItemsWithNonzeroByte(ArraySpec* spec, out int* limit)
+; __stdcall void CountArrayItemsWithNonzeroByte(ArraySpec* spec, int length)
 count_array_items_with_nonzero_byte:  ; HEADER: AUTO
     %push
     prologue_sd
     push ebx
     %define %$data_ptr      ebp+0x8
-    %define %$limit_out_ptr ebp+0xc
+    %define %$length        ebp+0xc
     ; for this function, putting variables directly in registers saves a ton of verbosity,
     ; but we must be super paranoid about function calls
     %define %$data         edx
@@ -301,18 +360,8 @@ count_array_items_with_nonzero_byte:  ; HEADER: AUTO
     add  eax, [%$data + ArraySpec.field_offset]
     mov  %$state_iter, eax
 
-    ; get array length (= max count)
-    mov  eax, [%$data + ArraySpec.length_is_addr]
-    test eax, eax
-    mov  %$remaining, [%$data + ArraySpec.array_length]
-    jz   .notaddr
-    mov  %$remaining, [%$remaining]
-    add  %$remaining, [%$data + ArraySpec.length_correction]
-.notaddr:
-    mov  eax, [%$limit_out_ptr]
-    mov  [eax], %$remaining ; write max count for coloring purposes
-
     ; start countin'!
+    mov  %$remaining, [%$length]
     xor  %$used_count, %$used_count
 .iter:
     dec  %$remaining
@@ -426,6 +475,30 @@ drawf_embedded_spec:  ; HEADER: AUTO
 .nostruct:
     epilogue_sd
     ret 0xc
+    %pop
+
+; int ParseLimit(int* limit_const)
+parse_limit:  ; HEADER: AUTO
+    %push
+    enter 0x00, 0
+
+    ; first dword:  zero = value, nonzero = address
+    mov  ecx, [ebp+0x08]
+    mov  eax, [ecx+0x00]
+    test eax, eax
+    jz   .is_value
+    jg   .is_address
+    int 3
+
+.is_value:
+    mov  eax, [ecx+0x04]
+    jmp  .done
+.is_address:
+    mov  eax, [eax]       ; read address
+    add  eax, [ecx+0x04]  ; add correction
+.done:
+    leave
+    ret 0x4
     %pop
 
 ; D3DCOLOR GetColor(int amount, int limit)

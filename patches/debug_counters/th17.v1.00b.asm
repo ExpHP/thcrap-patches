@@ -31,9 +31,7 @@ bullet_data:  ; HEADER: AUTO
     dd KIND_ARRAY
 istruc ArraySpec
     at ArraySpec.struct_ptr, dd 0x4b768c
-    at ArraySpec.length_is_addr, dd 1
-    at ArraySpec.length_correction, dd -1
-    at ArraySpec.array_length, dd 0x414807 - 4
+    at ArraySpec.limit, dd LIMIT_ADDR_CORRECTED(0x414807-4, -1)
     at ArraySpec.array_offset, dd 0xec
     at ArraySpec.field_offset, dd 0xe50
     at ArraySpec.stride, dd 0xe88
@@ -43,9 +41,7 @@ normal_item_data:  ; HEADER: AUTO
     dd KIND_ARRAY
 istruc ArraySpec
     at ArraySpec.struct_ptr, dd 0x4b76b8
-    at ArraySpec.length_is_addr, dd 0
-    at ArraySpec.length_correction, dd 0
-    at ArraySpec.array_length, dd 600
+    at ArraySpec.limit, dd LIMIT_VALUE(600)
     at ArraySpec.array_offset, dd 0x14
     at ArraySpec.field_offset, dd 0xc58
     at ArraySpec.stride, dd 0xc78
@@ -55,9 +51,7 @@ cancel_item_data:  ; HEADER: AUTO
     dd KIND_ARRAY
 istruc ArraySpec
     at ArraySpec.struct_ptr, dd 0x4b76b8
-    at ArraySpec.length_is_addr, dd 1
-    at ArraySpec.length_correction, dd -600
-    at ArraySpec.array_length, dd 0x4331f8 - 4
+    at ArraySpec.limit, dd LIMIT_ADDR_CORRECTED(0x4331f8-4, -600)
     at ArraySpec.array_offset, dd 0x1d3954
     at ArraySpec.field_offset, dd 0xc58
     at ArraySpec.stride, dd 0xc78
@@ -67,17 +61,25 @@ laser_data:  ; HEADER: AUTO
     dd KIND_FIELD
 istruc FieldSpec
     at FieldSpec.struct_ptr, dd 0x4b76bc
+    at FieldSpec.limit, dd LIMIT_ADDR(0x4355d5-4)
     at FieldSpec.count_offset, dd 0x5e4
-    at FieldSpec.limit_addr, dd 0x4355d5 - 4
 iend
 
 anmid_data:  ; HEADER: AUTO
     dd KIND_ANMID
 istruc AnmidSpec
     at AnmidSpec.struct_ptr, dd 0x509a20
+    at AnmidSpec.limit, dd LIMIT_VALUE(0x3fff)
     at AnmidSpec.world_head_ptr_offset, dd 0x6dc
     at AnmidSpec.ui_head_ptr_offset, dd 0x6e4
-    at AnmidSpec.num_fast_vms, dd 0x3fff
+iend
+
+enemy_data:  ; HEADER: AUTO
+    dd KIND_FIELD
+istruc FieldSpec
+    at FieldSpec.struct_ptr, dd 0x4b76a0
+    at FieldSpec.limit, dd LIMIT_NONE
+    at FieldSpec.count_offset, dd 0x18c
 iend
 
 get_color:  ; DELETE
