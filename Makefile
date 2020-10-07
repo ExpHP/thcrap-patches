@@ -256,6 +256,7 @@ sprite-death-fix: \
 	$(SPRITE_DEATH_PATCH)/$(TH125_VER).js \
 	$(SPRITE_DEATH_PATCH)/$(TH128_VER).js \
 	$(SPRITE_DEATH_PATCH)/$(TH13_VER).js \
+	$(SPRITE_DEATH_PATCH)/$(TH16_VER).js \
 
 $(SPRITE_DEATH_PATCH)/th%.js: $(SPRITE_DEATH_PATCH)/binhacks.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
@@ -267,6 +268,7 @@ ULTRA_PATCH=$(PERSONAL)/ultra
 .PHONY: ultra
 ultra: \
 	$(ULTRA_PATCH)/$(TH08_VER).js \
+	$(ULTRA_PATCH)/$(TH16_VER).js \
 
 $(ULTRA_PATCH)/th%.js: $(ULTRA_PATCH)/binhacks.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)

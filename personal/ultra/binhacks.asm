@@ -27,3 +27,18 @@ th08_2:  ; HEADER: AUTO
     mov  eax, dword [ebp+0x8]
     mov  ecx, dword [eax+0x1fc]
     abs_jmp_hack 0x430ee6
+
+
+; 0x414e26  (f30f11442410)
+th16_01:  ; HEADER: AUTO
+    movss dword [esp+0x10], xmm0
+    shl  word [edi+0x364], 0x2
+    shl  word [edi+0x366], 0x2
+    abs_jmp_hack 0x414e2c
+
+; 0x414e93  (f6876c03000020)
+th16_02:  ; HEADER: AUTO
+    shr  word [edi+0x364], 0x2
+    shr  word [edi+0x366], 0x2
+    test byte [edi+0x36c], 0x20
+    abs_jmp_hack 0x414e9a

@@ -79,6 +79,15 @@ istruc Data  ; DELETE
     at Data.cursor_offset, dd 0xef81f4
 iend  ; DELETE
 
+data_16:  ; HEADER: AUTO
+istruc Data  ; DELETE
+    at Data.anm_manager_ptr, dd 0x4c0f48
+    at Data.flush_sprites_abi, dd wrapper_thiscall  ; REWRITE: <codecave:AUTO>
+    at Data.flush_sprites, dd 0x465a80
+    at Data.buffer_offset, dd 0x184fc1c
+    at Data.cursor_offset, dd 0x1bcfc1c
+iend  ; DELETE
+
 ; ============================================
 ; Binhacks
 
@@ -89,6 +98,14 @@ binhack_08:  ; HEADER: AUTO
     mov  esi, dword [ebp+0x8]
     mov  eax, dword [ebp-0x4]
     ret
+
+; In DDC and beyond, we replace the line with the `lea` that checks how far the
+; sprite will write, and jump to the successful branch at the end.
+;
+; TH16: 0x465b60  (8d87a8000000)
+binhack_16:  ; HEADER: AUTO
+    call fix  ; REWRITE: [codecave:AUTO]
+    abs_jmp_hack 0x465b76
 
 ; Astonishingly, AnmManager::write_sprite has the exact same ABI in all
 ; six of the "bizarre ABI era" games, which almost never happens.

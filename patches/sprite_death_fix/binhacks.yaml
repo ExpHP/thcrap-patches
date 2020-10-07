@@ -39,6 +39,14 @@ binhacks:
         - "5A                " # pop  edx
         - "C3                " # ret
 
+  /fields-if(th16):
+    ExpHP.sprite-death-fix.hack:
+      addr: "0x465b60"
+      expected: "8d87a8000000"
+      codecave:
+        - "E8[codecave:ExpHP.sprite-death-fix.fix]" # call fix
+        - "E800000000C70424765B4600C3" # abs_jmp_hack 0x465b76
+
 codecaves:
   ExpHP.sprite-death-fix.data:
     /value-if(th08):
@@ -89,6 +97,13 @@ codecaves:
       - "A0794600          " # at Data.flush_sprites, dd 0x4679a0
       - "F481B700          " # at Data.buffer_offset, dd 0xb781f4
       - "F481EF00          " # at Data.cursor_offset, dd 0xef81f4
+
+    /value-if(th16):
+      - "480F4C00          " # at Data.anm_manager_ptr, dd 0x4c0f48
+      - "<codecave:ExpHP.sprite-death-fix.wrapper-thiscall>" # at Data.flush_sprites_abi, dd wrapper_thiscall
+      - "805A4600          " # at Data.flush_sprites, dd 0x465a80
+      - "1CFC8401          " # at Data.buffer_offset, dd 0x184fc1c
+      - "1CFCBC01          " # at Data.cursor_offset, dd 0x1bcfc1c
 
   # Calls a 1-arg function with 'thiscall' convention.
   # __stdcall WrapperThiscall(func, arg)
