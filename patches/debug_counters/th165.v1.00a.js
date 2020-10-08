@@ -9,7 +9,8 @@
         "ExpHP.debug-counters.laser-data": "03000000 // 38564B00 // 61CB420000000000 // E4050000",
         "ExpHP.debug-counters.anmid-data": "02000000 // 8CD84E00 // 00000000FF1F0000 // DC000000 // E4000000",
         "ExpHP.debug-counters.enemy-data": "03000000 // 1C554B00 // 00000000FFFFFF7F // B4010000",
-        "ExpHP.debug-counters.line-info": "<codecave:ExpHP.debug-counters.anmid-data> // 25376420616E6D6964000000 // <codecave:ExpHP.debug-counters.bullet-data> // 253764206574616D61000000 // <codecave:ExpHP.debug-counters.laser-data> // 253764206C61736572000000 // <codecave:ExpHP.debug-counters.normal-item-data> // 253764206974656D4E000000 // <codecave:ExpHP.debug-counters.cancel-item-data> // 253764206974656D43000000 // <codecave:ExpHP.debug-counters.enemy-data> // 25376420656E656D79000000 // 00000000",
+        "ExpHP.debug-counters.effect-data": "01000000 // 18554B00 // ED5E410000000000 // 1C000000 // BDFFFFFF // 04000000",
+        "ExpHP.debug-counters.line-info": "<codecave:ExpHP.debug-counters.anmid-data> // 25376420616E6D6964000000 // <codecave:ExpHP.debug-counters.effect-data> // 253764206566662020000000 // <codecave:ExpHP.debug-counters.bullet-data> // 253764206574616D61000000 // <codecave:ExpHP.debug-counters.laser-data> // 253764206C61736572000000 // <codecave:ExpHP.debug-counters.normal-item-data> // 253764206974656D4E000000 // <codecave:ExpHP.debug-counters.cancel-item-data> // 253764206974656D43000000 // <codecave:ExpHP.debug-counters.enemy-data> // 25376420656E656D79000000 // 00000000",
         "of(ExpHP.debug-counters.draw)": "E8[codecave:ExpHP.debug-counters.show-debug-data] // A1F8544B00 // E800000000C70424 6c424200 C3"
     },
     "binhacks": {

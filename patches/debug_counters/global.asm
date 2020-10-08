@@ -340,43 +340,68 @@ count_linked_list:  ; HEADER: AUTO
 ; __stdcall void CountArrayItemsWithNonzeroByte(ArraySpec* spec, int length)
 count_array_items_with_nonzero_byte:  ; HEADER: AUTO
     %push
-    prologue_sd
-    push ebx
     %define %$data_ptr      ebp+0x8
     %define %$length        ebp+0xc
-    ; for this function, putting variables directly in registers saves a ton of verbosity,
-    ; but we must be super paranoid about function calls
-    %define %$data         edx
-    %define %$state_iter   edi
-    %define %$remaining    ecx
-    %define %$used_count   ebx
+    prologue_sd 0x10
+    %define %$remaining     ebp-0x04
+    %define %$used_count    ebp-0x08
+    %define %$is_dword      ebp-0x0c
+    %define %$stride        ebp-0x10
+    ; using a register saves some verbosity
+    %define %$reg_state_iter  edi
 
     ; call this before using any variables so we don't have to think about which ones are in volatile registers.
     push dword [%$data_ptr]
     call get_array_from_spec  ; REWRITE: [codecave:AUTO]
+    mov  %$reg_state_iter, eax  ; now points to array
 
-    ; get pointer to state field of first item
-    mov  %$data, [%$data_ptr]
-    add  eax, [%$data + ArraySpec.field_offset]
-    mov  %$state_iter, eax
+    ; Parse field_offset
+    mov  dword [%$is_dword], 0x0
+    mov  edx, [%$data_ptr]
+    mov  eax, [edx + ArraySpec.stride]
+    mov  [%$stride], eax
+    cmp  dword [edx + ArraySpec.field_offset], 0
+    jge  .isbyte
+    cmp  dword [edx + ArraySpec.field_offset], FIELD_IS_DWORD
+    je   .isdword
+    int 3
 
+.isdword:
+    ; FIELD_IS_DWORD:  size is dword, offset is zero
+    or   dword [%$is_dword], 0x1
+    jmp  .doneoffset
+.isbyte:
+    ; other values:  size is byte, offset is given
+    add  %$reg_state_iter, [edx + ArraySpec.field_offset]
+
+.doneoffset:
     ; start countin'!
-    mov  %$remaining, [%$length]
-    xor  %$used_count, %$used_count
-.iter:
-    dec  %$remaining
+    mov  dword [%$used_count], 0
+    xor  eax, eax
+    cmp  dword [%$is_dword], 1
+    je   .dworditer
+.byteiter:
+    dec  dword [%$length]
     js   .end
 
-    xor  eax, eax
-    cmp  byte [%$state_iter], 0x0
+    cmp  byte [%$reg_state_iter], 0x0
     setne al
-    add  %$used_count, eax
+    add  [%$used_count], eax
 
-    add  %$state_iter, [%$data + ArraySpec.stride]
-    jmp  .iter
+    add  %$reg_state_iter, [%$stride]
+    jmp  .byteiter
+.dworditer:
+    dec  dword [%$length]
+    js   .end
+
+    cmp  dword [%$reg_state_iter], 0x0
+    setne al
+    add  [%$used_count], eax
+
+    add  %$reg_state_iter, [%$stride]
+    jmp  .dworditer
 .end:
-    mov  eax, %$used_count
-    pop  ebx
+    mov  eax, [%$used_count]
     epilogue_sd
     ret  0x8
     %pop

@@ -82,4 +82,14 @@ istruc FieldSpec
     at FieldSpec.count_offset, dd 0x1b4
 iend
 
+effect_data:  ; HEADER: AUTO
+    dd KIND_ARRAY
+istruc ArraySpec
+    at ArraySpec.struct_ptr, dd 0x4b5518
+    at ArraySpec.limit, dd LIMIT_ADDR(0x415ef1-4)
+    at ArraySpec.array_offset, dd 0x1c
+    at ArraySpec.field_offset, dd FIELD_IS_DWORD
+    at ArraySpec.stride, dd 0x4
+iend
+
 get_color:  ; DELETE

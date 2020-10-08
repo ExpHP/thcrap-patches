@@ -40,6 +40,9 @@ struc LineInfoEntry  ; DELETE
     .fmt_string: resd 3  ; DELETE
 endstruc  ; DELETE
 
+; Special value for ArraySpec .field_offset which means to simply read a dword-sized field at zero offset.
+%define FIELD_IS_DWORD -67
+
 struc ArraySpec  ; DELETE
     .struct_ptr: resd 1 ; address of (possibly null) pointer to struct that holds the array  ; DELETE
     .limit: resd 2  ; for coloring ; DELETE
@@ -90,4 +93,13 @@ struc ListSpec  ; DELETE
     .struct_ptr: resd 1  ; DELETE
     .limit: resd 2  ; DELETE
     .head_ptr_offset: resd 1  ; DELETE
+endstruc  ; DELETE
+
+; An array of dwords that are ignored if zero.
+struc DwordArraySpec  ; DELETE
+    .struct_ptr: resd 1 ; address of (possibly null) pointer to struct that holds the array  ; DELETE
+    .limit: resd 2  ; for coloring ; DELETE
+    .array_offset: resd 1  ; offset of array in struct  ; DELETE
+    .field_offset: resd 1  ; offset of a byte in an array item that is nonzero if and only if the item is in use  ; DELETE
+    .stride: resd 1  ; size of each item in the array  ; DELETE
 endstruc  ; DELETE
