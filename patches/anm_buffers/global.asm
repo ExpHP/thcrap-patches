@@ -2,7 +2,6 @@
 
 %include "common.asm"
 %include "util.asm"
-%define BATCH_LEN   0x800
 
 game_data:  ; DELETE
 
@@ -25,6 +24,14 @@ get_batches:  ; HEADER: AUTO
 
     mov  ecx, state  ; REWRITE: <codecave:AUTO>
     mov  [ecx+State.batches_ptr], eax   ; (requires writable codecaves)
+
+    call allocate_new_batch  ; REWRITE: [codecave:AUTO]
+    mov  ecx, state  ; REWRITE: <codecave:AUTO>
+    mov  ecx, [ecx+State.batches_ptr]
+    mov  dword [ecx+AnmBatches.active_batch], eax
+    mov  dword [ecx+AnmBatches.last_batch], eax
+    mov  dword [ecx+AnmBatches.free_count], BATCH_LEN
+    mov  eax, ecx
 .done:
     ret
 
@@ -45,9 +52,9 @@ new_alloc_vm:  ; HEADER: AUTO
     call allocate_new_batch  ; REWRITE: [codecave:AUTO]
     ; prepend it
     mov  ecx, eax
-    mov  eax, [esi+AnmBatches.first_batch]
+    mov  eax, [esi+AnmBatches.active_batch]
     mov  [ecx+AnmBatchHeader.next_batch], eax
-    mov  [esi+AnmBatches.first_batch], ecx
+    mov  [esi+AnmBatches.active_batch], ecx
     add  dword [esi+AnmBatches.free_count], BATCH_LEN
 .noalloc:
     dec  dword [esi+AnmBatches.free_count]
@@ -55,7 +62,7 @@ new_alloc_vm:  ; HEADER: AUTO
     push esi
     call scroll_to_free_batch  ; REWRITE: [codecave:AUTO]
 
-    push dword [esi+AnmBatches.first_batch]
+    push dword [esi+AnmBatches.active_batch]
     call take_free_vm_from_batch  ; REWRITE: [codecave:AUTO]
 
     epilogue_sd
@@ -100,24 +107,61 @@ allocate_new_batch:  ; HEADER: AUTO
 ; Postcondition: The first batch in the list has at least one free VM.
 ;                This is accomplished by moving any fully occupied batches to the back.
 ;
-; __stdcall AnmBatchHeader* ScrollToFreeBatch(AnmBatches*)
+; __stdcall void ScrollToFreeBatch(AnmBatches*)
 scroll_to_free_batch:  ; HEADER: AUTO
-    mov  ecx, [esp+0x4]
-    mov  edx, [ecx+AnmBatches.last_batch]  ; invariant: always points to new tail
-    mov  ecx, [ecx+AnmBatches.first_batch]  ; invariant: always points to new head
+    enter 0x00, 0
 .iter:
-    mov  eax, [ecx+AnmBatchHeader.free_count]
+    mov  ecx, [ebp+0x08]
+    mov  eax, [ecx+AnmBatches.active_batch]
+    mov  eax, [eax+AnmBatchHeader.free_count]
     test eax, eax
     jnz  .done
+    push ecx
+    call deactivate_active_batch  ; REWRITE: [codecave:AUTO]
+    jmp  .iter
+.done:
+    leave
+    ret 0x4
+
+; __stdcall void DeactivateActiveBatch(AnmBatches*)
+deactivate_active_batch:  ; HEADER: AUTO
+    prologue_sd
+    push ebx
+    mov  esi, [ebp+0x08]
+
+    ; Move it to the end of the list...
+    mov  ecx, [esi+AnmBatches.active_batch]
+    mov  edx, [esi+AnmBatches.last_batch]
     mov  [edx+AnmBatchHeader.next_batch], ecx
     mov  edx, ecx
     mov  ecx, [ecx+AnmBatchHeader.next_batch]
     mov  dword [edx+AnmBatchHeader.next_batch], 0
+    mov  [esi+AnmBatches.active_batch], ecx
+    mov  [esi+AnmBatches.last_batch], edx
+
+    ; ...and gather its anm ids.  (it's now in edx)
+    lea  edi, [edx+AnmBatchHeader.ids]
+    lea  esi, [edx+AnmBatchHeader.vms]
+    lea  esi, [esi+BatchVmPrefix_size]  ; point to first vm
+
+    mov  edx, game_data  ; REWRITE: <codecave:AUTO>
+    add  esi, [edx+GameData.id_offset]  ; point to first id field
+
+    ; stride in edx, count in ecx
+    mov  edx, [edx+GameData.vm_size]
+    add  edx, BatchVmPrefix_size
+    mov  ecx, BATCH_LEN
+.iter:
+    dec  ecx
+    js   .done
+    mov  ebx, [esi]
+    mov  [edi], ebx
+    add  esi, edx
+    add  edi, 0x4
     jmp  .iter
 .done:
-    mov  eax, [esp+0x4]
-    mov  [eax+AnmBatches.last_batch], edx
-    mov  [eax+AnmBatches.first_batch], ecx
+    pop ebx
+    epilogue_sd
     ret 0x4
 
 ; Given a batch with at least one free VM, select a VM to use from this batch
@@ -128,6 +172,11 @@ take_free_vm_from_batch:  ; HEADER: AUTO
     prologue_sd
     mov  esi, [ebp+0x08]
     mov  edx, game_data  ; REWRITE: <codecave:AUTO>
+
+    dec  dword [esi+AnmBatchHeader.free_count]
+    jns  .no_ded
+    int 3  ; no free in this batch
+.no_ded:
 
 .iter:
     ; get vm at index
@@ -165,4 +214,126 @@ new_dealloc_vm:  ; HEADER: AUTO
 
     call get_batches  ; REWRITE: [codecave:AUTO]
     inc  dword [eax+AnmBatches.free_count]
-    ret
+    ret 0x4
+
+; An experimental optimized search-by-id function.
+; After some more thorough playtesting with ultra patches I should have a better idea of whether
+; this is worth the extra trouble. (that said, if you're killing 5000 enemies, this makes
+; the difference between several seconds and several minutes!)
+;
+; (if only we could just throw a std::unordered_map at it and call it a day...)
+;
+; __stdcall AnmVm* NewSearch(int id)
+new_search:  ; HEADER: AUTO
+    prologue_sd
+    mov  edi, search_batch_for_id  ; REWRITE: <codecave:AUTO>
+
+    call get_batches  ; REWRITE: [codecave:AUTO]
+    mov  esi, [eax+AnmBatches.active_batch]
+.iter:
+    test esi, esi
+    jz   .fail
+
+    push dword [ebp+0x08]
+    push esi
+    call edi
+    test eax, eax
+    jnz  .succeed
+
+    ; batches after the first can use this much faster function
+    mov  edi, search_inactive_batch_for_id  ; REWRITE: <codecave:AUTO>
+    mov  esi, [esi+AnmBatchHeader.next_batch]
+    jmp  .iter
+.fail:
+    xor  eax, eax
+.succeed:
+    epilogue_sd
+    ret  0x4
+
+; __stdcall AnmVm* SearchBatchForId(AnmBatchHeader*, int id)
+search_batch_for_id:  ; HEADER: AUTO
+    prologue_sd
+    mov  edx, [ebp+0x08]  ; batch
+
+    lea  esi, [edx+AnmBatchHeader.vms]
+    lea  esi, [esi+BatchVmPrefix_size]  ; point to first vm
+    mov  edx, game_data  ; REWRITE: <codecave:AUTO>
+    add  esi, [edx+GameData.id_offset]  ; point to first id field
+
+    ; stride in edx, count in ecx, target in eax
+    mov  edx, [edx+GameData.vm_size]
+    add  edx, BatchVmPrefix_size
+    mov  ecx, BATCH_LEN
+    mov  eax, [ebp+0x0c]
+
+.iter:
+    dec  ecx
+    js   .fail
+    cmp  [esi], eax
+    je   .succeed
+    add  esi, edx
+    jmp  .iter
+.succeed:
+    mov  eax, esi
+    mov  edx, game_data  ; REWRITE: <codecave:AUTO>
+    sub  eax, [edx+GameData.id_offset]
+    jmp  .done
+.fail:
+    xor  eax, eax
+.done:
+    epilogue_sd
+    ret  0x8
+
+; Searches an inactive batch for an ID.  Inactive batches have saved arrays of IDs,
+; leading to far better cache locality and thereby performance.
+;
+; __stdcall AnmVm* SearchInactiveBatchForId(AnmBatchHeader*, int id)
+search_inactive_batch_for_id:  ; HEADER: AUTO
+    %push
+    prologue_sd
+    %define %$batch  ebp+0x08
+    %define %$id     ebp+0x0c
+    mov  edx, [%$batch]
+
+    ; Fast path for empty batches.
+    mov  eax, [edx+AnmBatchHeader.free_count]
+    cmp  eax, BATCH_LEN
+    je   .fail
+
+    ; We search the array of ids, and just track the VM pointer for convenience.
+    lea  edi, [edx+AnmBatchHeader.ids]
+    lea  esi, [edx+AnmBatchHeader.vms]
+    lea  esi, [esi+BatchVmPrefix_size]  ; point to first vm
+
+    ; stride in edx, count in ecx, target in eax
+    mov  edx, game_data  ; REWRITE: <codecave:AUTO>
+    mov  edx, [edx+GameData.vm_size]
+    add  edx, BatchVmPrefix_size
+    mov  ecx, BATCH_LEN
+    mov  eax, [%$id]
+
+.iter:
+    dec  ecx
+    js   .fail
+    cmp  [edi], eax
+    je   .succeed
+    add  edi, 0x4
+    add  esi, edx
+    jmp  .iter
+.succeed:
+    ; One last thing!  Verify that the VM is still alive.
+    ; It would have cleared its id field on death.
+    mov  eax, esi
+    mov  edx, game_data  ; REWRITE: <codecave:AUTO>
+    add  eax, [edx+GameData.id_offset]
+    mov  eax, [eax]
+    cmp  eax, [%$id]
+    jnz  .fail
+    ; True success!
+    mov  eax, esi
+    jmp  .done
+.fail:
+    xor  eax, eax
+.done:
+    epilogue_sd
+    ret  0x8
