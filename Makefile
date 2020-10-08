@@ -21,6 +21,7 @@ all: \
 	debug-counters \
 	sprite-death-fix \
 	ultra \
+	anm-buffers \
 
 REPO=patches
 PERSONAL=personal
@@ -290,3 +291,23 @@ $(BASE_EXPHP_PATCH)/global.yaml: $(BASE_EXPHP_PATCH)/global.asm
 $(BASE_EXPHP_PATCH)/global.js: $(BASE_EXPHP_PATCH)/global.yaml
 	scripts/convert-yaml.py $^ >$@
 
+#================================================
+
+ANM_BUFFERS_PATCH=$(REPO)/anm_buffers
+
+.PHONY: anm-buffers
+anm-buffers: \
+	$(ANM_BUFFERS_PATCH)/global.js \
+	$(ANM_BUFFERS_PATCH)/$(TH16_VER).js \
+
+.INTERMEDIATE: $(ANM_BUFFERS_PATCH)/global.yaml
+$(ANM_BUFFERS_PATCH)/global.yaml: $(ANM_BUFFERS_PATCH)/global.asm
+	@echo "# this yaml file is auto-generated" >$@
+	@echo "codecaves:" >>$@
+	scripts/list-asm $< >>$@
+
+$(ANM_BUFFERS_PATCH)/global.js: $(ANM_BUFFERS_PATCH)/global.yaml
+	scripts/convert-yaml.py $^ >$@
+
+$(ANM_BUFFERS_PATCH)/th%.js: $(ANM_BUFFERS_PATCH)/binhacks.yaml
+	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
