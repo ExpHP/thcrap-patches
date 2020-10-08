@@ -11,7 +11,7 @@ binhacks:
         - "C3                " # ret
 
   # Bizarre ABI era games, for which we can miraculously write a single binhack.
-  /fields-if(any(th10, th11, th12, th125, th128, th13)):
+  /fields-if(any(th10..th13)):
     ExpHP.sprite-death-fix.hack:
       addr:
         /value-if(th10):  "0x442fe4"

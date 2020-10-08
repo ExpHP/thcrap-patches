@@ -122,8 +122,8 @@ codecaves:
     ExpHP.debug-counters.line-info:
       - "<codecave:ExpHP.debug-counters.anmid-data>"
       - "25376420616E6D6964000000" # dd "%7d anmid"
-      - /item-if(any(th15, th16, th165, th17)): "<codecave:ExpHP.debug-counters.effect-data>"
-      - /item-if(any(th15, th16, th165, th17)): "253764206566662020000000" # dd "%7d eff  "
+      - /item-if(any(th15..th17)): "<codecave:ExpHP.debug-counters.effect-data>"
+      - /item-if(any(th15..th17)): "253764206566662020000000" # dd "%7d eff  "
       - "<codecave:ExpHP.debug-counters.bullet-data>"
       - "253764206574616D61000000" # dd "%7d etama"
       - "<codecave:ExpHP.debug-counters.laser-data>"

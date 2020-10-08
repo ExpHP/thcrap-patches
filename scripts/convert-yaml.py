@@ -43,14 +43,15 @@ Value switches:
       /value-if(foo): 1
       /value-if(bar): 2
 
-  The above is equivalent to {thing: 1} if --cfg foo is supplied, {thing: 2} if --cfg bar
-is supplied, and produces an error if both or neither is supplied.
+  The above is equivalent to {thing: 1} if --cfg foo is supplied, {thing: 2} if --cfg bar is supplied, and produces an error if both or neither is supplied.
 
 Logical expressions:
 
   All of the conditional code directives simple logical expressions with 'any', 'all', and 'not' operators:
 
     - /item-if(all(foo, not(bar)))
+
+  Because --cfg is pretty much exclusively used with game strings at this point, there is a Touhou-specific syntax extension that '..' can be used to indicate a doubly-inclusive range.  That is, th09..th10 is equivalent to any(th09, th095, th10).  The game format must follow the naming convention that is used by all exe and dat files since th08.
 """
 
 def main():
@@ -231,6 +232,7 @@ def resolve_conditional_code(d, defs):
         return d
 
 IDENT_RE = re.compile(r'[_a-zA-Z][-_a-zA-Z0-9]*$')
+TH_IDENT_RE = re.compile(r'th[012][0-9][1-9]?$')
 def check_conditional(expr_string, defs):
     inner = get_inner_for(expr_string, 'any(', ')')
     if inner is not None:
@@ -243,6 +245,16 @@ def check_conditional(expr_string, defs):
     inner = get_inner_for(expr_string, 'not(', ')')
     if inner is not None:
         return not check_conditional(inner.strip(), defs)
+
+    # !! Begin touhou-specific extension
+    if '..' in expr_string:
+        mingame, maxgame = expr_string.split('..', 1)
+        if not TH_IDENT_RE.match(mingame): die(f'range syntax is only for game numbers, not {repr(mingame)}')
+        if not TH_IDENT_RE.match(maxgame): die(f'range syntax is only for game numbers, not {repr(maxgame)}')
+
+        # game numbers are lexically sorted so we can just do string comparisons
+        return any(mingame <= x <= maxgame for x in defs if TH_IDENT_RE.match(x))
+    # !! End touhou-specific extension
 
     # read an atom
     if not IDENT_RE.match(expr_string):

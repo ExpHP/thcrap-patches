@@ -1,12 +1,12 @@
 codecaves:
   bullet-cap:
     /value-if(th08): "00006000"
-    /value-if(not(th08)): "00007d00"
+    /value-if(any(th10..th13, th16)): "00007d00"
   laser-cap:
-    /value-if(not(th16)): "00001000"
+    /value-if(any(th08, th10..th13)): "00001000"
     /value-if(th16): "00002000"
   cancel-cap:
-    /value-if(not(any(th08, th125, th128, th16))): "00008000"
+    /value-if(any(th10..th12, th13)): "00008000"
     /value-if(th08):  "00008300"
     /value-if(th125): "00000c80"
     /value-if(th128): "00000640"
