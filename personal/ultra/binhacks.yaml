@@ -23,21 +23,40 @@ binhacks:
         - "8B88FC010000      " # mov  ecx, dword [eax+0x1fc]
         - "E800000000C70424 e60e4300 C3" # jump to 0x430ee6
 
+  /fields-if(th15):
+    ExpHP.ultra.th15-1:
+      addr: "0x41c646"
+      expected: "f30f11442410"
+      codecave:
+        - "F30F11442410      " # movss dword [esp+0x10], xmm0
+        - "66C1A76403000002  " # shl  word [edi+0x364], 0x2
+        - "66C1A76603000002  " # shl  word [edi+0x366], 0x2
+        - "E800000000C704244CC64100C3" # abs_jmp_hack 0x41c64c
+
+    ExpHP.ultra.th15-2:
+      addr: "0x414e93"
+      expected: "f6876c03000020"
+      codecave:
+        - "66C1AF6403000002  " # shr  word [edi+0x364], 0x2
+        - "66C1AF6603000002  " # shr  word [edi+0x366], 0x2
+        - "F6876C03000020    " # test byte [edi+0x36c], 0x20
+        - "E800000000C70424BAC64100C3" # abs_jmp_hack 0x41c6ba
+
   /fields-if(th16):
     ExpHP.ultra.th16-1:
       addr: "0x414e26"
       expected: "f30f11442410"
       codecave:
         - "F30F11442410      " # movss dword [esp+0x10], xmm0
-        - "66C1A76403000002  " # shl  word [edi+0x364], 0x2
-        - "66C1A76603000002  " # shl  word [edi+0x366], 0x2
+        - "66C1A76403000003  " # shl  word [edi+0x364], 0x2
+        - "66C1A76603000003  " # shl  word [edi+0x366], 0x2
         - "E800000000C704242C4E4100C3" # abs_jmp_hack 0x414e2c
 
     ExpHP.ultra.th16-2:
       addr: "0x414e93"
       expected: "f6876c03000020"
       codecave:
-        - "66C1AF6403000002  " # shr  word [edi+0x364], 0x2
-        - "66C1AF6603000002  " # shr  word [edi+0x366], 0x2
+        - "66C1AF6403000003  " # shr  word [edi+0x364], 0x2
+        - "66C1AF6603000003  " # shr  word [edi+0x366], 0x2
         - "F6876C03000020    " # test byte [edi+0x36c], 0x20
         - "E800000000C704249A4E4100C3" # abs_jmp_hack 0x414e9a

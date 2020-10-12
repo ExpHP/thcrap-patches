@@ -27,3 +27,5 @@
         mov dword [esp], %1
         ret
 %endmacro
+
+%define SIGN_MASK 0x80000000

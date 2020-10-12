@@ -7,8 +7,18 @@ struc ListHeader  ; DELETE
     .list:  ; list of replacements  ; DELETE
 endstruc  ; DELETE
 
-; Each entry in the list of replacements begins with a dword-sized value to replace,
-; followed by one of the following:
+; Each entry in the list of replacements begins with a dword-sized value to replace.
+; Alternatively, it may be the following macro:
+
+; Replaces values in the half-open range from start to end, instead of a single value.
+%define DWORD_RANGE(start, end)  DWORD_RANGE_TOKEN, start, end
+; Useful if the range ends in an array and you want to remap that too I guess.
+%define DWORD_RANGE_INCLUSIVE(start, end)  DWORD_RANGE(start, end+1)
+%define DWORD_RANGE_TOKEN -47
+
+; -----------------------
+
+; The value to be replaced is followed by a "scale_constant", which is one of the following:
 ;
 ;              SCALE_1 :  Maps value as `value -> value + (new_cap - old_cap)`.
 ;                         Used on array sizes and iteration counts.
@@ -26,6 +36,10 @@ endstruc  ; DELETE
 ;
 ; SCALE_AN_PLUS_B(a,b) :  Maps value as `value -> value + (new_cap - old_cap) * (a * elem_size + b)`.
 ;                         Necessary because LoLK added more arrays to these structs.
+;
+;
+; IMPORTANT:  The mappings shown above are for positive original values.  Negative original values are mapped in such a way
+;             that smaller caps produce final values closer to zero, so you should still write positive scales.
 
 ; Stored as 3 bytes of a dword.
 struc ScaleConst  ; DELETE

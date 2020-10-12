@@ -8,6 +8,10 @@
         "of(ExpHP.anm-buffers.search)": "50 // E8[codecave:ExpHP.anm-buffers.new-search] // E800000000C7042403F04600C3"
     },
     "binhacks": {
+        "ExpHP.anm-buffers.for-testing": {
+            "addr": "0x46f619",
+            "code": "E800000000C70424EFF64600C3"
+        },
         "ExpHP.anm-buffers.alloc": {
             "addr": "0x46f6ef",
             "expected": "68fc050000",

@@ -29,16 +29,31 @@ th08_2:  ; HEADER: AUTO
     abs_jmp_hack 0x430ee6
 
 
-; 0x414e26  (f30f11442410)
-th16_01:  ; HEADER: AUTO
+; 0x41c646  (f30f11442410)
+th15_01:  ; HEADER: AUTO
     movss dword [esp+0x10], xmm0
     shl  word [edi+0x364], 0x2
     shl  word [edi+0x366], 0x2
+    abs_jmp_hack 0x41c64c
+
+; 0x41c6b3  (f6876c03000020)
+th15_02:  ; HEADER: AUTO
+    shr  word [edi+0x364], 0x2
+    shr  word [edi+0x366], 0x2
+    test byte [edi+0x36c], 0x20
+    abs_jmp_hack 0x41c6ba
+
+; 0x414e26  (f30f11442410)
+th16_01:  ; HEADER: AUTO
+    movss dword [esp+0x10], xmm0
+    shl  word [edi+0x364], 0x3
+    shl  word [edi+0x366], 0x3
     abs_jmp_hack 0x414e2c
 
 ; 0x414e93  (f6876c03000020)
 th16_02:  ; HEADER: AUTO
-    shr  word [edi+0x364], 0x2
-    shr  word [edi+0x366], 0x2
+    shr  word [edi+0x364], 0x3
+    shr  word [edi+0x366], 0x3
     test byte [edi+0x36c], 0x20
     abs_jmp_hack 0x414e9a
+

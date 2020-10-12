@@ -79,6 +79,33 @@ istruc Data  ; DELETE
     at Data.cursor_offset, dd 0xef81f4
 iend  ; DELETE
 
+data_14:  ; HEADER: AUTO
+istruc Data  ; DELETE
+    at Data.anm_manager_ptr, dd 0x4f56cc
+    at Data.flush_sprites_abi, dd wrapper_thiscall  ; REWRITE: <codecave:AUTO>
+    at Data.flush_sprites, dd 0x475eb0
+    at Data.buffer_offset, dd 0xbc81f4
+    at Data.cursor_offset, dd 0xf481f4
+iend  ; DELETE
+
+data_143:  ; HEADER: AUTO
+istruc Data  ; DELETE
+    at Data.anm_manager_ptr, dd 0x538de8
+    at Data.flush_sprites_abi, dd wrapper_thiscall  ; REWRITE: <codecave:AUTO>
+    at Data.flush_sprites, dd 0x47a8c0
+    at Data.buffer_offset, dd 0xbc8204
+    at Data.cursor_offset, dd 0xf48204
+iend  ; DELETE
+
+data_15:  ; HEADER: AUTO
+istruc Data  ; DELETE
+    at Data.anm_manager_ptr, dd 0x503c18
+    at Data.flush_sprites_abi, dd wrapper_thiscall  ; REWRITE: <codecave:AUTO>
+    at Data.flush_sprites, dd 0x47e3f0
+    at Data.buffer_offset, dd 0x187fc0c
+    at Data.cursor_offset, dd 0x1bffc0c
+iend  ; DELETE
+
 data_16:  ; HEADER: AUTO
 istruc Data  ; DELETE
     at Data.anm_manager_ptr, dd 0x4c0f48
@@ -86,6 +113,24 @@ istruc Data  ; DELETE
     at Data.flush_sprites, dd 0x465a80
     at Data.buffer_offset, dd 0x184fc1c
     at Data.cursor_offset, dd 0x1bcfc1c
+iend  ; DELETE
+
+data_165:  ; HEADER: AUTO
+istruc Data  ; DELETE
+    at Data.anm_manager_ptr, dd 0x4ed88c
+    at Data.flush_sprites_abi, dd wrapper_thiscall  ; REWRITE: <codecave:AUTO>
+    at Data.flush_sprites, dd 0x46beb0
+    at Data.buffer_offset, dd 0x184fc20
+    at Data.cursor_offset, dd 0x1bcfc20
+iend  ; DELETE
+
+data_17:  ; HEADER: AUTO
+istruc Data  ; DELETE
+    at Data.anm_manager_ptr, dd 0x509a20
+    at Data.flush_sprites_abi, dd wrapper_thiscall  ; REWRITE: <codecave:AUTO>
+    at Data.flush_sprites, dd 0x46d0a0
+    at Data.buffer_offset, dd 0x1860830
+    at Data.cursor_offset, dd 0x1be0830
 iend  ; DELETE
 
 ; ============================================
@@ -102,10 +147,21 @@ binhack_08:  ; HEADER: AUTO
 ; In DDC and beyond, we replace the line with the `lea` that checks how far the
 ; sprite will write, and jump to the successful branch at the end.
 ;
-; TH16: 0x465b60  (8d87a8000000)
-binhack_16:  ; HEADER: AUTO
+; TH14:  0x475f90 (8d87a8000000)
+; TH143: 0x47a9a0 (8d87a8000000)
+; TH15:  0x47e4d0 (8d87a8000000)
+; TH16:  0x465b60 (8d87a8000000)
+; TH165: 0x46bf90 (8d87a8000000)
+; TH17:  0x46d180 (8d87a8000000)
+binhack_modern:  ; HEADER: AUTO
     call fix  ; REWRITE: [codecave:AUTO]
-    abs_jmp_hack 0x465b76
+    mov  edi, [esi]
+    abs_jmp_hack 0x475fa6  ; TH14
+    abs_jmp_hack 0x47a9b6  ; TH143
+    abs_jmp_hack 0x47e4e6  ; TH15
+    abs_jmp_hack 0x465b76  ; TH16
+    abs_jmp_hack 0x46bfa6  ; TH165
+    abs_jmp_hack 0x46d196  ; TH17
 
 ; Astonishingly, AnmManager::write_sprite has the exact same ABI in all
 ; six of the "bizarre ABI era" games, which almost never happens.

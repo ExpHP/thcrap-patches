@@ -1,0 +1,154 @@
+binhacks:
+  ExpHP.auto-release.binhack:
+    addr: "0x402118"
+    expected: "e863340000"
+    codecave:
+      # - "E8[codecave:ExpHP.auto-release.autorelease]" # call autorelease
+
+      # original code
+      - "B9B0504A00        " # mov  ecx, 0x4a50b0
+      - "B880554000        " # mov  eax, 0x405580
+      - "FFD0              " # call eax
+      - "E800000000C704241D214000C3" # abs_jmp_hack 0x40211d
+
+codecaves:
+  ExpHP.auto-release.autorelease:
+    - "E8[codecave:ExpHP.auto-release.is-game-running]" # call is_game_running
+    - "85C0              " # test eax, eax
+    - "7435              " # jz   .end
+    # flip ctrl state
+    # mov  eax, [HARDWARE_INPUT_PREV_16]
+    # and  eax, 0x200
+    # xor  eax, 0x200
+    # or   dword [HARDWARE_INPUT_16], eax
+    # or   dword [HARDWARE_INPUT_16], 0x1
+
+    - "E8[codecave:ExpHP.auto-release.is-player-in-danger]" # call is_player_in_danger
+    - "85C0              " # test eax, eax
+    - "750B              " # jnz  .mash_release
+    - "E8[codecave:ExpHP.auto-release.is-dialogue]" # call is_dialogue
+    - "85C0              " # test eax, eax
+    - "7519              " # jnz  .hold_release
+    - "EB21              " # jmp  .norelease
+    # .mash_release:
+    - "A1B4504A00        " # mov  eax, [HARDWARE_INPUT_PREV_16]
+    - "25000A0000        " # and  eax, 0xa00
+    - "35000A0000        " # xor  eax, 0xa00
+    - "0905B0504A00      " # or   dword [HARDWARE_INPUT_16], eax
+    - "EB0A              " # jmp  .end
+    # .hold_release:  ; skipping dialogue only works when held for at least several frames
+    - "810DB0504A00000A0000" # or   dword [HARDWARE_INPUT_16], 0xa00
+    # .norelease:
+    # .end:
+    - "C3                " # ret
+
+  ExpHP.auto-release.is-game-running:
+    - "A1F46E4A00        " # mov  eax, [PAUSE_MENU_PTR_16]
+    - "85C0              " # test eax, eax
+    - "7419              " # jz   .notrunning
+
+    - "8B80EC010000      " # mov  eax, [eax + PAUSE_IS_PAUSED_16]
+    - "85C0              " # test eax, eax
+    - "750F              " # jnz  .notrunning
+
+    - "A1F86E4A00        " # mov  eax, [PLAYER_PTR_16]
+    - "85C0              " # test eax, eax
+    - "7406              " # jz   .notrunning
+    # .running:
+    - "B801000000        " # mov  eax, 1
+    - "C3                " # ret
+    # .notrunning:
+    - "31C0              " # xor  eax, eax
+    - "C3                " # ret
+
+  ExpHP.auto-release.is-dialogue:
+    - "A1CC6D4A00        " # mov  eax, [GUI_PTR_16]
+    - "85C0              " # test eax, eax
+    - "7410              " # jz   .nope
+    - "8B80C8010000      " # mov  eax, [eax + GUI_IS_DIALOGUE]
+    - "85C0              " # test eax, eax
+    - "7406              " # jz   .nope
+    # .yep:
+    - "B801000000        " # mov  eax, 1
+    - "C3                " # ret
+    # .nope:
+    - "31C0              " # xor  eax, eax
+    - "C3                " # ret
+
+  ExpHP.auto-release.is-player-in-danger:
+    # %push
+    - "5589E583EC085657  " # prologue_sd 0x08
+    # %define %$player_pos ebp-0x08
+    - "8B0DF86E4A00      " # mov  ecx, [PLAYER_PTR_16]
+    - "85C9              " # test ecx, ecx
+    - "742A              " # jz   .nodanger
+
+    - "8B813C660100      " # mov  eax, [ecx + PLAYER_IFRAMES]
+    - "83F802            " # cmp  eax, 2
+    - "7F1F              " # jg   .nodanger
+
+    - "8B8110060000      " # mov  eax, [ecx + PLAYER_POS + 0x0]
+    - "8945F8            " # mov  [%$player_pos + 0x0], eax
+    - "8B8114060000      " # mov  eax, [ecx + PLAYER_POS + 0x4]
+    - "8945FC            " # mov  [%$player_pos + 0x4], eax
+
+    - "FF75FC            " # push dword [%$player_pos + 0x04]
+    - "FF75F8            " # push dword [%$player_pos + 0x00]
+    - "E8[codecave:ExpHP.auto-release.is-bullet-near-pos]" # call is_bullet_near_pos
+    - "EB02              " # jmp .done
+
+    # .nodanger:
+    - "31C0              " # xor  eax, eax
+    # .done:
+    - "5F5E89EC5D        " # epilogue_sd
+    - "C3                " # ret
+    # %pop
+
+  ExpHP.auto-release.is-bullet-near-pos:
+    # %push
+    - "5589E55657        " # prologue_sd
+    # %define %$player_pos ebp+0x08
+
+    - "8B0DAC6D4A00      " # mov  ecx, [BULLET_MANAGER_PTR_16]
+    - "85C9              " # test ecx, ecx
+    - "742E              " # jz   .nodanger
+
+    - "8B4970            " # mov  ecx, [ecx + BMGR_TICK_LIST_HEAD_16]
+    # .iter:
+    - "85C9              " # test ecx, ecx
+    - "7427              " # jz   .nodanger
+    - "8B11              " # mov  edx, [ecx]  ; bullet
+    - "6800008041        " # push __float32__(16.0)
+    - "FFB2240C0000      " # push dword [edx + BULLET_POS + 0x4]
+    - "FFB2200C0000      " # push dword [edx + BULLET_POS + 0x0]
+    - "FF750C            " # push dword [%$player_pos + 0x4]
+    - "FF7508            " # push dword [%$player_pos + 0x0]
+    - "E8[codecave:ExpHP.auto-release.are-points-within]" # call are_points_within
+    - "85C0              " # test eax, eax
+    - "7509              " # jnz  .danger
+    - "8B4904            " # mov  ecx, [ecx + 0x4]
+    - "EBD5              " # jmp  .iter
+    # .nodanger:
+    - "31C0              " # xor  eax, eax
+    - "EB05              " # jmp  .end
+    # .danger:
+    - "B801000000        " # mov  eax, 0x1
+    # .end:
+    - "5F5E89EC5D        " # epilogue_sd
+    - "C20800            " # ret  0x08
+    # %pop
+
+  ExpHP.auto-release.are-points-within:
+    - "F30F10442404      " # movss xmm0, [esp+0x04]
+    - "F30F5C44240C      " # subss xmm0, [esp+0x0c]
+    - "F30F104C2408      " # movss xmm1, [esp+0x08]
+    - "F30F5C4C2410      " # subss xmm1, [esp+0x10]
+    - "F30F59C0          " # mulss xmm0, xmm0
+    - "F30F59C9          " # mulss xmm1, xmm1
+    - "F30F58C1          " # addss xmm0, xmm1
+    - "F30F104C2414      " # movss xmm1, [esp+0x14]
+    - "F30F59C9          " # mulss xmm1, xmm1
+    - "31C0              " # xor   eax, eax
+    - "0F2FC1            " # comiss xmm0, xmm1
+    - "0F92C0            " # setb  al
+    - "C21400            " # ret  0x14

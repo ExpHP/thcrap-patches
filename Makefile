@@ -22,6 +22,7 @@ all: \
 	sprite-death-fix \
 	ultra \
 	anm-buffers \
+	auto-release \
 
 REPO=patches
 PERSONAL=personal
@@ -187,6 +188,7 @@ bullet-cap: \
 	$(BULLET_CAP_PATCH)/$(TH125_VER).js \
 	$(BULLET_CAP_PATCH)/$(TH128_VER).js \
 	$(BULLET_CAP_PATCH)/$(TH13_VER).js \
+	$(BULLET_CAP_PATCH)/$(TH15_VER).js \
 	$(BULLET_CAP_PATCH)/$(TH16_VER).js \
 
 .INTERMEDIATE: $(BULLET_CAP_PATCH)/global.yaml
@@ -257,7 +259,12 @@ sprite-death-fix: \
 	$(SPRITE_DEATH_PATCH)/$(TH125_VER).js \
 	$(SPRITE_DEATH_PATCH)/$(TH128_VER).js \
 	$(SPRITE_DEATH_PATCH)/$(TH13_VER).js \
+	$(SPRITE_DEATH_PATCH)/$(TH14_VER).js \
+	$(SPRITE_DEATH_PATCH)/$(TH143_VER).js \
+	$(SPRITE_DEATH_PATCH)/$(TH15_VER).js \
 	$(SPRITE_DEATH_PATCH)/$(TH16_VER).js \
+	$(SPRITE_DEATH_PATCH)/$(TH165_VER).js \
+	$(SPRITE_DEATH_PATCH)/$(TH17_VER).js \
 
 $(SPRITE_DEATH_PATCH)/th%.js: $(SPRITE_DEATH_PATCH)/binhacks.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
@@ -269,6 +276,7 @@ ULTRA_PATCH=$(PERSONAL)/ultra
 .PHONY: ultra
 ultra: \
 	$(ULTRA_PATCH)/$(TH08_VER).js \
+	$(ULTRA_PATCH)/$(TH15_VER).js \
 	$(ULTRA_PATCH)/$(TH16_VER).js \
 
 $(ULTRA_PATCH)/th%.js: $(ULTRA_PATCH)/binhacks.yaml
@@ -298,6 +306,7 @@ ANM_BUFFERS_PATCH=$(REPO)/anm_buffers
 .PHONY: anm-buffers
 anm-buffers: \
 	$(ANM_BUFFERS_PATCH)/global.js \
+	$(ANM_BUFFERS_PATCH)/$(TH15_VER).js \
 	$(ANM_BUFFERS_PATCH)/$(TH16_VER).js \
 
 .INTERMEDIATE: $(ANM_BUFFERS_PATCH)/global.yaml
@@ -311,3 +320,14 @@ $(ANM_BUFFERS_PATCH)/global.js: $(ANM_BUFFERS_PATCH)/global.yaml
 
 $(ANM_BUFFERS_PATCH)/th%.js: $(ANM_BUFFERS_PATCH)/binhacks.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
+
+#================================================
+
+AUTO_RELEASE_PATCH=$(PERSONAL)/auto-release
+
+.PHONY: auto-release
+auto-release: \
+	$(AUTO_RELEASE_PATCH)/$(TH16_VER).js \
+
+$(AUTO_RELEASE_PATCH)/th%.js: $(AUTO_RELEASE_PATCH)/th%.yaml
+	scripts/convert-yaml.py $^ >$@

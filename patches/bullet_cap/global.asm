@@ -11,6 +11,17 @@
 %define MB_OK 0
 %define PAGE_EXECUTE_READWRITE 0x40
 
+; A macro like  `dest = *src++`
+;
+; Args:  dest:  r/m32
+;        src:   reg32
+;        clobber: reg32
+%macro  read_advance_dword 3.nolist
+    mov %3, [%2]
+    mov %1, %3
+    lea %2, [%2 + 0x4]
+%endmacro
+
 iat_funcs:  ; DELETE
 .GetLastError: dd 0  ; DELETE
 .GetModuleHandleA: dd 0  ; DELETE
@@ -109,12 +120,14 @@ do_replacement_list:  ; HEADER: AUTO
 
     %define %$list        ebp+0x08
     %define %$new_cap     ebp+0x0c
-    enter 0x14, 0
+    enter 0x1c, 0
     %define %$old_cap     ebp-0x04
     %define %$elem_size   ebp-0x08
     %define %$old_value   ebp-0x0c
     %define %$new_value   ebp-0x10
     %define %$scale_const ebp-0x14
+    %define %$range_start ebp-0x18
+    %define %$range_end   ebp-0x1c
 
     mov  ecx, [%$list]
     mov  eax, [ecx + ListHeader.old_cap]
@@ -132,12 +145,13 @@ do_replacement_list:  ; HEADER: AUTO
     cmp  eax, LIST_END
     je   .end
 
+    cmp  eax, DWORD_RANGE_TOKEN
+    je   .dword_range
+
+.single_value:
     ; Read entry
-    mov  [%$old_value], eax
-    add  ecx, 0x4
-    mov  eax, [ecx]
-    mov  [%$scale_const], eax
-    add  ecx, 0x4
+    read_advance_dword [%$old_value], ecx, eax
+    read_advance_dword [%$scale_const], ecx, eax
     mov  [%$list], ecx  ; now points to blacklist/whitelist
 
     push dword [%$old_value]
@@ -155,6 +169,23 @@ do_replacement_list:  ; HEADER: AUTO
     ; return value is pointer to after blacklist
     mov  [%$list], eax
     jmp  .iter
+
+.dword_range:
+    lea  ecx, [ecx+0x4]  ; scan past the DWORD_RANGE_TOKEN
+    read_advance_dword [%$range_start], ecx, eax
+    read_advance_dword [%$range_end], ecx, eax
+    read_advance_dword [%$scale_const], ecx, eax
+
+    push ecx  ; blacklist/whitelist
+    push dword [%$range_end]
+    push dword [%$range_start]
+    push dword [%$new_cap]
+    push dword [%$old_cap]
+    push dword [%$elem_size]
+    push dword [%$scale_const]
+    call perform_dword_range_replacement  ; REWRITE: [codecave:AUTO]
+    mov  [%$list], eax
+    jmp  .iter
 .end:
     leave
     ret  0x8
@@ -169,8 +200,9 @@ determine_new_value:  ; HEADER: AUTO
     %define %$old_cap     ebp+0x10
     %define %$new_cap     ebp+0x14
     %define %$old_value   ebp+0x18
-    enter 0x04, 0
+    enter 0x08, 0
     %define %$scale       ebp-0x04
+    %define %$sign        ebp-0x08
 
     mov  eax, [%$item_size]
     movzx ecx, byte [%$scale_const + ScaleConst.size_mult]
@@ -183,20 +215,32 @@ determine_new_value:  ; HEADER: AUTO
 .goodscale:
     mov  [%$scale], eax
 
+    mov  dword [%$sign], 1
+    test dword [%$old_value], SIGN_MASK
+    jns  .non_negative
+    neg  dword [%$sign]
+.non_negative:
+
     mov  eax, [%$new_cap]
     sub  eax, [%$old_cap]
     imul eax, [%$scale]
     cdq
     movzx ecx, byte [%$scale_const + ScaleConst.divisor]
     idiv ecx
+    imul eax, dword [%$sign]
     add  eax, dword [%$old_value]
 
     ; keep eax for return value
     test edx, edx  ; check remainder
     jnz  .divisibility_error
-    test eax, eax
-    jge  .done
-    int 3  ; new value is negative?  Probably bad scale constant!
+    ; check new and old value have same sign
+    mov  edx, eax
+    and  edx, 0x80000000
+    xor  edx, dword [%$old_value]
+    and  edx, 0x80000000
+    test edx, edx
+    jns  .done
+    int 3  ; sign changed.  Probably bad scale constant!
 
 .done:
     leave
@@ -383,6 +427,78 @@ replace_with_whitelist:  ; HEADER: AUTO
 
     epilogue_sd
     ret 0x10
+    %pop
+
+; Replace instances in .text of a dwords in a range value.
+; Returns a pointer to after the end of the blacklist or whitelist.
+;
+; __stdcall void* PerformDwordRangeReplacement(scale_const, elem_size, old_cap, new_cap, range_start, range_end, bwlist**)
+perform_dword_range_replacement:  ; HEADER: AUTO
+    %push
+    ; well this is terrifying
+    %define %$scale_const  ebp+0x08
+    %define %$elem_size    ebp+0x0c
+    %define %$old_cap      ebp+0x10
+    %define %$new_cap      ebp+0x14
+    %define %$range_start  ebp+0x18
+    %define %$range_end    ebp+0x1c
+    %define %$whitelist    ebp+0x20
+    prologue_sd 0x08
+    %define %$old_value    ebp-0x04
+    %define %$new_value    ebp-0x08
+    %define %$target    esi
+
+    mov  eax, [%$whitelist]
+    mov  eax, [eax]  ; read list type
+
+    add  dword [%$whitelist], 0x4  ; point to whitelist contents
+
+    cmp  eax, WHITELIST_BEGIN
+    je   .has_whitelist
+
+    int 3  ; blacklist not supported for dword range
+
+.has_whitelist:
+.iter:
+    mov  eax, [%$whitelist]  ; address of whitelist
+    mov  %$target, [eax]      ; address in list
+    cmp  %$target, WHITELIST_END
+    je   .end
+
+    mov  edx, [%$target]
+    mov  [%$old_value], edx
+    cmp  edx, [%$range_start]
+    jb   .unexpected_value
+    cmp  edx, [%$range_end]
+    jge  .unexpected_value
+    jmp  .good_value
+
+.unexpected_value:
+    push "badv"
+    int 3
+
+.good_value:
+    push dword [%$old_value]
+    push dword [%$new_cap]
+    push dword [%$old_cap]
+    push dword [%$elem_size]
+    push dword [%$scale_const]
+    call determine_new_value  ; REWRITE: [codecave:AUTO]
+    mov  [%$new_value], eax
+
+    push 4
+    lea  eax, [%$new_value]
+    push eax  ; replacement
+    push %$target
+    call memcpy_or_bust  ; REWRITE: [codecave:AUTO]
+
+    add  dword [%$whitelist], 0x4
+    jmp .iter
+.end:
+    mov  eax, [%$whitelist]
+    add  eax, 0x4  ; return pointer to after list
+    epilogue_sd
+    ret  0x1c
     %pop
 
 ; Returns 0 if data at `a` == data at `b`, nonzero otherwise.

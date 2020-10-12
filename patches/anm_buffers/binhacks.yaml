@@ -1,46 +1,60 @@
 codecaves:
   protection: "0x40"
   ExpHP.anm-buffers.game-data:
+    /value-if(th15):
+      - "08060000          " # at GameData.vm_size, dd 0x608
+      - "44050000          " # at GameData.id_offset, dd 0x544
+      - "9F034900          " # at GameData.func_malloc, dd 0x49039f
     /value-if(th16):
       - "FC050000          " # at GameData.vm_size, dd 0x5fc
       - "38050000          " # at GameData.id_offset, dd 0x538
       - "AC494700          " # at GameData.func_malloc, dd 0x4749ac
 
 binhacks:
-
-  # # Replacement for the alloc binhack for heavier testing
-  # # (makes ALL anms use the slow path to make it easier to test interrupts-by-id)
-  # ExpHP.anm-buffers.for-testing:
-  #   addr:
-  #     /value-if(th16): "0x46f619"
-  #   code:
-  #     - /value-if(th16): "E800000000C70424EFF64600C3" # abs_jmp_hack 0x46f6ef
+  # Replacement for the alloc binhack for heavier testing
+  # (makes ALL anms use the slow path to make it easier to test interrupts-by-id)
+  ExpHP.anm-buffers.for-testing:
+    addr:
+      /value-if(th15): "0x489479"
+      /value-if(th16): "0x46f619"
+    code:
+      - /item-if(th15): "E800000000C704244F954800C3" # abs_jmp_hack 0x48954f
+      - /item-if(th16): "E800000000C70424EFF64600C3" # abs_jmp_hack 0x46f6ef
 
   ExpHP.anm-buffers.alloc:
     addr:
+      /value-if(th15): "0x48954f"
       /value-if(th16): "0x46f6ef"
     expected:
+      /value-if(th15): "6808060000"
       /value-if(th16): "68fc050000"
     codecave:
       - "E8[codecave:ExpHP.anm-buffers.new-alloc-vm]" # call new_alloc_vm
+      - /item-if(th15): "E800000000C704245C954800C3" # abs_jmp_hack 0x48955c
       - /item-if(th16): "E800000000C70424FCF64600C3" # abs_jmp_hack 0x46f6fc
 
   ExpHP.anm-buffers.dealloc:
     addr:
+      /value-if(th15): "0x44c97c"
       /value-if(th16): "0x43b941"
     expected:
+      /value-if(th15): "e86f3a0400"
       /value-if(th16): "e899900300"
     codecave:
       - "56                " # push esi
       - "E8[codecave:ExpHP.anm-buffers.new-dealloc-vm]" # call new_dealloc_vm
-      - "E800000000C7042446B94300C3" # abs_jmp_hack 0x43b946
+      - /item-if(th15): "E800000000C7042481C94400C3" # abs_jmp_hack 0x44c981
+      - /item-if(th16): "E800000000C7042446B94300C3" # abs_jmp_hack 0x43b946
 
   ExpHP.anm-buffers.search:
     addr:
+      /value-if(th15): "0x488534"
       /value-if(th16): "0x46efc4"
     expected:
+      /value-if(th15): "8b96dc000000"
       /value-if(th16): "8b96dc000000"
     codecave:
       - "50                " # push eax  ; id
       - "E8[codecave:ExpHP.anm-buffers.new-search]" # call new_search
-      - "E800000000C7042403F04600C3" # abs_jmp_hack 0x46f003  ; to function cleanup
+      - /item-if(th15): "E800000000C7042473854800C3" # abs_jmp_hack 0x488573
+      - /item-if(th16): "E800000000C7042403F04600C3" # abs_jmp_hack 0x46f003

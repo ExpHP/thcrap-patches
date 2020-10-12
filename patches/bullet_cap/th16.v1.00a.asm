@@ -114,71 +114,111 @@ iend
 
 laser_replacements:  ; HEADER: AUTO
 istruc ListHeader
-    at ListHeader.old_cap, dd 0x100
+    at ListHeader.old_cap, dd 0x200
     at ListHeader.elem_size, dd 0
 iend
-    ; dd 0x100
-    ; dd SCALE_1
-    ; dd WHITELIST_BEGIN
-    ; dd 0x42fee1 - 4  ; LaserManager::allocate_new_laser
-    ; ; The rest are inlined calls to the above function.
-    ; ; Find them via crossrefs to the Laser subclass constructors, as well as crossrefs to
-    ; ; the subclass vtables in case a constructor was inlined.
-    ; dd 0x430ed8 - 4
-    ; dd 0x431018 - 4
-    ; dd 0x431151 - 4
-    ; dd 0x4312a6 - 4
-    ; dd 0x43228a - 4
-    ; dd 0x432d68 - 4
-    ; dd 0x433e6a - 4
-    ; dd 0x43487f - 4
-    ; dd 0x43758c - 4
-    ; dd WHITELIST_END
+    dd 0x200
+    dd SCALE_1
+    dd WHITELIST_BEGIN
+    dd 0x431775 - 4  ; LaserManager::allocate_new_laser
+    ; The rest are inlined calls to the above function.
+    ; Found via crossrefs to LaserLine::constructor
+    dd 0x414b81 - 4
+    dd 0x432777 - 4
+    dd 0x4328c3 - 4
+    dd 0x432a29 - 4
+    dd 0x432b86 - 4
+    dd 0x433f69 - 4
+    dd 0x434c1e - 4
+    dd 0x435f73 - 4
+    dd 0x436bc4 - 4
+    ; Found via crossrefs to LaserInfinite::constructor
+    dd 0x4149a8 - 4
+    dd 0x439c51 - 4
+    ; This list was double checked by searching for the count offset (0x5e4)
+    ; and filtering for instructions that contain 0x200. (same 12 results)
+    dd WHITELIST_END
     dd LIST_END
 
 cancel_replacements:  ; HEADER: AUTO
 istruc ListHeader
-    at ListHeader.old_cap, dd 0x800
-    at ListHeader.elem_size, dd 0xbc8
+    at ListHeader.old_cap, dd 0x1000
+    at ListHeader.elem_size, dd 0xc78
 iend
-    ; dd 0xa58  ; array size (includes non-cancel items)
-    ; dd SCALE_1
-    ; dd BLACKLIST_BEGIN
-    ; dd BLACKLIST_END
+    dd 0x1000  ; num cancel items
+    dd SCALE_1
+    dd WHITELIST_BEGIN
+    dd 0x418553 - 4 ; ItemManager::destroy_all
+    dd WHITELIST_END
 
-    ; ; offsets of fields after array
-    ; dd 0x79dcd4, SCALE_SIZE, REPLACE_ALL  ; freelist head .entry
-    ; dd 0x79dcd8, SCALE_SIZE, REPLACE_ALL  ; freelist head .next
-    ; dd 0x79dcdc, SCALE_SIZE, REPLACE_ALL  ; freelist head .prev
-    ; dd 0x79dce0, SCALE_SIZE, REPLACE_ALL  ; freelist head .unused
-    ; dd 0x79dce4, SCALE_SIZE, REPLACE_ALL  ; tick list head .entry
-    ; dd 0x79dce8, SCALE_SIZE, REPLACE_ALL  ; tick list head .next
-    ; dd 0x79dcec, SCALE_SIZE, REPLACE_ALL  ; tick list head .prev
-    ; dd 0x79dcf0, SCALE_SIZE, REPLACE_ALL  ; tick list head .unused
-    ; dd 0x79dcf4, SCALE_SIZE, REPLACE_ALL  ; num items alive
-    ; dd 0x79dcf8, SCALE_SIZE, REPLACE_ALL  ; next cancel item index  (always zero now)
-    ; dd 0x79dcfc, SCALE_SIZE, REPLACE_ALL  ; num cancel items spawned this frame  (always zero now)
-    ; dd 0x79dd00, SCALE_SIZE, REPLACE_ALL  ; num ufos spawned during this stage  (always zero now)
-    ; dd 0x79dd04, SCALE_SIZE, REPLACE_ALL  ; ItemManager size
+    dd 0x1258  ; array size (includes non-cancel items)
+    dd SCALE_1
+    dd WHITELIST_BEGIN
+    dd 0x42f0e6  ; ItemManager::constructor
+    dd 0x42f106  ; ItemManager::constructor
+    dd 0x42f178  ; sub_42f150
+    dd 0x42f3eb  ; ItemManager::destructor
+    dd 0x42f40d  ; ItemManager::destructor
+    dd 0x43007f  ; ItemManager::on_tick_1d
+    dd 0x4307b0  ; ItemManager::on_draw
+    dd WHITELIST_END
 
-    ; dd 0x79dcc0  ; array size
-    ; dd SCALE_SIZE
-    ; dd REPLACE_ALL
+    dd 0xe4b940  ; array size
+    dd SCALE_SIZE
+    dd WHITELIST_BEGIN
+    dd 0x4184a6  ; ItemManager::destroy_all
+    dd WHITELIST_END
 
-    ; dd 0x200  ; highly-questionable unrolled loops in TD
-    ; dd SCALE_1_DIV(4)
-    ; dd WHITELIST_BEGIN
-    ; dd 0x414033 - 4  ; building freelist in ItemManager::destroy_all
-    ; dd WHITELIST_END
+    dd 0x1c972ec  ; struct size
+    dd SCALE_AN_PLUS_B(2, 0)
+    dd WHITELIST_BEGIN
+    dd 0x42d47d  ; GameThread::destructor
+    dd 0x42f126  ; ItemManager::constructor
+    dd 0x42f465  ; ItemManager::operator new
+    dd 0x42f4a2  ; ItemManager::operator new
+    dd 0x48a821  ; sub_48a820
+    dd WHITELIST_END
 
+    ; freelist head nodes, lolk slowdown factor, snapshot item array
+    dd DWORD_RANGE_INCLUSIVE(0x14+0xe4b940, 0xe4b978)
+    dd SCALE_SIZE
+    dd WHITELIST_BEGIN
+    dd 0x4184cb   ; ItemManager::destroy_all  (normal item freelist)
+    dd 0x4309b9   ; ItemManager::spawn_item  (normal item freelist)
+    dd 0x418539   ; ItemManager::destroy_all  (cancel item freelist)
+    dd 0x430b02   ; ItemManager::spawn_item  (cancel item freelist)
+    dd 0x418599   ; ItemManager::destroy_all  (lolk slowdown factor)
+    dd 0x42fa48   ; ItemManager::on_tick__body  (lolk slowdown factor)
+    dd 0x42faa7   ; ItemManager::on_tick__body  (lolk slowdown factor)
+    dd 0x42facc   ; ItemManager::on_tick__body  (lolk slowdown factor)
+    dd 0x43008d   ; ItemManager::on_tick__body  (lolk slowdown factor)
+    dd 0x4300af   ; ItemManager::on_tick__body  (lolk slowdown factor)
+    dd 0x42f10c   ; ItemManager::constructor  (snapshot item array)
+    dd 0x42f3f6   ; ItemManager::destructor  (snapshot item array)
+    dd WHITELIST_END
+
+    ; in TH16, the snapshot versions of the freelist and slowdown still exist but are never referenced
+    
+    ; fields at end of struct
+    dd DWORD_RANGE_INCLUSIVE(0x1c972dc, 0x1c972ec)
+    dd SCALE_AN_PLUS_B(2, 0)
+    dd WHITELIST_BEGIN
+    dd 0x42f529  ; ItemManager::on_tick__body  (num items onscreen)
+    dd 0x43004e  ; ItemManager::on_tick__body  (num items onscreen)
+    dd 0x4184b1  ; ItemManager::destroy_all   (total items created)
+    dd 0x43096e  ; ItemManager::spawn_item   (total items created)
+    dd 0x430b29  ; ItemManager::spawn_item   (total items created)
+    dd 0x430b47  ; ItemManager::spawn_item   (total items created)
+    dd 0x430b63  ; ItemManager::spawn_item   (total items created)
+    dd 0x42f51f  ; ItemManager::on_tick__body   (num cancel items this frame)
+    dd 0x430b1c  ; ItemManager::spawn_item   (num cancel items this frame)
+    dd 0x4184bc  ; ItemManager::destroy_all   (???)
+    dd 0x430b10  ; ItemManager::spawn_item   (???)
+    dd WHITELIST_END
     dd LIST_END
 
 perf_fix_data:  ; HEADER: AUTO
-istruc PerfFixData
-    at PerfFixData.anm_manager_ptr, dd 0x4dc688
-    at PerfFixData.world_list_head_offset, dd 0xf48208
-    at PerfFixData.anm_id_offset, dd 0x530
-iend
+    dd 0
 
 iat_funcs:  ; HEADER: AUTO
 .GetLastError: dd 0x48b08c

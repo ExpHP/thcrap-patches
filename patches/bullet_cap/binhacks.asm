@@ -85,6 +85,15 @@ install_13:  ; HEADER: AUTO
     call  eax
     abs_jmp_hack 0x42c4f5
 
+; 0x43cbef  (e8fc0b0100)
+install_15:  ; HEADER: AUTO
+    call initialize  ; REWRITE: [codecave:AUTO]
+
+    ; original code
+    mov   eax, 0x44d7f0
+    call  eax
+    abs_jmp_hack 0x43cbf4
+
 ; 0x42d76e  (e83dee0000)
 install_16:  ; HEADER: AUTO
     call initialize  ; REWRITE: [codecave:AUTO]
