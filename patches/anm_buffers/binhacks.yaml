@@ -13,13 +13,13 @@ codecaves:
 binhacks:
   # Replacement for the alloc binhack for heavier testing
   # (makes ALL anms use the slow path to make it easier to test interrupts-by-id)
-  ExpHP.anm-buffers.for-testing:
-    addr:
-      /value-if(th15): "0x489479"
-      /value-if(th16): "0x46f619"
-    code:
-      - /item-if(th15): "E800000000C704244F954800C3" # abs_jmp_hack 0x48954f
-      - /item-if(th16): "E800000000C70424EFF64600C3" # abs_jmp_hack 0x46f6ef
+  # ExpHP.anm-buffers.for-testing:
+  #   addr:
+  #     /value-if(th15): "0x489479"
+  #     /value-if(th16): "0x46f619"
+  #   code:
+  #     - /item-if(th15): "E800000000C704244F954800C3" # abs_jmp_hack 0x48954f
+  #     - /item-if(th16): "E800000000C70424EFF64600C3" # abs_jmp_hack 0x46f6ef
 
   ExpHP.anm-buffers.alloc:
     addr:

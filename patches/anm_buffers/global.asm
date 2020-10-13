@@ -49,8 +49,12 @@ new_alloc_vm:  ; HEADER: AUTO
     test eax, eax
     jnz  .noalloc
 
+    ; deactivate this full batch now, because the new one we insert will be active.
+    ; (scroll_to_free_batch doesn't handle this because it will see the new active one at front)
+    push esi
+    call deactivate_active_batch  ; REWRITE: [codecave:AUTO]
+    ; prepend a new batch
     call allocate_new_batch  ; REWRITE: [codecave:AUTO]
-    ; prepend it
     mov  ecx, eax
     mov  eax, [esi+AnmBatches.active_batch]
     mov  [ecx+AnmBatchHeader.next_batch], eax
@@ -96,7 +100,7 @@ allocate_new_batch:  ; HEADER: AUTO
     mov  dword [eax+BatchVmPrefix.in_use], 0
     mov  dword [eax+BatchVmPrefix.batch], esi
     add  eax, [edi+GameData.vm_size]
-    add  eax, BatchVmPrefix_size
+    add  eax, BatchVmPrefix.vm
     jmp  .iter
 .done:
     mov  eax, esi
@@ -142,7 +146,7 @@ deactivate_active_batch:  ; HEADER: AUTO
     ; ...and gather its anm ids.  (it's now in edx)
     lea  edi, [edx+AnmBatchHeader.ids]
     lea  esi, [edx+AnmBatchHeader.vms]
-    lea  esi, [esi+BatchVmPrefix_size]  ; point to first vm
+    lea  esi, [esi+BatchVmPrefix.vm]  ; point to first vm
 
     mov  edx, game_data  ; REWRITE: <codecave:AUTO>
     add  esi, [edx+GameData.id_offset]  ; point to first id field
@@ -181,7 +185,7 @@ take_free_vm_from_batch:  ; HEADER: AUTO
 .iter:
     ; get vm at index
     mov  ecx, [edx+GameData.vm_size]
-    add  ecx, BatchVmPrefix_size
+    add  ecx, BatchVmPrefix.vm
     imul ecx, [esi+AnmBatchHeader.next_index]
     lea  ecx, [esi+AnmBatchHeader.vms + ecx]
     ; update next index
@@ -256,7 +260,7 @@ search_batch_for_id:  ; HEADER: AUTO
     mov  edx, [ebp+0x08]  ; batch
 
     lea  esi, [edx+AnmBatchHeader.vms]
-    lea  esi, [esi+BatchVmPrefix_size]  ; point to first vm
+    lea  esi, [esi+BatchVmPrefix.vm]  ; point to first vm
     mov  edx, game_data  ; REWRITE: <codecave:AUTO>
     add  esi, [edx+GameData.id_offset]  ; point to first id field
 
@@ -303,12 +307,12 @@ search_inactive_batch_for_id:  ; HEADER: AUTO
     ; We search the array of ids, and just track the VM pointer for convenience.
     lea  edi, [edx+AnmBatchHeader.ids]
     lea  esi, [edx+AnmBatchHeader.vms]
-    lea  esi, [esi+BatchVmPrefix_size]  ; point to first vm
+    lea  esi, [esi+BatchVmPrefix.vm]  ; point to first vm
 
     ; stride in edx, count in ecx, target in eax
     mov  edx, game_data  ; REWRITE: <codecave:AUTO>
     mov  edx, [edx+GameData.vm_size]
-    add  edx, BatchVmPrefix_size
+    add  edx, BatchVmPrefix.vm
     mov  ecx, BATCH_LEN
     mov  eax, [%$id]
 
