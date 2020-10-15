@@ -4,7 +4,7 @@
         "protection": "0x40",
         "ExpHP.anm-buffers.game-data": "FC050000 // 38050000 // AC494700",
         "of(ExpHP.anm-buffers.alloc)": "E8[codecave:ExpHP.anm-buffers.new-alloc-vm] // E800000000C70424FCF64600C3",
-        "of(ExpHP.anm-buffers.dealloc)": "56 // E8[codecave:ExpHP.anm-buffers.new-dealloc-vm] // E800000000C7042446B94300C3",
+        "of(ExpHP.anm-buffers.dealloc)": "56 // E8[codecave:ExpHP.anm-buffers.new-dealloc-vm] // C3",
         "of(ExpHP.anm-buffers.search)": "50 // E8[codecave:ExpHP.anm-buffers.new-search] // E800000000C7042403F04600C3"
     },
     "binhacks": {
@@ -16,7 +16,7 @@
         "ExpHP.anm-buffers.dealloc": {
             "addr": "0x43b941",
             "expected": "e899900300",
-            "code": "E9 [codecave:of(ExpHP.anm-buffers.dealloc)]"
+            "code": "E8 [codecave:of(ExpHP.anm-buffers.dealloc)]"
         },
         "ExpHP.anm-buffers.search": {
             "addr": "0x46efc4",

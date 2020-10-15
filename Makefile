@@ -310,6 +310,7 @@ anm-buffers: \
 	$(ANM_BUFFERS_PATCH)/global.js \
 	$(ANM_BUFFERS_PATCH)/$(TH15_VER).js \
 	$(ANM_BUFFERS_PATCH)/$(TH16_VER).js \
+	$(ANM_BUFFERS_PATCH)/$(TH165_VER).js \
 
 .INTERMEDIATE: $(ANM_BUFFERS_PATCH)/global.yaml
 $(ANM_BUFFERS_PATCH)/global.yaml: $(ANM_BUFFERS_PATCH)/global.asm
