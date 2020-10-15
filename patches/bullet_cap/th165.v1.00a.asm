@@ -74,7 +74,7 @@ iend
     dd WHITELIST_END
 
     ; Related to cancels
-    dd 0xe3a7bc  ; offset of bullet.anm
+    dd 0xe3a7bc
     dd SCALE_AN_PLUS_B(2, 8)  ; two bullet arrays, two int arrays
     dd WHITELIST_BEGIN
     dd 0x40eb68  ; BulletManager::destroy_all
@@ -146,14 +146,18 @@ iend
     dd SCALE_1
     dd WHITELIST_BEGIN
     ; The initial part of spawn_item got inlined everywhere leading to a ton of references.
-    ; To find these I had to search for the current count offset, 0x4d8b0.
-    dd 0x40f046 - 4  ; sub_40eed0
-    dd 0x40f0e5 - 4  ; sub_40eed0 
-    dd 0x40f194 - 4  ; sub_40eed0
-    dd 0x40f254 - 4  ; sub_40eed0
+    ; To find these I had to search for the stride, 0x634.
+    dd 0x40f046 - 4  ; Bullet::on_tick
+    dd 0x40f0e5 - 4  ; Bullet::on_tick
+    dd 0x40f194 - 4  ; Bullet::on_tick
+    dd 0x40f254 - 4  ; Bullet::on_tick
+    ; (ignore several results where 0x634 is used as an offset into Bullet)
     dd 0x41681b - 4  ; EnemyDrop::eject_all_drops
     dd 0x419c5a - 4  ; sub_419b70
     dd 0x42bb46 - 4  ; ItemManager::operator new
+    dd 0x42bcc9 - 4  ; ItemManager::operator free
+    dd 0x42bd6f - 4  ; ItemManager::on_tick__body
+    dd 0x42c12b - 4  ; ItemManager::on_draw
     dd 0x42c209 - 4  ; ItemManager::spawn_item
     dd 0x42c224 - 4  ; ItemManager::spawn_item
     dd 0x42f1ae - 4  ; sub_42eea0
@@ -174,7 +178,7 @@ iend
     dd WHITELIST_END
 
     dd 0x4d8c4  ; struct size
-    dd SCALE_AN_PLUS_B(2, 0)
+    dd SCALE_SIZE
     dd WHITELIST_BEGIN
     dd 0x42bb26  ; ItemManager::operator new
     dd 0x42bb5c  ; ItemManager::operator new
