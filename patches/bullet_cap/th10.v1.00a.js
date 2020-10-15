@@ -12,7 +12,7 @@
         "cancel-cap": "00008000",
         "bullet-cap-config.anm-search-lag-spike-size": "00002000",
         "bullet-cap-config.mof-sa-lag-spike-size": "ffffffff",
-        "of(ExpHP.bullet-cap.install)": "E8[codecave:ExpHP.bullet-cap.initialize] // B850C14400 // FFD0 // E800000000C70424 cd0e4200 C3",
+        "of(ExpHP.bullet-cap.install)": "51 // E8[codecave:ExpHP.bullet-cap.initialize] // 59 // B850C14400FFD0 // E800000000C70424CD0E4200C3",
         "of(ExpHP.bullet-cap.fix-next-cancel)": "52 // E8[codecave:ExpHP.bullet-cap.next-cancel-index] // 89C2 // E800000000C70424 0abe4100 C3",
         "of(ExpHP.bullet-cap.cancel-perf-fix)": "52 // 51 // 51 // E8[codecave:ExpHP.bullet-cap.less-spikey-find-world-vm] // 59 // 5A // 85C0 // 7404 // 90 // C20400 // 56 // E800000000C70424 e5914400 C3"
     },

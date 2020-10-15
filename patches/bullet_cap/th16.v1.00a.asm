@@ -68,7 +68,7 @@ iend
     dd WHITELIST_END
 
     ; Related to cancels
-    dd 0x1403b14  ; offset of bullet.anm
+    dd 0x1403b14
     dd SCALE_AN_PLUS_B(2, 8)  ; two bullet arrays, two int arrays
     dd WHITELIST_BEGIN
     dd 0x411c88  ; BulletManager::destroy_all
@@ -198,7 +198,7 @@ iend
     dd WHITELIST_END
 
     ; in TH16, the snapshot versions of the freelist and slowdown still exist but are never referenced
-    
+
     ; fields at end of struct
     dd DWORD_RANGE_INCLUSIVE(0x1c972dc, 0x1c972ec)
     dd SCALE_AN_PLUS_B(2, 0)

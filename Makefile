@@ -190,6 +190,7 @@ bullet-cap: \
 	$(BULLET_CAP_PATCH)/$(TH13_VER).js \
 	$(BULLET_CAP_PATCH)/$(TH15_VER).js \
 	$(BULLET_CAP_PATCH)/$(TH16_VER).js \
+	$(BULLET_CAP_PATCH)/$(TH165_VER).js \
 
 .INTERMEDIATE: $(BULLET_CAP_PATCH)/global.yaml
 $(BULLET_CAP_PATCH)/global.yaml: $(BULLET_CAP_PATCH)/global.asm $(BULLET_CAP_PATCH)/common.asm
@@ -278,6 +279,7 @@ ultra: \
 	$(ULTRA_PATCH)/$(TH08_VER).js \
 	$(ULTRA_PATCH)/$(TH15_VER).js \
 	$(ULTRA_PATCH)/$(TH16_VER).js \
+	$(ULTRA_PATCH)/$(TH165_VER).js \
 
 $(ULTRA_PATCH)/th%.js: $(ULTRA_PATCH)/binhacks.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)

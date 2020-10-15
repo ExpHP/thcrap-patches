@@ -12,14 +12,14 @@
         "cancel-cap": "00008000",
         "bullet-cap-config.anm-search-lag-spike-size": "00002000",
         "bullet-cap-config.mof-sa-lag-spike-size": "ffffffff",
-        "of(ExpHP.bullet-cap.install)": "E8[codecave:ExpHP.bullet-cap.initialize] // BE703A4C00 // E800000000C70424 23a54200 C3",
+        "of(ExpHP.bullet-cap.install)": "51 // E8[codecave:ExpHP.bullet-cap.initialize] // 59 // B800A54200FFD0 // E800000000C704242D034200C3",
         "of(ExpHP.bullet-cap.fix-next-cancel)": "51 // E8[codecave:ExpHP.bullet-cap.next-cancel-index] // 89C1 // E800000000C70424 5e454200 C3",
         "of(ExpHP.bullet-cap.cancel-perf-fix)": "52 // 51 // 51 // E8[codecave:ExpHP.bullet-cap.less-spikey-find-world-vm] // 59 // 5A // 85C0 // 7404 // 90 // C20400 // 56 // E800000000C70424 05624500 C3"
     },
     "binhacks": {
         "ExpHP.bullet-cap.install": {
-            "addr": "0x42a51e",
-            "expected": "be703a4c00",
+            "addr": "0x420328",
+            "expected": "e8d3a10000",
             "code": "E9 [codecave:of(ExpHP.bullet-cap.install)]"
         },
         "ExpHP.bullet-cap.fix-next-cancel": {

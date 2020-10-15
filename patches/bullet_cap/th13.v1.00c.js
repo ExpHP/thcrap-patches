@@ -12,7 +12,7 @@
         "cancel-cap": "00008000",
         "bullet-cap-config.anm-search-lag-spike-size": "00002000",
         "bullet-cap-config.mof-sa-lag-spike-size": "ffffffff",
-        "of(ExpHP.bullet-cap.install)": "E8[codecave:ExpHP.bullet-cap.initialize] // B880B24300 // FFD0 // E800000000C70424 f5c44200 C3",
+        "of(ExpHP.bullet-cap.install)": "51 // E8[codecave:ExpHP.bullet-cap.initialize] // 59 // B880B24300FFD0 // E800000000C70424F5C44200C3",
         "of(ExpHP.bullet-cap.cancel-perf-fix)": "52 // 51 // 51 // E8[codecave:ExpHP.bullet-cap.less-spikey-find-world-vm] // 59 // 5A // 85C0 // 7404 // 5D // C20400 // 56 // E800000000C70424 d1fb4600 C3"
     },
     "binhacks": {

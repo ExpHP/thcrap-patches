@@ -12,7 +12,7 @@
         "cancel-cap": "00000c80",
         "bullet-cap-config.anm-search-lag-spike-size": "00002000",
         "bullet-cap-config.mof-sa-lag-spike-size": "ffffffff",
-        "of(ExpHP.bullet-cap.install)": "E8[codecave:ExpHP.bullet-cap.initialize] // B8A0A14200 // FFD0 // E800000000C70424 a8d94100 C3"
+        "of(ExpHP.bullet-cap.install)": "51 // E8[codecave:ExpHP.bullet-cap.initialize] // 59 // B8A0A14200FFD0 // E800000000C70424A8D94100C3"
     },
     "binhacks": {
         "ExpHP.bullet-cap.install": {

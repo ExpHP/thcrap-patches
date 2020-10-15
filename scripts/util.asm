@@ -28,4 +28,15 @@
         ret
 %endmacro
 
+; absolute call, clobbering eax
+;
+; eax is almost universally a good choice since it's used for return values,
+; but some functions from the ugly ABI era pass an argument in eax.
+;
+; (if this were x86-64, we could use the red zone, but it doesn't exist in x86)
+%macro  call_eax 1.nolist
+        mov eax, %1
+        call eax
+%endmacro
+
 %define SIGN_MASK 0x80000000

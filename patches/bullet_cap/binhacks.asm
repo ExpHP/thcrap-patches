@@ -33,75 +33,41 @@ install_08:  ; HEADER: AUTO
 
 ; MoF onwards:  Do it right before spawning the game thread
 
-; 0x420ec8  (e883b20200)
-install_10:  ; HEADER: AUTO
-    call initialize  ; REWRITE: [codecave:AUTO]
-
-    ; original code
-    mov   eax, 0x44c150
-    call  eax
-    abs_jmp_hack 0x420ecd
-
-; 0x42a51e  (be703a4c00)
-install_11:  ; HEADER: AUTO
-    call initialize  ; REWRITE: [codecave:AUTO]
-
-    ; original code
-    mov   esi, 0x4c3a70
-    abs_jmp_hack 0x42a523
-
-; 0x43051e  (bed8f04c00)
-install_12:  ; HEADER: AUTO
-    call initialize  ; REWRITE: [codecave:AUTO]
-
-    ; original code
-    mov   esi, 0x4cf0d8
-    abs_jmp_hack 0x430523
-
-; 0x41d9a3  (e8f8c70000)
+; TH10:  0x420ec8  (e883b20200)
+; TH11:  0x420328  (e8d3a10000)
+; TH12:  0x422758  (e8a3dd0000)
+; TH125: 0x41d9a3  (e8f8c70000)
+; TH128: 0x426970  (e83be30000)
+; TH13:  0x42c4f0  (e88bed0000)
+; TH15:  0x43cbef  (e8fc0b0100)
+; TH16:  0x42d76e  (e83dee0000)
+; TH165: 0x429719  (e892000100)
 install_125:  ; HEADER: AUTO
+    push ecx  ; save; might be an arg to the original function
     call initialize  ; REWRITE: [codecave:AUTO]
+    pop  ecx
 
     ; original code
-    mov   eax, 0x42a1a0
-    call  eax
-    abs_jmp_hack 0x41d9a8
+    call_eax 0x44c150  ; TH10
+    call_eax 0x42a500  ; TH11
+    call_eax 0x430500  ; TH12
+    call_eax 0x42a1a0  ; TH125
+    call_eax 0x434cb0  ; TH128
+    call_eax 0x43b280  ; TH13
+    call_eax 0x44d7f0  ; TH15
+    call_eax 0x43c5b0  ; TH16
+    call_eax 0x4397b0  ; TH165
+    ; (can't use call-codecave and ret because it'd mess with stack args to the above call)
+    abs_jmp_hack 0x420ecd  ; TH10
+    abs_jmp_hack 0x42032d  ; TH11
+    abs_jmp_hack 0x42275d  ; TH12
+    abs_jmp_hack 0x41d9a8  ; TH125
+    abs_jmp_hack 0x426975  ; TH128
+    abs_jmp_hack 0x42c4f5  ; TH13
+    abs_jmp_hack 0x43cbf4  ; TH15
+    abs_jmp_hack 0x42d773  ; TH16
+    abs_jmp_hack 0x42971e  ; TH165
 
-; 0x426970  (e83be30000)
-install_128:  ; HEADER: AUTO
-    call initialize  ; REWRITE: [codecave:AUTO]
-
-    ; original code
-    mov   eax, 0x434cb0
-    call  eax
-    abs_jmp_hack 0x426975
-
-; 0x42c4f0  (e88bed0000)
-install_13:  ; HEADER: AUTO
-    call initialize  ; REWRITE: [codecave:AUTO]
-
-    ; original code
-    mov   eax, 0x43b280
-    call  eax
-    abs_jmp_hack 0x42c4f5
-
-; 0x43cbef  (e8fc0b0100)
-install_15:  ; HEADER: AUTO
-    call initialize  ; REWRITE: [codecave:AUTO]
-
-    ; original code
-    mov   eax, 0x44d7f0
-    call  eax
-    abs_jmp_hack 0x43cbf4
-
-; 0x42d76e  (e83dee0000)
-install_16:  ; HEADER: AUTO
-    call initialize  ; REWRITE: [codecave:AUTO]
-
-    ; original code
-    mov   eax, 0x43c5b0
-    call  eax
-    abs_jmp_hack 0x42d773
 
 ; ==========================================
 ; Patch for where games without cancel item freelists increment the next index.
