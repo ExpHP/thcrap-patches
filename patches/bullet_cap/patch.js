@@ -2,6 +2,7 @@
 	"dependencies": [
 		"nmlgc/base_tsa",
 		"ExpHP/base_exphp",
+		"ExpHP/anm_leak",
 		"ExpHP/sprite_death_fix"
 	],
 	"id": "bullet_cap",

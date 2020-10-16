@@ -3,7 +3,7 @@ binhacks:
     addr: "0x402118"
     expected: "e863340000"
     codecave:
-      # - "E8[codecave:ExpHP.auto-release.autorelease]" # call autorelease
+      - "E8[codecave:ExpHP.auto-release.autorelease]" # call autorelease
 
       # original code
       - "B9B0504A00        " # mov  ecx, 0x4a50b0

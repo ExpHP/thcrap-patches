@@ -21,7 +21,7 @@ all: \
 	debug-counters \
 	sprite-death-fix \
 	ultra \
-	anm-buffers \
+	anm-leak \
 	auto-release \
 
 REPO=patches
@@ -269,26 +269,26 @@ $(BASE_EXPHP_PATCH)/global.js: $(BASE_EXPHP_PATCH)/global.yaml
 
 #================================================
 
-ANM_BUFFERS_PATCH=$(REPO)/anm_buffers
+ANM_LEAK_PATCH=$(REPO)/anm_leak
 
-.PHONY: anm-buffers
-anm-buffers: \
-	$(ANM_BUFFERS_PATCH)/global.js \
-	$(ANM_BUFFERS_PATCH)/$(TH15_VER).js \
-	$(ANM_BUFFERS_PATCH)/$(TH16_VER).js \
-	$(ANM_BUFFERS_PATCH)/$(TH165_VER).js \
-	$(ANM_BUFFERS_PATCH)/$(TH17_VER).js \
+.PHONY: anm-leak
+anm-leak: \
+	$(ANM_LEAK_PATCH)/global.js \
+	$(ANM_LEAK_PATCH)/$(TH15_VER).js \
+	$(ANM_LEAK_PATCH)/$(TH16_VER).js \
+	$(ANM_LEAK_PATCH)/$(TH165_VER).js \
+	$(ANM_LEAK_PATCH)/$(TH17_VER).js \
 
-.INTERMEDIATE: $(ANM_BUFFERS_PATCH)/global.yaml
-$(ANM_BUFFERS_PATCH)/global.yaml: $(ANM_BUFFERS_PATCH)/global.asm
+.INTERMEDIATE: $(ANM_LEAK_PATCH)/global.yaml
+$(ANM_LEAK_PATCH)/global.yaml: $(ANM_LEAK_PATCH)/global.asm
 	@echo "# this yaml file is auto-generated" >$@
 	@echo "codecaves:" >>$@
 	scripts/list-asm $< >>$@
 
-$(ANM_BUFFERS_PATCH)/global.js: $(ANM_BUFFERS_PATCH)/global.yaml
+$(ANM_LEAK_PATCH)/global.js: $(ANM_LEAK_PATCH)/global.yaml
 	scripts/convert-yaml.py $^ >$@
 
-$(ANM_BUFFERS_PATCH)/th%.js: $(ANM_BUFFERS_PATCH)/binhacks.yaml
+$(ANM_LEAK_PATCH)/th%.js: $(ANM_LEAK_PATCH)/binhacks.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
 
 #================================================
@@ -297,7 +297,7 @@ AUTO_RELEASE_PATCH=$(PERSONAL)/auto-release
 
 .PHONY: auto-release
 auto-release: \
-	$(call glob-th-js-from-yaml,$(ANM_BUFFERS_PATCH)) \
+	$(call glob-th-js-from-yaml,$(AUTO_RELEASE_PATCH)) \
 
 $(AUTO_RELEASE_PATCH)/th%.js: $(AUTO_RELEASE_PATCH)/th%.yaml
 	scripts/convert-yaml.py $^ >$@
