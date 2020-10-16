@@ -13,7 +13,7 @@
         }
     },
     "codecaves": {
-        "of(ExpHP.ultra.patch-1)": "F30F11442410 // 66C1A76403000002 // 66C1A76603000002 // C3",
-        "of(ExpHP.ultra.patch-2)": "66C1AF6403000002 // 66C1AF6603000002 // F6876C03000020 // C3"
+        "of(ExpHP.ultra.patch-1)": "F30F11442410 // 66C1A76403000003 // 66C1A76603000003 // C3",
+        "of(ExpHP.ultra.patch-2)": "66C1AF6403000003 // 66C1AF6603000003 // F6876C03000020 // C3"
     }
 }

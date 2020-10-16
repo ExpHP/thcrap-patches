@@ -24,6 +24,13 @@ istruc GameData  ; DELETE
     at GameData.func_malloc, dd 0x47a78d
 iend  ; DELETE
 
+data_17:  ; HEADER: AUTO
+istruc GameData  ; DELETE
+    at GameData.vm_size, dd 0x600
+    at GameData.id_offset, dd 0x538
+    at GameData.func_malloc, dd 0x47b250
+iend  ; DELETE
+
 ; TH15:  0x489479
 ; TH16:  0x46f619
 ; TH165: 0x475949
@@ -32,19 +39,26 @@ testing:  ; HEADER: AUTO
     abs_jmp_hack 0x46f6ef  ; TH16
     abs_jmp_hack 0x475a1f  ; TH165
 
+; replace the "push-call-stack cleanup" sequence
 ; TH15:  0x48954f  (6808060000)
 ; TH16:  0x46f6ef  (68fc050000)
 ; TH165: 0x475a1f  (68fc050000)
+;
+; th17 defers the stack cleanup so only replace the call
+; TH17:  0x476b54  (e8f7460000)
 alloc:  ; HEADER: AUTO
     call new_alloc_vm  ; REWRITE: [codecave:AUTO]
     ; to after the malloc and its stack cleanup
     abs_jmp_hack 0x48955c  ; TH15
     abs_jmp_hack 0x46f6fc  ; TH16
     abs_jmp_hack 0x475a2c  ; TH165
+    ; to immediately after the call
+    abs_jmp_hack 0x476b59  ; TH17
 
 ; TH15:  0x44c97c  (e86f3a0400)
 ; TH16:  0x43b941  (e899900300)
 ; TH165: 0x438bfe  (e85c570400)
+; TH17:  0x476083  (e8f8510000)
 dealloc:  ; HEADER: AUTO
     ; since we're in a call, ignore the stuff already pushed and push the vm again
     push esi
@@ -56,6 +70,7 @@ dealloc:  ; HEADER: AUTO
 ; TH15:  0x488534  (8b96dc000000)
 ; TH16:  0x46efc4  (8b96dc000000)
 ; TH165: 0x47530d  (8b96dc000000)
+; TH17:  0x47648d  (8b8edc060000)
 search:  ; HEADER: AUTO
     push eax  ; id
     call new_search  ; REWRITE: [codecave:AUTO]
@@ -63,6 +78,7 @@ search:  ; HEADER: AUTO
     abs_jmp_hack 0x488573  ; TH15
     abs_jmp_hack 0x46f003  ; TH16
     abs_jmp_hack 0x47535a  ; TH165
+    abs_jmp_hack 0x4764da  ; TH165
 
 new_alloc_vm:  ; DELETE
 new_dealloc_vm:  ; DELETE

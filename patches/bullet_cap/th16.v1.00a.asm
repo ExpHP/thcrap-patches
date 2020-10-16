@@ -156,7 +156,7 @@ iend
     dd WHITELIST_BEGIN
     dd 0x42f0e6  ; ItemManager::constructor
     dd 0x42f106  ; ItemManager::constructor
-    dd 0x42f178  ; sub_42f150
+    dd 0x42f178  ; ItemManager::destruct_item_array_impl
     dd 0x42f3eb  ; ItemManager::destructor
     dd 0x42f40d  ; ItemManager::destructor
     dd 0x43007f  ; ItemManager::on_tick_1d

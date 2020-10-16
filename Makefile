@@ -33,6 +33,11 @@ update:
 
 #================================================
 
+glob-th-js-from-yaml = $(patsubst %.yaml,%.js,$(wildcard $(1)/th*.yaml))
+glob-th-js-from-asm = $(patsubst %.asm,%.js,$(wildcard $(1)/th*.asm))
+
+#================================================
+
 TH06_VER = th06.v1.02h
 TH07_VER = th07.v1.00b
 TH08_VER = th08.v1.00d
@@ -110,9 +115,7 @@ CONTINUE_PATCH=$(REPO)/continue
 
 .PHONY: continue
 continue: \
-	$(CONTINUE_PATCH)/$(TH10_VER).js \
-	$(CONTINUE_PATCH)/$(TH11_VER).js \
-	$(CONTINUE_PATCH)/$(TH12_VER).js \
+	$(call glob-th-js-from-yaml,$(CONTINUE_PATCH)) \
 
 $(CONTINUE_PATCH)/th%.js: $(CONTINUE_PATCH)/th%.yaml
 	scripts/convert-yaml.py $< >$@
@@ -123,15 +126,7 @@ CTRL_SPEEDUP_PATCH=$(REPO)/ctrl_speedup
 
 .PHONY: ctrl-speedup
 ctrl-speedup: \
-	$(CTRL_SPEEDUP_PATCH)/$(TH10_VER).js \
-	$(CTRL_SPEEDUP_PATCH)/$(TH11_VER).js \
-	$(CTRL_SPEEDUP_PATCH)/$(TH12_VER).js \
-	$(CTRL_SPEEDUP_PATCH)/$(TH128_VER).js \
-	$(CTRL_SPEEDUP_PATCH)/$(TH13_VER).js \
-	$(CTRL_SPEEDUP_PATCH)/$(TH14_VER).js \
-	$(CTRL_SPEEDUP_PATCH)/$(TH15_VER).js \
-	$(CTRL_SPEEDUP_PATCH)/$(TH16_VER).js \
-	$(CTRL_SPEEDUP_PATCH)/$(TH17_VER).js \
+	$(call glob-th-js-from-yaml,$(CTRL_SPEEDUP_PATCH)) \
 
 $(CTRL_SPEEDUP_PATCH)/th%.js: $(CTRL_SPEEDUP_PATCH)/binhacks.yaml
 	scripts/convert-yaml.py $< >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
@@ -142,15 +137,7 @@ MOUSE_PATCH=$(PERSONAL)/mouse
 
 .PHONY: mouse
 mouse: \
-	$(MOUSE_PATCH)/$(TH14_VER).js \
-	# $(MOUSE_PATCH)/$(TH10_VER).js \
-	# $(MOUSE_PATCH)/$(TH11_VER).js \
-	# $(MOUSE_PATCH)/$(TH12_VER).js \
-	# $(MOUSE_PATCH)/$(TH128_VER).js \
-	# $(MOUSE_PATCH)/$(TH13_VER).js \
-	# $(MOUSE_PATCH)/$(TH15_VER).js \
-	# $(MOUSE_PATCH)/$(TH16_VER).js \
-	# $(MOUSE_PATCH)/$(TH17_VER).js \
+	$(call glob-th-js-from-yaml,$(MOUSE_PATCH)) \
 
 $(MOUSE_PATCH)/th%.js: $(MOUSE_PATCH)/th%.yaml
 	scripts/convert-yaml.py $< >$@
@@ -161,8 +148,7 @@ SSA_PATCH=$(PERSONAL)/ssa
 
 .PHONY: ssa
 ssa: \
-	$(SSA_PATCH)/$(TH11_VER).js \
-	$(SSA_PATCH)/$(TH14_VER).js \
+	$(call glob-th-js-from-yaml,$(SSA_PATCH)) \
 
 .INTERMEDIATE: $(SSA_PATCH)/common.yaml
 $(SSA_PATCH)/common.yaml: $(SSA_PATCH)/common.asm
@@ -181,16 +167,7 @@ BULLET_CAP_PATCH=$(REPO)/bullet_cap
 .PHONY: bullet-cap
 bullet-cap: \
 	$(BULLET_CAP_PATCH)/global.js \
-	$(BULLET_CAP_PATCH)/$(TH08_VER).js \
-	$(BULLET_CAP_PATCH)/$(TH10_VER).js \
-	$(BULLET_CAP_PATCH)/$(TH11_VER).js \
-	$(BULLET_CAP_PATCH)/$(TH12_VER).js \
-	$(BULLET_CAP_PATCH)/$(TH125_VER).js \
-	$(BULLET_CAP_PATCH)/$(TH128_VER).js \
-	$(BULLET_CAP_PATCH)/$(TH13_VER).js \
-	$(BULLET_CAP_PATCH)/$(TH15_VER).js \
-	$(BULLET_CAP_PATCH)/$(TH16_VER).js \
-	$(BULLET_CAP_PATCH)/$(TH165_VER).js \
+	$(call glob-th-js-from-asm,$(BULLET_CAP_PATCH)) \
 
 .INTERMEDIATE: $(BULLET_CAP_PATCH)/global.yaml
 $(BULLET_CAP_PATCH)/global.yaml: $(BULLET_CAP_PATCH)/global.asm $(BULLET_CAP_PATCH)/common.asm
@@ -216,19 +193,7 @@ DEBUG_COUNTERS_PATCH=$(REPO)/debug_counters
 .PHONY: debug-counters
 debug-counters: \
 	$(DEBUG_COUNTERS_PATCH)/global.js \
-	$(DEBUG_COUNTERS_PATCH)/$(TH08_VER).js \
-	$(DEBUG_COUNTERS_PATCH)/$(TH10_VER).js \
-	$(DEBUG_COUNTERS_PATCH)/$(TH11_VER).js \
-	$(DEBUG_COUNTERS_PATCH)/$(TH12_VER).js \
-	$(DEBUG_COUNTERS_PATCH)/$(TH125_VER).js \
-	$(DEBUG_COUNTERS_PATCH)/$(TH128_VER).js \
-	$(DEBUG_COUNTERS_PATCH)/$(TH13_VER).js \
-	$(DEBUG_COUNTERS_PATCH)/$(TH14_VER).js \
-	$(DEBUG_COUNTERS_PATCH)/$(TH143_VER).js \
-	$(DEBUG_COUNTERS_PATCH)/$(TH15_VER).js \
-	$(DEBUG_COUNTERS_PATCH)/$(TH16_VER).js \
-	$(DEBUG_COUNTERS_PATCH)/$(TH165_VER).js \
-	$(DEBUG_COUNTERS_PATCH)/$(TH17_VER).js \
+	$(call glob-th-js-from-asm,$(DEBUG_COUNTERS_PATCH)) \
 
 .INTERMEDIATE: $(DEBUG_COUNTERS_PATCH)/global.yaml
 $(DEBUG_COUNTERS_PATCH)/global.yaml: $(DEBUG_COUNTERS_PATCH)/global.asm $(DEBUG_COUNTERS_PATCH)/common.asm
@@ -280,6 +245,7 @@ ultra: \
 	$(ULTRA_PATCH)/$(TH15_VER).js \
 	$(ULTRA_PATCH)/$(TH16_VER).js \
 	$(ULTRA_PATCH)/$(TH165_VER).js \
+	$(ULTRA_PATCH)/$(TH17_VER).js \
 
 $(ULTRA_PATCH)/th%.js: $(ULTRA_PATCH)/binhacks.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
@@ -311,6 +277,7 @@ anm-buffers: \
 	$(ANM_BUFFERS_PATCH)/$(TH15_VER).js \
 	$(ANM_BUFFERS_PATCH)/$(TH16_VER).js \
 	$(ANM_BUFFERS_PATCH)/$(TH165_VER).js \
+	$(ANM_BUFFERS_PATCH)/$(TH17_VER).js \
 
 .INTERMEDIATE: $(ANM_BUFFERS_PATCH)/global.yaml
 $(ANM_BUFFERS_PATCH)/global.yaml: $(ANM_BUFFERS_PATCH)/global.asm
@@ -330,7 +297,7 @@ AUTO_RELEASE_PATCH=$(PERSONAL)/auto-release
 
 .PHONY: auto-release
 auto-release: \
-	$(AUTO_RELEASE_PATCH)/$(TH16_VER).js \
+	$(call glob-th-js-from-yaml,$(ANM_BUFFERS_PATCH)) \
 
 $(AUTO_RELEASE_PATCH)/th%.js: $(AUTO_RELEASE_PATCH)/th%.yaml
 	scripts/convert-yaml.py $^ >$@

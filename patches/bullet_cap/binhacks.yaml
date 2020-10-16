@@ -1,13 +1,13 @@
 codecaves:
   bullet-cap:
     /value-if(th08): "00006000"
-    /value-if(any(th10..th13, th15..th165)): "00007d00"
+    /value-if(any(th10..th13, th15..th17)): "00007d00"
   laser-cap:
     /value-if(any(th08, th10..th13)): "00001000"
-    /value-if(th15..th165): "00002000"
+    /value-if(th15..th17): "00002000"
   cancel-cap:
-    /value-if(th15..th16):  "00010000"
-    /value-if(any(th10..th12, th13)): "00008000"
+    /value-if(all(integer, th15..th17)): "00010000"
+    /value-if(all(integer, th10..th13)): "00008000"
     /value-if(th08):  "00008300"
     /value-if(any(th125, th165)): "00000c80"
     /value-if(th128): "00000640"
@@ -33,7 +33,7 @@ binhacks:
         - "FFD0              " # call  eax
         - "E800000000C70424 19b44300 C3" # jump to 0x43b419
 
-    /fields-if(any(th10..th165)):
+    /fields-if(any(th10..th17)):
       addr:
         /value-if(th10):  "0x420ec8"
         /value-if(th11):  "0x420328"
@@ -44,6 +44,7 @@ binhacks:
         /value-if(th15):  "0x43cbef"
         /value-if(th16):  "0x42d76e"
         /value-if(th165): "0x429719"
+        /value-if(th17):  "0x4312ff"
       expected:
         /value-if(th10):  "e883b20200"
         /value-if(th11):  "e8d3a10000"
@@ -54,6 +55,7 @@ binhacks:
         /value-if(th15):  "e8fc0b0100"
         /value-if(th16):  "e83dee0000"
         /value-if(th165): "e892000100"
+        /value-if(th17):  "e87c0f0100"
       codecave:
         - "51                " # push ecx  ; save; might be an arg to the original function
         - "E8[codecave:ExpHP.bullet-cap.initialize]" # call initialize
@@ -69,6 +71,7 @@ binhacks:
         - /item-if(th15):  "B8F0D74400FFD0    " # call_eax 0x44d7f0
         - /item-if(th16):  "B8B0C54300FFD0    " # call_eax 0x43c5b0
         - /item-if(th165): "B8B0974300FFD0    " # call_eax 0x4397b0
+        - /item-if(th17):  "B880224400FFD0    " # call_eax 0x442280
         # (can't use call-codecave and ret because it'd mess with stack args to the above call)
         - /item-if(th10):  "E800000000C70424CD0E4200C3" # abs_jmp_hack 0x420ecd
         - /item-if(th11):  "E800000000C704242D034200C3" # abs_jmp_hack 0x42032d
@@ -79,6 +82,7 @@ binhacks:
         - /item-if(th15):  "E800000000C70424F4CB4300C3" # abs_jmp_hack 0x43cbf4
         - /item-if(th16):  "E800000000C7042473D74200C3" # abs_jmp_hack 0x42d773
         - /item-if(th165): "E800000000C704241E974200C3" # abs_jmp_hack 0x42971e
+        - /item-if(th17):  "E800000000C7042404134300C3" # abs_jmp_hack 0x431304
 
   /fields-if(any(th10, th11, th12)):
     ExpHP.bullet-cap.fix-next-cancel:

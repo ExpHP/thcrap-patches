@@ -51,7 +51,7 @@ Logical expressions:
 
     - /item-if(all(foo, not(bar)))
 
-  Because --cfg is pretty much exclusively used with game strings at this point, there is a Touhou-specific syntax extension that '..' can be used to indicate a doubly-inclusive range.  That is, th09..th10 is equivalent to any(th09, th095, th10).  The game format must follow the naming convention that is used by all exe and dat files since th08.
+  Because --cfg is pretty much exclusively used with game strings at this point, there is a Touhou-specific syntax extension that '..' can be used to indicate a doubly-inclusive range.  That is, th09..th10 is equivalent to any(th09, th095, th10).  Additionally, supplying a game string for an integer game implies '--cfg integer'.  The game format must follow the naming convention that is used by all exe and dat files since th08.
 """
 
 def main():
@@ -233,6 +233,7 @@ def resolve_conditional_code(d, defs):
 
 IDENT_RE = re.compile(r'[_a-zA-Z][-_a-zA-Z0-9]*$')
 TH_IDENT_RE = re.compile(r'th[012][0-9][1-9]?$')
+TH_INTEGER_RE = re.compile(r'th[012][0-9]$')
 def check_conditional(expr_string, defs):
     inner = get_inner_for(expr_string, 'any(', ')')
     if inner is not None:
@@ -254,6 +255,9 @@ def check_conditional(expr_string, defs):
 
         # game numbers are lexically sorted so we can just do string comparisons
         return any(mingame <= x <= maxgame for x in defs if TH_IDENT_RE.match(x))
+
+    if expr_string == 'integer':
+        return any(TH_INTEGER_RE.match(x) for x in defs)
     # !! End touhou-specific extension
 
     # read an atom

@@ -42,6 +42,7 @@ install_08:  ; HEADER: AUTO
 ; TH15:  0x43cbef  (e8fc0b0100)
 ; TH16:  0x42d76e  (e83dee0000)
 ; TH165: 0x429719  (e892000100)
+; TH17:  0x4312ff  (e87c0f0100)
 install_125:  ; HEADER: AUTO
     push ecx  ; save; might be an arg to the original function
     call initialize  ; REWRITE: [codecave:AUTO]
@@ -57,6 +58,7 @@ install_125:  ; HEADER: AUTO
     call_eax 0x44d7f0  ; TH15
     call_eax 0x43c5b0  ; TH16
     call_eax 0x4397b0  ; TH165
+    call_eax 0x442280  ; TH17
     ; (can't use call-codecave and ret because it'd mess with stack args to the above call)
     abs_jmp_hack 0x420ecd  ; TH10
     abs_jmp_hack 0x42032d  ; TH11
@@ -67,6 +69,7 @@ install_125:  ; HEADER: AUTO
     abs_jmp_hack 0x43cbf4  ; TH15
     abs_jmp_hack 0x42d773  ; TH16
     abs_jmp_hack 0x42971e  ; TH165
+    abs_jmp_hack 0x431304  ; TH17
 
 
 ; ==========================================

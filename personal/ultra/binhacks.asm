@@ -32,6 +32,7 @@ th08_2:  ; HEADER: AUTO
 ; TH15:  0x41c646  (f30f11442410)
 ; TH16:  0x414e26  (f30f11442410)
 ; TH165: 0x412b16  (f30f11442410)
+; TH17:  0x418356  (f30f11442410)
 th15_01:  ; HEADER: AUTO
     movss dword [esp+0x10], xmm0
     shl  word [edi+0x364], 0x2
@@ -41,6 +42,7 @@ th15_01:  ; HEADER: AUTO
 ; TH15:  0x41c6b3  (f6876c03000020)
 ; TH16:  0x414e93  (f6876c03000020)
 ; TH165: 0x412b83  (f6876c03000020)
+; TH17:  0x4183c3  (f6876c03000020)
 th15_02:  ; HEADER: AUTO
     shr  word [edi+0x364], 0x2
     shr  word [edi+0x366], 0x2
