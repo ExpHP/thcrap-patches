@@ -37,6 +37,8 @@ game_data:  ; DELETE
 bullet_replacements:  ; DELETE
 cancel_replacements:  ; DELETE
 laser_replacements:  ; DELETE
+bullet_mgr_layout:  ; DELETE
+item_mgr_layout:  ; DELETE
 perf_fix_data:  ; DELETE
 
 new_bullet_cap_bigendian:  ; DELETE
@@ -57,6 +59,9 @@ strings:
 runonce:  ; HEADER: AUTO
     dd 0
 
+;=========================================
+; Funcs used by binhacks
+
 ; __stdcall Initialize()
 initialize:  ; HEADER: AUTO
     mov  eax, [runonce]  ; REWRITE: <codecave:AUTO>
@@ -73,26 +78,17 @@ initialize:  ; HEADER: AUTO
     call memcpy_or_bust  ; REWRITE: [codecave:AUTO]
     add  esp, 0x4  ; dealloc the '1'
 
-    mov  eax, [new_bullet_cap_bigendian]  ; REWRITE: <codecave:bullet-cap>
-    bswap eax
-    push eax
-    mov  eax, bullet_replacements  ; REWRITE: <codecave:AUTO>
-    push eax
+    push CAPID_BULLET
+    call do_replacement_list  ; REWRITE: [codecave:AUTO]
+    push CAPID_LASER
+    call do_replacement_list  ; REWRITE: [codecave:AUTO]
+    push CAPID_CANCEL
     call do_replacement_list  ; REWRITE: [codecave:AUTO]
 
-    mov  eax, [new_laser_cap_bigendian]  ; REWRITE: <codecave:laser-cap>
-    bswap eax
-    push eax
-    mov  eax, laser_replacements  ; REWRITE: <codecave:AUTO>
-    push eax
-    call do_replacement_list  ; REWRITE: [codecave:AUTO]
-
-    mov  eax, [new_cancel_cap_bigendian]  ; REWRITE: <codecave:cancel-cap>
-    bswap eax
-    push eax
-    mov  eax, cancel_replacements  ; REWRITE: <codecave:AUTO>
-    push eax
-    call do_replacement_list  ; REWRITE: [codecave:AUTO]
+    push STRUCT_BULLET_MGR
+    call do_offset_replacement_list  ; REWRITE: [codecave:AUTO]
+    push STRUCT_ITEM_MGR
+    call do_offset_replacement_list  ; REWRITE: [codecave:AUTO]
 
 .norun:
     ret
@@ -114,28 +110,25 @@ next_cancel_index:  ; HEADER: AUTO
     epilogue_sd
     ret  0x4
 
-; __stdcall DoReplacementList(ListHeader*, new_cap)
+;=========================================
+; Main implementation
+
+; __stdcall DoReplacementList(capid)
 do_replacement_list:  ; HEADER: AUTO
     %push
 
-    %define %$list        ebp+0x08
-    %define %$new_cap     ebp+0x0c
-    enter 0x1c, 0
-    %define %$old_cap     ebp-0x04
-    %define %$elem_size   ebp-0x08
-    %define %$old_value   ebp-0x0c
-    %define %$new_value   ebp-0x10
-    %define %$scale_const ebp-0x14
-    %define %$range_start ebp-0x18
-    %define %$range_end   ebp-0x1c
+    %define %$capid       ebp+0x08
+    enter 0x18, 0
+    %define %$list        ebp-0x04
+    %define %$old_value   ebp-0x08
+    %define %$new_value   ebp-0x0c
+    %define %$scale_const ebp-0x10
+    %define %$range_start ebp-0x14
+    %define %$range_end   ebp-0x18
 
-    mov  ecx, [%$list]
-    mov  eax, [ecx + ListHeader.old_cap]
-    mov  [%$old_cap], eax
-    mov  eax, [ecx + ListHeader.elem_size]
-    mov  [%$elem_size], eax
-    ; Advance to first entry.
-    lea  eax, [ecx + ListHeader.list]
+    push dword [%$capid]
+    call get_cap_data  ; REWRITE: [codecave:AUTO]
+    lea  eax, [eax + ListHeader.list]
     mov  [%$list], eax
 
 .iter:
@@ -155,11 +148,63 @@ do_replacement_list:  ; HEADER: AUTO
     mov  [%$list], ecx  ; now points to blacklist/whitelist
 
     push dword [%$old_value]
-    push dword [%$new_cap]
-    push dword [%$old_cap]
-    push dword [%$elem_size]
+    push dword [%$capid]
     push dword [%$scale_const]
-    call determine_new_value  ; REWRITE: [codecave:AUTO]
+    call adjust_value_for_cap  ; REWRITE: [codecave:AUTO]
+    mov  [%$new_value], eax
+
+    push dword [%$list]
+    push dword [%$new_value]
+    push dword [%$old_value]
+    call perform_single_replacement  ; REWRITE: [codecave:AUTO]
+    ; return value is pointer to after blacklist
+    mov  [%$list], eax
+    jmp  .iter
+
+.dword_range:
+    int 3  ; can only replace ranges of offsets, not of values
+.end:
+    leave
+    ret  0x4
+    %pop
+
+; __stdcall DoOffsetReplacementList(structid)
+do_offset_replacement_list:  ; HEADER: AUTO
+    %push
+
+    %define %$structid    ebp+0x08
+    enter 0x14, 0
+    %define %$list        ebp-0x04
+    %define %$old_value   ebp-0x08
+    %define %$new_value   ebp-0x0c
+    %define %$range_start ebp-0x10
+    %define %$range_end   ebp-0x14
+
+    push dword [%$structid]
+    call get_struct_data  ; REWRITE: [codecave:AUTO]
+    add  eax, [eax + LayoutHeader.offset_to_replacements]
+    mov  [%$list], eax
+
+.iter:
+    ; No more entries?
+    mov  ecx, [%$list]
+    mov  eax, [ecx]
+    cmp  eax, LIST_END
+    je   .end
+
+    cmp  eax, DWORD_RANGE_TOKEN
+    je   .dword_range
+
+.single_value:
+    ; Read entry
+    read_advance_dword [%$old_value], ecx, eax
+    mov  [%$list], ecx  ; now points to blacklist/whitelist
+
+    ; Find the new offset
+    push dword [%$old_value]  ; old value
+    push dword [%$structid]
+    push 0  ; struct_base.  0 because we're mapping an offset.
+    call get_modified_address  ; REWRITE: [codecave:AUTO]
     mov  [%$new_value], eax
 
     push dword [%$list]
@@ -174,25 +219,126 @@ do_replacement_list:  ; HEADER: AUTO
     lea  ecx, [ecx+0x4]  ; scan past the DWORD_RANGE_TOKEN
     read_advance_dword [%$range_start], ecx, eax
     read_advance_dword [%$range_end], ecx, eax
-    read_advance_dword [%$scale_const], ecx, eax
 
     push ecx  ; blacklist/whitelist
     push dword [%$range_end]
     push dword [%$range_start]
-    push dword [%$new_cap]
-    push dword [%$old_cap]
-    push dword [%$elem_size]
-    push dword [%$scale_const]
+    push dword [%$structid]
     call perform_dword_range_replacement  ; REWRITE: [codecave:AUTO]
     mov  [%$list], eax
     jmp  .iter
 .end:
     leave
-    ret  0x8
+    ret  0x4
     %pop
 
-; __stdcall int DetermineNewValue(scale_constant, item_size, old_cap, new_cap, old_value)
-determine_new_value:  ; HEADER: AUTO
+;=========================================
+; Lookup of things
+
+; __stdcall LayoutHeader* GetStructData(structid)
+get_struct_data:  ; HEADER: AUTO
+    prologue_sd
+    cmp  dword [ebp+0x8], STRUCT_BULLET_MGR
+    je   .bulletmgr
+    cmp  dword [ebp+0x8], STRUCT_ITEM_MGR
+    je   .itemmgr
+    die  ; probably read type from wrong address
+.bulletmgr:
+    mov  eax, bullet_mgr_layout  ; REWRITE: <codecave:AUTO>
+    jmp  .done
+.itemmgr:
+    mov  eax, item_mgr_layout  ; REWRITE: <codecave:AUTO>
+    jmp  .done
+.done:
+    epilogue_sd
+    ret 0x4
+
+; __stdcall ListHeader* GetCapData(arrayid)
+get_cap_data:  ; HEADER: AUTO
+    prologue_sd
+    cmp  dword [ebp+0x8], CAPID_BULLET
+    je   .bullet
+    cmp  dword [ebp+0x8], CAPID_CANCEL
+    je   .cancel
+    cmp  dword [ebp+0x8], CAPID_LASER
+    je   .laser
+    die  ; probably read type from wrong address
+.bullet:
+    mov  eax, bullet_replacements  ; REWRITE: <codecave:AUTO>
+    jmp  .done
+.cancel:
+    mov  eax, cancel_replacements  ; REWRITE: <codecave:AUTO>
+    jmp  .done
+.laser:
+    mov  eax, laser_replacements  ; REWRITE: <codecave:AUTO>
+    jmp  .done
+.done:
+    epilogue_sd
+    ret 0x4
+
+;=========================================
+
+;     push dword [%$structid]
+;     call get_struct_data  ; REWRITE: [codecave:AUTO]
+;     mov  ecx, eax
+
+;     ; Locate the struct
+;     mov  eax, [ecx+LayoutHeader.address]
+;     test dword [ecx+LayoutHeader.is_pointer], -1
+;     jz   .notpointer
+;     mov  eax, [eax]
+; .notpointer:
+;     mov  [%$struct_base], eax
+
+;=========================================
+; Transforming values
+
+; Transforms a value according to a change in a single cap,
+; using the scale constant to determine how the cap relates to the value.
+;
+; __stdcall int AdjustValueForCap(scale_constant, capid, old_value)
+adjust_value_for_cap:  ; HEADER: AUTO
+    %push
+
+    %define %$scale_const ebp+0x08
+    %define %$capid       ebp+0x0c
+    %define %$old_value   ebp+0x10
+    enter 0x14, 0
+    %define %$scale       ebp-0x04
+    %define %$sign        ebp-0x08
+    %define %$item_size   ebp-0x0c
+    %define %$old_cap     ebp-0x10
+    %define %$new_cap     ebp-0x14
+
+    ; gather cap info
+    push dword [%$capid]
+    call get_cap_data  ; REWRITE: [codecave:AUTO]
+    mov  ecx, eax
+    mov  eax, [ecx+ListHeader.old_cap]
+    mov  [%$old_cap], eax
+    mov  eax, [ecx+ListHeader.elem_size]
+    mov  [%$item_size], eax
+    mov  eax, [ecx+ListHeader.new_cap_bigendian_codecave]
+    mov  eax, [eax]  ; read codecave
+    bswap eax
+    mov  [%$new_cap], eax
+
+    push dword [%$old_value]
+    push dword [%$new_cap]
+    push dword [%$old_cap]
+    push dword [%$item_size]
+    push dword [%$scale_const]
+    call adjust_value_for_cap_impl  ; REWRITE: [codecave:AUTO]
+
+    leave
+    ret  0xc
+    %pop
+
+; Implementation of scale constants.  Has a slightly more general signature so
+; that it can be used for more things.
+;
+; __stdcall int AdjustValueForCapImpl(scale_constant, item_size, old_cap, new_cap, old_value)
+adjust_value_for_cap_impl:  ; HEADER: AUTO
     %push
 
     %define %$scale_const ebp+0x08
@@ -259,6 +405,193 @@ determine_new_value:  ; HEADER: AUTO
     call [eax]
     int  3
     %pop
+
+; Decodes a scale constant into an integer describing the size of each
+; item in an array.
+;
+; __stdcall int DetermineArrayElemSize(scale_constant, capid)
+determine_array_elem_size:  ; HEADER: AUTO
+    %push
+    %define %$scale_const  ebp+0x08
+    %define %$capid        ebp+0x0c
+    prologue_sd
+
+    push dword [%$capid]
+    call get_cap_data  ; REWRITE: [codecave:AUTO]
+
+    ; Delegate by pretending that we are have an array of zero elements and are
+    ; resizing it to have one element.
+    ;
+    ; (one might rightly ask: Why is this function defined in terms of that one instead of the
+    ;  other way around?  After all, "what is the value of this scale constant" certainly seems
+    ;  like a simpler question to ask than "how does this scale constant transform values?"
+    ;
+    ;  The reason is because SCALE_1_DIV(n) simply cannot be represented as an integer;
+    ;  it is a fraction of an integer.  There is no other reason.  So, blame TH13 and
+    ;  its stupid unrolled loops.)
+    push 0  ; old value
+    push 1  ; new cap
+    push 0  ; old cap
+    push dword [eax+ListHeader.elem_size]
+    push dword [%$scale_const]
+    call adjust_value_for_cap_impl  ; REWRITE: [codecave:AUTO]
+
+    %pop
+    epilogue_sd
+    ret  0x8
+
+; Implementation of struct layouts.  Takes a pointer to where a member would
+; normally be located on some global struct, and returns the pointer where
+; that member has been relocated.
+;
+; The field must be located within the range from struct_base to struct_base + orig_size,
+; where orig_size is the size of the struct in the vanilla game.  This range is
+; doubly inclusive, so that you are allowed to look up a "past the end" pointer.
+;
+; If the field is located inside an element of a resized array, it must be inside
+; either the first or last element.
+;
+; It is safe to set struct_base to 0 and supply an offset as the value of old_ptr;
+; This allows the implementation to be used to compute offsets even when the struct
+; may not yet exist.  In this case, the offset must not point into an array that gets
+; pointerized.
+;
+; If any of the above requirements are violated, a breakpoint exception is generated.
+;
+; __stdcall void* GetModifiedAddress(void* struct_base, structid, void* old_ptr)
+get_modified_address:  ; HEADER: AUTO
+    %push
+    %define %$struct_base ebp+0x08
+    %define %$structid    ebp+0x0c
+    %define %$old_ptr     ebp+0x10
+    prologue_sd 0x18
+    %define %$data_entry     ebp-0x04
+    %define %$new_ptr        ebp-0x08
+    %define %$old_array_loc  ebp-0x0c
+    %define %$new_array_loc  ebp-0x10
+    %define %$old_offset_into_array  ebp-0x14
+    %define %$elem_size      ebp-0x18
+    %define %$reg_region_data edi
+
+    push dword [%$structid]
+    call get_struct_data  ; REWRITE: [codecave:AUTO]
+    lea  %$reg_region_data, [eax+LayoutHeader.regions]
+
+    ; Start looping over memory regions
+    mov  eax, [%$old_ptr]
+    mov  [%$new_ptr], eax
+.iter:
+    ; (the start of the next region is the end of this region)
+    mov  eax, [%$reg_region_data + RegionData_size+RegionData.start]
+    cmp  eax, _REGION_TOKEN_END
+    je   .beyondlastregion  ; we're past the end then...
+    cmp  eax, [%$old_ptr]
+    jle  .beyondregion
+    jmp  .withinregion
+
+.beyondregion:
+    ; We are not in this region.
+    ; If this is an array, adjust new_ptr to account for the change in this region's size.
+    test dword [%$reg_region_data + RegionData.capid], -1
+    jz   .next  ; not an array
+
+    push dword [%$new_ptr]  ; old value
+    push dword [%$reg_region_data + RegionData.capid]
+    push dword [%$reg_region_data + RegionData.scale_outside]
+    call adjust_value_for_cap  ; REWRITE: [codecave:AUTO]
+    mov  [%$new_ptr], eax
+
+.next:
+    ; Go to the next region.
+    add  %$reg_region_data, RegionData_size
+    jmp  .iter
+
+;--------------------
+.withinregion:
+    ; We are inside this region.  It's possible that no further change is necessary...
+    ; Is it an array?
+    test dword [%$reg_region_data + RegionData.capid], -1
+    jz   .done  ; not an array, so nothing to do
+
+    mov  eax, [%$struct_base]
+    add  eax, [%$reg_region_data + RegionData.start]
+    mov  [%$old_array_loc], eax
+
+    mov  eax, [%$old_ptr]
+    sub  eax, [%$old_array_loc]
+    mov  [%$old_offset_into_array], eax
+
+    ; Array should have shifted as much as our member pointer has
+    mov  eax, [%$old_array_loc]
+    add  eax, [%$new_ptr]
+    sub  eax, [%$old_ptr]
+    mov  [%$new_array_loc], eax
+
+    push dword [%$reg_region_data + RegionData.capid]
+    push dword [%$reg_region_data + RegionData.scale_inside]
+    call determine_array_elem_size  ; REWRITE: [codecave:AUTO]
+    mov  [%$elem_size], eax
+
+    ; Was it pointerified?
+    test dword [%$reg_region_data + RegionData.flags], _REGION_FLAG_POINTERIFIED
+    jz   .withinregion.notpointerified
+
+.withinregion.pointerified:
+    test dword [%$struct_base], -1
+    jz   .cannotpointerify  ; we're working with offsets so we can't dereference
+
+    mov  eax, [%$new_array_loc]
+    mov  eax, [eax]  ; follow the pointer at this location
+    mov  [%$new_array_loc], eax
+    add  eax, [%$old_offset_into_array]
+    mov  [%$new_ptr], eax
+
+.withinregion.notpointerified:
+    ; Are we within the first item?
+    mov  eax, [%$old_ptr]
+    sub  eax, [%$reg_region_data + RegionData.start]
+    cmp  eax, [%$elem_size]
+    jl   .done  ; inside first item; nothing more to do
+
+    ; Are we within the last item?
+    mov  eax, [%$reg_region_data + RegionData_size + RegionData.start]
+    sub  eax, [%$elem_size]
+    cmp  [%$old_ptr], eax
+    jl   .middleofarray  ; not inside last item
+
+    ; Inside last item; account for array resize
+    push dword [%$new_ptr]  ; old value
+    push dword [%$reg_region_data + RegionData.capid]
+    push dword [%$reg_region_data + RegionData.scale_inside]
+    call adjust_value_for_cap  ; REWRITE: [codecave:AUTO]
+    mov  [%$new_ptr], eax
+    jmp  .done
+
+;--------------------
+.beyondlastregion:
+    ; One final possibility: We allow passing in a pointer to the very end of the struct.
+    ; Is this what happened?
+    mov  eax, [%$old_ptr]
+    sub  eax, [%$struct_base]
+    sub  eax, [%$reg_region_data + RegionData.start]
+    jz   .done
+    jmp  .outofbounds
+
+.outofbounds:
+    die  ; address is not inside the struct
+.middleofarray:
+    die  ; address is not in the first or last array item
+.cannotpointerify:
+    die  ; requested a pointerified address when struct_base is null
+
+.done:
+    mov  eax, [%$new_ptr]
+    epilogue_sd
+    ret  0x0c
+    %pop
+
+;=========================================
+; Mass replacement of values
 
 ; Replace instances in .text of a single dword value.  There may be a blacklist of addresses to not
 ; replace (in which case the entire address space is searched), or a whitelist of addresses to replace
@@ -410,7 +743,7 @@ replace_with_whitelist:  ; HEADER: AUTO
     test eax, eax
     jz   .do_it
 
-    int 3  ; Probably a typo in the whitelist
+    die  ; Probably a typo in the whitelist
 
 .do_it:
     push dword [%$length]
@@ -429,20 +762,16 @@ replace_with_whitelist:  ; HEADER: AUTO
     ret 0x10
     %pop
 
-; Replace instances in .text of a dwords in a range value.
+; Replace instances in .text of a range of offsets into a struct.
 ; Returns a pointer to after the end of the blacklist or whitelist.
 ;
-; __stdcall void* PerformDwordRangeReplacement(scale_const, elem_size, old_cap, new_cap, range_start, range_end, bwlist**)
+; __stdcall void* PerformDwordRangeReplacement(structid, range_start, range_end, bwlist**)
 perform_dword_range_replacement:  ; HEADER: AUTO
     %push
-    ; well this is terrifying
-    %define %$scale_const  ebp+0x08
-    %define %$elem_size    ebp+0x0c
-    %define %$old_cap      ebp+0x10
-    %define %$new_cap      ebp+0x14
-    %define %$range_start  ebp+0x18
-    %define %$range_end    ebp+0x1c
-    %define %$whitelist    ebp+0x20
+    %define %$structid     ebp+0x08
+    %define %$range_start  ebp+0x0c
+    %define %$range_end    ebp+0x10
+    %define %$whitelist    ebp+0x14
     prologue_sd 0x08
     %define %$old_value    ebp-0x04
     %define %$new_value    ebp-0x08
@@ -478,12 +807,10 @@ perform_dword_range_replacement:  ; HEADER: AUTO
     int 3
 
 .good_value:
-    push dword [%$old_value]
-    push dword [%$new_cap]
-    push dword [%$old_cap]
-    push dword [%$elem_size]
-    push dword [%$scale_const]
-    call determine_new_value  ; REWRITE: [codecave:AUTO]
+    push dword [%$old_value]  ; old value
+    push dword [%$structid]
+    push 0  ; struct_base.  0 because we're mapping an offset.
+    call get_modified_address  ; REWRITE: [codecave:AUTO]
     mov  [%$new_value], eax
 
     push 4
@@ -498,8 +825,11 @@ perform_dword_range_replacement:  ; HEADER: AUTO
     mov  eax, [%$whitelist]
     add  eax, 0x4  ; return pointer to after list
     epilogue_sd
-    ret  0x1c
+    ret  0x18
     %pop
+
+;=========================================
+; Utils
 
 ; Returns 0 if data at `a` == data at `b`, nonzero otherwise.
 ; (sign of nonzero outputs is unspecified because I'm too lazy to verify whether it matches memcmp)

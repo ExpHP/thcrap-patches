@@ -22,10 +22,10 @@
 
 ; side-effect-free absolute jump
 %macro  abs_jmp_hack 1.nolist
-        call %%next
-    %%next:
-        mov dword [esp], %1
-        ret
+    call %%next
+%%next:
+    mov dword [esp], %1
+    ret
 %endmacro
 
 ; absolute call, clobbering eax
@@ -35,8 +35,13 @@
 ;
 ; (if this were x86-64, we could use the red zone, but it doesn't exist in x86)
 %macro  call_eax 1.nolist
-        mov eax, %1
-        call eax
+    mov eax, %1
+    call eax
+%endmacro
+
+%macro  die 0.nolist
+    push __LINE__
+    int 3
 %endmacro
 
 %define SIGN_MASK 0x80000000

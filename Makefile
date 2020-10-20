@@ -167,7 +167,8 @@ BULLET_CAP_PATCH=$(REPO)/bullet_cap
 .PHONY: bullet-cap
 bullet-cap: \
 	$(BULLET_CAP_PATCH)/global.js \
-	$(call glob-th-js-from-asm,$(BULLET_CAP_PATCH)) \
+	$(BULLET_CAP_PATCH)/$(TH12_VER).js \
+	# $(call glob-th-js-from-asm,$(BULLET_CAP_PATCH)) \
 
 .INTERMEDIATE: $(BULLET_CAP_PATCH)/global.yaml
 $(BULLET_CAP_PATCH)/global.yaml: $(BULLET_CAP_PATCH)/global.asm $(BULLET_CAP_PATCH)/common.asm
