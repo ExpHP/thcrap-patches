@@ -276,6 +276,31 @@ get_cap_data:  ; HEADER: AUTO
     epilogue_sd
     ret 0x4
 
+; __stdcall ListHeader* GetNewCap(arrayid)
+get_new_cap:  ; HEADER: AUTO
+    prologue_sd
+    cmp  dword [ebp+0x8], CAPID_BULLET
+    je   .bullet
+    cmp  dword [ebp+0x8], CAPID_CANCEL
+    je   .cancel
+    cmp  dword [ebp+0x8], CAPID_LASER
+    je   .laser
+    die  ; probably read type from wrong address
+.bullet:
+    mov  eax, 0  ; REWRITE: <codecave:bullet-cap>
+    jmp  .done
+.cancel:
+    mov  eax, 0  ; REWRITE: <codecave:cancel-cap>
+    jmp  .done
+.laser:
+    mov  eax, 0  ; REWRITE: <codecave:laser-cap>
+    jmp  .done
+.done:
+    mov  eax, [eax]  ; read codecave
+    bswap eax  ; big endian to little endian
+    epilogue_sd
+    ret 0x4
+
 ;=========================================
 
 ;     push dword [%$structid]
@@ -318,9 +343,8 @@ adjust_value_for_cap:  ; HEADER: AUTO
     mov  [%$old_cap], eax
     mov  eax, [ecx+ListHeader.elem_size]
     mov  [%$item_size], eax
-    mov  eax, [ecx+ListHeader.new_cap_bigendian_codecave]
-    mov  eax, [eax]  ; read codecave
-    bswap eax
+    push dword [%$capid]
+    call get_new_cap  ; REWRITE: [codecave:AUTO]
     mov  [%$new_cap], eax
 
     push dword [%$old_value]
@@ -386,6 +410,8 @@ adjust_value_for_cap_impl:  ; HEADER: AUTO
     and  edx, 0x80000000
     test edx, edx
     jns  .done
+
+    mov  edx, [%$old_value]  ; for debugging
     int 3  ; sign changed.  Probably bad scale constant!
 
 .done:

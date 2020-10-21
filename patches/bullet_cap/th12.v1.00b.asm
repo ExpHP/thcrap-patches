@@ -12,7 +12,6 @@ bullet_replacements:  ; HEADER: AUTO
 istruc ListHeader
     at ListHeader.old_cap, dd 0x7d0
     at ListHeader.elem_size, dd 0x9f8
-    at ListHeader.new_cap_bigendian_codecave, dd 0  ; REWRITE: <codecave:bullet-cap>
 iend
     dd 0x7d0
     dd SCALE_1
@@ -32,7 +31,6 @@ laser_replacements:  ; HEADER: AUTO
 istruc ListHeader
     at ListHeader.old_cap, dd 0x100
     at ListHeader.elem_size, dd 0
-    at ListHeader.new_cap_bigendian_codecave, dd 0  ; REWRITE: <codecave:laser-cap>
 iend
     dd 0x100
     dd SCALE_1
@@ -52,7 +50,6 @@ cancel_replacements:  ; HEADER: AUTO
 istruc ListHeader
     at ListHeader.old_cap, dd 0x800
     at ListHeader.elem_size, dd 0x9d8
-    at ListHeader.new_cap_bigendian_codecave, dd 0  ; REWRITE: <codecave:cancel-cap>
 iend
     dd 0xa68  ; array length (includes non-cancel items)
     dd SCALE_1
@@ -77,14 +74,10 @@ iend
     dd REGION_NORMAL(0x4debdc)
     dd REGION_END(0x4debe0)
 .replacements:
-    dd 0x4de716  ; offset of dummy bullet state
-    dd REPLACE_ALL
-    dd 0x4debdc  ; offset of bullet.anm
-    dd REPLACE_ALL
-    dd 0x4deb78  ; size of bullet array
-    dd REPLACE_ALL
-    dd 0x4debe0  ; size
-    dd REPLACE_ALL
+    dd 0x4de716, REPLACE_ALL  ; offset of dummy bullet state
+    dd 0x4debdc, REPLACE_ALL  ; offset of bullet.anm
+    dd 0x4deb78, REPLACE_ALL  ; size of bullet array
+    dd 0x4debe0, REPLACE_ALL  ; size
     dd LIST_END
 
 item_mgr_layout:  ; HEADER: AUTO
@@ -97,16 +90,11 @@ iend
     dd REGION_NORMAL(0x666fd4)
     dd REGION_END(0x666fe4)
 .replacements:
-    dd 0x666fd4  ; num items alive
-    dd REPLACE_ALL
-    dd 0x666fd8  ; next cancel item index
-    dd REPLACE_ALL
-    dd 0x666fdc  ; num cancel items spawned this frame
-    dd REPLACE_ALL
-    dd 0x666fe0  ; num ufos spawned during this stage
-    dd REPLACE_ALL
-    dd 0x666fe4  ; size
-    dd REPLACE_ALL
+    dd 0x666fd4, REPLACE_ALL  ; num items alive
+    dd 0x666fd8, REPLACE_ALL  ; next cancel item index
+    dd 0x666fdc, REPLACE_ALL  ; num cancel items spawned this frame
+    dd 0x666fe0, REPLACE_ALL  ; num ufos spawned during this stage
+    dd 0x666fe4, REPLACE_ALL  ; size
     dd LIST_END
 
 perf_fix_data:  ; HEADER: AUTO

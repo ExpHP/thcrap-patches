@@ -24,27 +24,6 @@ iend
     dd SCALE_1
     dd REPLACE_ALL
 
-    dd 0x974b0e  ; offset of dummy bullet state
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-
-    ; offsets of "current" and "next" pointers used by a pair of frequently-inlined
-    ; and clearly-not-reentrant methods for iterating over bullets.
-    dd 0x9752ac
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-    dd 0x9752b0
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-
-    dd 0x9752b4  ; offset of bullet.anm
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-
-    dd 0x9752b8  ; size of bullet manager
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-
     dd 0x97521c  ; size of bullet array
     dd SCALE_SIZE
     dd REPLACE_ALL
@@ -92,21 +71,6 @@ iend
     dd BLACKLIST_BEGIN
     dd BLACKLIST_END
 
-    ; offsets of fields after array
-    dd 0x79dcd4, SCALE_SIZE, REPLACE_ALL  ; freelist head .entry
-    dd 0x79dcd8, SCALE_SIZE, REPLACE_ALL  ; freelist head .next
-    dd 0x79dcdc, SCALE_SIZE, REPLACE_ALL  ; freelist head .prev
-    dd 0x79dce0, SCALE_SIZE, REPLACE_ALL  ; freelist head .unused
-    dd 0x79dce4, SCALE_SIZE, REPLACE_ALL  ; tick list head .entry
-    dd 0x79dce8, SCALE_SIZE, REPLACE_ALL  ; tick list head .next
-    dd 0x79dcec, SCALE_SIZE, REPLACE_ALL  ; tick list head .prev
-    dd 0x79dcf0, SCALE_SIZE, REPLACE_ALL  ; tick list head .unused
-    dd 0x79dcf4, SCALE_SIZE, REPLACE_ALL  ; num items alive
-    dd 0x79dcf8, SCALE_SIZE, REPLACE_ALL  ; next cancel item index  (always zero now)
-    dd 0x79dcfc, SCALE_SIZE, REPLACE_ALL  ; num cancel items spawned this frame  (always zero now)
-    dd 0x79dd00, SCALE_SIZE, REPLACE_ALL  ; num ufos spawned during this stage  (always zero now)
-    dd 0x79dd04, SCALE_SIZE, REPLACE_ALL  ; ItemManager size
-
     dd 0x79dcc0  ; array size
     dd SCALE_SIZE
     dd REPLACE_ALL
@@ -117,6 +81,48 @@ iend
     dd 0x414033 - 4  ; building freelist in ItemManager::destroy_all
     dd WHITELIST_END
 
+    dd LIST_END
+
+bullet_mgr_layout:  ; HEADER: AUTO
+istruc LayoutHeader
+    at LayoutHeader.location, dd LOCATION_PTR(0x4b43c8)
+    at LayoutHeader.offset_to_replacements, dd bullet_mgr_layout.replacements - bullet_mgr_layout
+iend
+    dd REGION_NORMAL(0)
+    dd REGION_ARRAY(0x90, CAPID_BULLET, SCALE_SIZE)
+    dd REGION_NORMAL(0x9752ac)
+    dd REGION_END(0x9752b8)
+.replacements:
+    dd 0x974b0e, REPLACE_ALL  ; offset of dummy bullet state
+    dd 0x9752ac, REPLACE_ALL  ; offset of current ptr for iteration
+    dd 0x9752b0, REPLACE_ALL  ; offset of next ptr for iteration
+    dd 0x9752b4, REPLACE_ALL  ; offset of bullet.anm
+    dd 0x9752b8, REPLACE_ALL  ; size of bullet manager
+    dd LIST_END
+
+item_mgr_layout:  ; HEADER: AUTO
+istruc LayoutHeader
+    at LayoutHeader.location, dd LOCATION_PTR(0x4c229c)
+    at LayoutHeader.offset_to_replacements, dd item_mgr_layout.replacements - item_mgr_layout
+iend
+    dd REGION_NORMAL(0)
+    dd REGION_ARRAY(0x1b9cd4, CAPID_CANCEL, SCALE_SIZE)
+    dd REGION_NORMAL(0x79dcd4)
+    dd REGION_END(0x79dd04)
+.replacements:
+    dd 0x79dcd4, REPLACE_ALL  ; freelist head .entry
+    dd 0x79dcd8, REPLACE_ALL  ; freelist head .next
+    dd 0x79dcdc, REPLACE_ALL  ; freelist head .prev
+    dd 0x79dce0, REPLACE_ALL  ; freelist head .unused
+    dd 0x79dce4, REPLACE_ALL  ; tick list head .entry
+    dd 0x79dce8, REPLACE_ALL  ; tick list head .next
+    dd 0x79dcec, REPLACE_ALL  ; tick list head .prev
+    dd 0x79dcf0, REPLACE_ALL  ; tick list head .unused
+    dd 0x79dcf4, REPLACE_ALL  ; num items alive
+    dd 0x79dcf8, REPLACE_ALL  ; next cancel item index  (always zero now)
+    dd 0x79dcfc, REPLACE_ALL  ; num cancel items spawned this frame  (always zero now)
+    dd 0x79dd00, REPLACE_ALL  ; num ufos spawned during this stage  (always zero now)
+    dd 0x79dd04, REPLACE_ALL  ; ItemManager size
     dd LIST_END
 
 perf_fix_data:  ; HEADER: AUTO
