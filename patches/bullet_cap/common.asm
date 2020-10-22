@@ -113,8 +113,9 @@ endstruc
 ;                         This is used to deal with some stupidly-unrolled loops in some games until I have
 ;                         the time and energy to write more binhacks to un-unroll them.
 ;
-; SCALE_AN_PLUS_B(a,b) :  Maps value as `value -> value + (new_cap - old_cap) * (a * elem_size + b)`.
-;                         Necessary because LoLK added more arrays to these structs.
+;       SCALE_FIXED(b) :  Maps value as `value -> value + (new_cap - old_cap) * b`.
+;                         e.g. LoLK has an array of dwords the same length as the bullet array,
+;                         so one would use `SCALE_FIXED(4)` to handle this array.
 ;
 ;
 ; IMPORTANT:  The mappings shown above are for positive original values.  Negative original values are mapped in such a way
@@ -132,7 +133,7 @@ endstruc  ; DELETE
 %define SCALE_SIZE            SCALE_GENERAL(1, 0, 1)
 %define SCALE_SIZE_DIV(n)     SCALE_GENERAL(1, 0, n)
 %define SCALE_1_DIV(n)        SCALE_GENERAL(0, 1, n)
-%define SCALE_AN_PLUS_B(a,b)  SCALE_GENERAL(a, b, 1)
+%define SCALE_FIXED(b)        SCALE_GENERAL(0, b, 1)
 
 ; -----------------------
 

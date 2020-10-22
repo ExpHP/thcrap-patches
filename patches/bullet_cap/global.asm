@@ -115,16 +115,15 @@ next_cancel_index:  ; HEADER: AUTO
 
 ; __stdcall DoReplacementList(capid)
 do_replacement_list:  ; HEADER: AUTO
-    %push
-
-    %define %$capid       ebp+0x08
-    enter 0x18, 0
-    %define %$list        ebp-0x04
-    %define %$old_value   ebp-0x08
-    %define %$new_value   ebp-0x0c
-    %define %$scale_const ebp-0x10
-    %define %$range_start ebp-0x14
-    %define %$range_end   ebp-0x18
+    func_begin
+    func_arg  %$capid
+    func_local  %$list
+    func_local  %$old_value
+    func_local  %$new_value
+    func_local  %$scale_const
+    func_local  %$range_start
+    func_local  %$range_end
+    func_prologue  esi, edi
 
     push dword [%$capid]
     call get_cap_data  ; REWRITE: [codecave:AUTO]
@@ -162,23 +161,22 @@ do_replacement_list:  ; HEADER: AUTO
     jmp  .iter
 
 .dword_range:
-    int 3  ; can only replace ranges of offsets, not of values
+    die  ; can only replace ranges of offsets, not of values
 .end:
-    leave
-    ret  0x4
-    %pop
+    func_epilogue
+    func_ret
+    func_end
 
 ; __stdcall DoOffsetReplacementList(structid)
 do_offset_replacement_list:  ; HEADER: AUTO
-    %push
-
-    %define %$structid    ebp+0x08
-    enter 0x14, 0
-    %define %$list        ebp-0x04
-    %define %$old_value   ebp-0x08
-    %define %$new_value   ebp-0x0c
-    %define %$range_start ebp-0x10
-    %define %$range_end   ebp-0x14
+    func_begin
+    func_arg  %$structid
+    func_local  %$list
+    func_local  %$old_value
+    func_local  %$new_value
+    func_local  %$range_start
+    func_local  %$range_end
+    func_prologue  esi, edi
 
     push dword [%$structid]
     call get_struct_data  ; REWRITE: [codecave:AUTO]
@@ -228,9 +226,9 @@ do_offset_replacement_list:  ; HEADER: AUTO
     mov  [%$list], eax
     jmp  .iter
 .end:
-    leave
-    ret  0x4
-    %pop
+    func_epilogue
+    func_ret
+    func_end
 
 ;=========================================
 ; Lookup of things
@@ -323,17 +321,14 @@ get_new_cap:  ; HEADER: AUTO
 ;
 ; __stdcall int AdjustValueForCap(scale_constant, capid, old_value)
 adjust_value_for_cap:  ; HEADER: AUTO
-    %push
-
-    %define %$scale_const ebp+0x08
-    %define %$capid       ebp+0x0c
-    %define %$old_value   ebp+0x10
-    enter 0x14, 0
-    %define %$scale       ebp-0x04
-    %define %$sign        ebp-0x08
-    %define %$item_size   ebp-0x0c
-    %define %$old_cap     ebp-0x10
-    %define %$new_cap     ebp-0x14
+    func_begin
+    func_arg  %$scale_const, %$capid, %$old_value
+    func_local  %$scale
+    func_local  %$sign
+    func_local  %$item_size
+    func_local  %$old_cap
+    func_local  %$new_cap
+    func_prologue  esi, edi
 
     ; gather cap info
     push dword [%$capid]
@@ -354,25 +349,24 @@ adjust_value_for_cap:  ; HEADER: AUTO
     push dword [%$scale_const]
     call adjust_value_for_cap_impl  ; REWRITE: [codecave:AUTO]
 
-    leave
-    ret  0xc
-    %pop
+    func_epilogue
+    func_ret
+    func_end
 
 ; Implementation of scale constants.  Has a slightly more general signature so
 ; that it can be used for more things.
 ;
 ; __stdcall int AdjustValueForCapImpl(scale_constant, item_size, old_cap, new_cap, old_value)
 adjust_value_for_cap_impl:  ; HEADER: AUTO
-    %push
-
-    %define %$scale_const ebp+0x08
-    %define %$item_size   ebp+0x0c
-    %define %$old_cap     ebp+0x10
-    %define %$new_cap     ebp+0x14
-    %define %$old_value   ebp+0x18
-    enter 0x08, 0
-    %define %$scale       ebp-0x04
-    %define %$sign        ebp-0x08
+    func_begin
+    func_arg  %$scale_const
+    func_arg  %$item_size
+    func_arg  %$old_cap
+    func_arg  %$new_cap
+    func_arg  %$old_value
+    func_local  %$scale
+    func_local  %$sign
+    func_prologue  esi, edi
 
     mov  eax, [%$item_size]
     movzx ecx, byte [%$scale_const + ScaleConst.size_mult]
@@ -381,7 +375,7 @@ adjust_value_for_cap_impl:  ; HEADER: AUTO
     add  eax, ecx
     cmp  eax, 0
     jg   .goodscale
-    int 3  ; negative or zero scale, probably an error
+    die  ; negative or zero scale, probably an error
 .goodscale:
     mov  [%$scale], eax
 
@@ -405,18 +399,14 @@ adjust_value_for_cap_impl:  ; HEADER: AUTO
     jnz  .divisibility_error
     ; check new and old value have same sign
     mov  edx, eax
-    and  edx, 0x80000000
+    and  edx, SIGN_MASK
     xor  edx, dword [%$old_value]
-    and  edx, 0x80000000
+    and  edx, SIGN_MASK
     test edx, edx
     jns  .done
 
     mov  edx, [%$old_value]  ; for debugging
-    int 3  ; sign changed.  Probably bad scale constant!
-
-.done:
-    leave
-    ret  0x14
+    die  ; sign changed.  Probably bad scale constant!
 
 .divisibility_error:
     mov  ecx, data  ; REWRITE: <codecave:AUTO>
@@ -430,17 +420,20 @@ adjust_value_for_cap_impl:  ; HEADER: AUTO
     mov  eax, [eax + iat_funcs.MessageBoxA - iat_funcs]
     call [eax]
     int  3
-    %pop
+
+.done:
+    func_epilogue
+    func_ret
+    func_end
 
 ; Decodes a scale constant into an integer describing the size of each
 ; item in an array.
 ;
 ; __stdcall int DetermineArrayElemSize(scale_constant, capid)
 determine_array_elem_size:  ; HEADER: AUTO
-    %push
-    %define %$scale_const  ebp+0x08
-    %define %$capid        ebp+0x0c
-    prologue_sd
+    func_begin
+    func_arg  %$scale_const, %$capid
+    func_prologue  esi, edi
 
     push dword [%$capid]
     call get_cap_data  ; REWRITE: [codecave:AUTO]
@@ -462,9 +455,9 @@ determine_array_elem_size:  ; HEADER: AUTO
     push dword [%$scale_const]
     call adjust_value_for_cap_impl  ; REWRITE: [codecave:AUTO]
 
-    %pop
-    epilogue_sd
-    ret  0x8
+    func_epilogue
+    func_ret
+    func_end
 
 ; Implementation of struct layouts.  Takes a pointer to where a member would
 ; normally be located on some global struct, and returns the pointer where
@@ -486,17 +479,15 @@ determine_array_elem_size:  ; HEADER: AUTO
 ;
 ; __stdcall void* GetModifiedAddress(void* struct_base, structid, void* old_ptr)
 get_modified_address:  ; HEADER: AUTO
-    %push
-    %define %$struct_base ebp+0x08
-    %define %$structid    ebp+0x0c
-    %define %$old_ptr     ebp+0x10
-    prologue_sd 0x18
-    %define %$data_entry     ebp-0x04
-    %define %$new_ptr        ebp-0x08
-    %define %$old_array_loc  ebp-0x0c
-    %define %$new_array_loc  ebp-0x10
-    %define %$old_offset_into_array  ebp-0x14
-    %define %$elem_size      ebp-0x18
+    func_begin
+    func_arg  %$struct_base, %$structid, %$old_ptr
+    func_local  %$data_entry
+    func_local  %$new_ptr
+    func_local  %$old_array_loc
+    func_local  %$new_array_loc
+    func_local  %$old_offset_into_array
+    func_local  %$elem_size
+    func_prologue  esi, edi
     %define %$reg_region_data edi
 
     push dword [%$structid]
@@ -612,9 +603,9 @@ get_modified_address:  ; HEADER: AUTO
 
 .done:
     mov  eax, [%$new_ptr]
-    epilogue_sd
-    ret  0x0c
-    %pop
+    func_epilogue
+    func_ret
+    func_end
 
 ;=========================================
 ; Mass replacement of values
@@ -627,11 +618,11 @@ get_modified_address:  ; HEADER: AUTO
 ;
 ; __stdcall void* PerformSingleReplacement(old_value, new_value, bwlist**)
 perform_single_replacement:  ; HEADER: AUTO
-    %push
-    %define %$old_value   ebp+0x08
-    %define %$new_value   ebp+0x0c
-    %define %$list        ebp+0x10
-    enter 0x00, 0
+    func_begin
+    func_arg  %$old_value
+    func_arg  %$new_value
+    func_arg  %$list
+    func_prologue  esi, edi
 
     mov  eax, [%$list]
     mov  eax, [eax]  ; read list type
@@ -642,7 +633,7 @@ perform_single_replacement:  ; HEADER: AUTO
     cmp  eax, BLACKLIST_BEGIN
     je   .has_blacklist
 
-    int 3  ; list has invalid format
+    die  ; list has invalid format
 
 .has_whitelist:
 
@@ -672,9 +663,9 @@ perform_single_replacement:  ; HEADER: AUTO
 
 .end:
     ; keep eax for return value
-    leave
-    ret  0xc
-    %pop
+    func_epilogue
+    func_ret
+    func_end
 
 ; Replaces all instances of a sequence of bytes in an address range.
 ; If the beginning of a match is in the blacklist, it is not replaced.
@@ -685,15 +676,14 @@ perform_single_replacement:  ; HEADER: AUTO
 ;
 ; SearchNReplace(start*, end*, pattern*, replacement*, pattern_len, blacklist*)
 search_n_replace:  ; HEADER: AUTO
-    %push
-    prologue_sd
-
-    %define %$current   ebp+0x08
-    %define %$end       ebp+0x0c
-    %define %$pattern   ebp+0x10
-    %define %$repl      ebp+0x14
-    %define %$length    ebp+0x18
-    %define %$blacklist ebp+0x1c
+    func_begin
+    func_arg  %$current
+    func_arg  %$end
+    func_arg  %$pattern
+    func_arg  %$repl
+    func_arg  %$length
+    func_arg  %$blacklist
+    func_prologue  esi, edi
 
 .searchiter:
     mov  eax, [%$current]
@@ -735,26 +725,23 @@ search_n_replace:  ; HEADER: AUTO
     mov  eax, [eax]
     cmp  eax, BLACKLIST_END
     je   .goodblacklist  ; at end of list?
-    int 3
+    die
 .goodblacklist:
     ; caller will want to know where blacklist ends because there's more data after it
     mov  eax, [%$blacklist]
     add  eax, 0x4
-    epilogue_sd
-    ret 0x18
-    %pop
+    func_epilogue
+    func_ret
+    func_end
 
 ; Replaces specified instances of a sequence of bytes.
 ;
 ; ReplaceWithWhitelist(pattern*, replacement*, pattern_len, whitelist*)
 replace_with_whitelist:  ; HEADER: AUTO
-    %push
-    prologue_sd
-    %define %$pattern   ebp+0x08
-    %define %$repl      ebp+0x0c
-    %define %$length    ebp+0x10
-    %define %$whitelist ebp+0x14
-    %define %$target    esi
+    func_begin
+    func_arg  %$pattern, %$repl, %$length, %$whitelist
+    func_prologue esi, edi
+    %define %$target esi
 .loop:
     mov  ecx, [%$whitelist]
     mov  %$target, [ecx]
@@ -784,24 +771,20 @@ replace_with_whitelist:  ; HEADER: AUTO
     mov  eax, [%$whitelist]
     add  eax, 0x4  ; return pointer to after list
 
-    epilogue_sd
-    ret 0x10
-    %pop
+    func_epilogue
+    func_ret
+    func_end
 
 ; Replace instances in .text of a range of offsets into a struct.
 ; Returns a pointer to after the end of the blacklist or whitelist.
 ;
 ; __stdcall void* PerformDwordRangeReplacement(structid, range_start, range_end, bwlist**)
 perform_dword_range_replacement:  ; HEADER: AUTO
-    %push
-    %define %$structid     ebp+0x08
-    %define %$range_start  ebp+0x0c
-    %define %$range_end    ebp+0x10
-    %define %$whitelist    ebp+0x14
-    prologue_sd 0x08
-    %define %$old_value    ebp-0x04
-    %define %$new_value    ebp-0x08
-    %define %$target    esi
+    func_begin
+    func_arg %$structid, %$range_start, %$range_end, %$whitelist
+    func_local %$old_value, %$new_value
+    func_prologue esi, edi
+    %define %$target esi
 
     mov  eax, [%$whitelist]
     mov  eax, [eax]  ; read list type
@@ -811,7 +794,7 @@ perform_dword_range_replacement:  ; HEADER: AUTO
     cmp  eax, WHITELIST_BEGIN
     je   .has_whitelist
 
-    int 3  ; blacklist not supported for dword range
+    die  ; blacklist not supported for dword range
 
 .has_whitelist:
 .iter:
@@ -829,8 +812,7 @@ perform_dword_range_replacement:  ; HEADER: AUTO
     jmp  .good_value
 
 .unexpected_value:
-    push "badv"
-    int 3
+    die
 
 .good_value:
     push dword [%$old_value]  ; old value
@@ -850,9 +832,9 @@ perform_dword_range_replacement:  ; HEADER: AUTO
 .end:
     mov  eax, [%$whitelist]
     add  eax, 0x4  ; return pointer to after list
-    epilogue_sd
-    ret  0x18
-    %pop
+    func_epilogue
+    func_ret
+    func_end
 
 ;=========================================
 ; Utils
@@ -861,10 +843,13 @@ perform_dword_range_replacement:  ; HEADER: AUTO
 ; (sign of nonzero outputs is unspecified because I'm too lazy to verify whether it matches memcmp)
 ; __stdcall MemCompare(a*, b*, len)
 mem_compare:  ; HEADER: AUTO
-    prologue_sd
-    mov  edi, [ebp+0x08]
-    mov  esi, [ebp+0x0c]
-    mov  ecx, [ebp+0x10]
+    func_begin
+    func_arg %$str_a, %$str_b, %$length
+    func_prologue esi, edi
+
+    mov  edi, [%$str_a]
+    mov  esi, [%$str_b]
+    mov  ecx, [%$length]
     xor  eax, eax
     dec  esi
     dec  edi
@@ -877,21 +862,16 @@ mem_compare:  ; HEADER: AUTO
     sub  al, [edi]
     jz   .iter
 .ret:
-    epilogue_sd
-    ret  0xc
+    func_epilogue
+    func_ret
+    func_end
 
 ; __stdcall MemcpyOrBust(dest*, src*, len)
 memcpy_or_bust:  ; HEADER: AUTO
-    %push
-
-    %define %$dest           ebp+0x08
-    %define %$source         ebp+0x0c
-    %define %$length         ebp+0x10
-    enter 0x8, 0
-    %define %$VirtualProtect ebp-0x04
-    %define %$old_protect    ebp-0x08
-    push esi
-    push edi
+    func_begin
+    func_arg %$dest, %$source, %$length
+    func_local %$VirtualProtect, %$old_protect
+    func_prologue esi, edi
 
     call get_VirtualProtect  ; REWRITE: [codecave:AUTO]
     mov  [%$VirtualProtect], eax
@@ -918,11 +898,9 @@ memcpy_or_bust:  ; HEADER: AUTO
     push dword [%$dest]
     call [%$VirtualProtect]
 
-    pop edi
-    pop esi
-    leave
-    ret  0xc
-    %pop
+    func_epilogue
+    func_ret
+    func_end
 
 ; Replacement for the world list search in AnmManager::get_vm_by_id in TH10 and TH11 that
 ; makes the quadratic lag spikes become linear beyond a point.  Basically the problem is that
@@ -934,13 +912,13 @@ memcpy_or_bust:  ; HEADER: AUTO
 ;
 ; __stdcall AnmVm* PerfFixFindVmAtTail(int id)
 less_spikey_find_world_vm:  ; HEADER: AUTO
-    %push
-    %define %$desired_id ebp+0x08
-    enter 0x10, 0
-    %define %$manager    ebp-0x04
-    %define %$list_node  ebp-0x08
-    %define %$vm         ebp-0x0c
-    %define %$tail_delay ebp-0x10
+    func_begin
+    func_arg %$desired_id
+    func_local %$manager
+    func_local %$list_node
+    func_local %$vm
+    func_local %$tail_delay
+    func_prologue
 
     ; deprecated name;  use if not negative
     mov  eax, dword [config_lag_spike_cutoff_bigendian]  ; REWRITE: <codecave:bullet-cap-config.mof-sa-lag-spike-size>
@@ -1009,11 +987,13 @@ less_spikey_find_world_vm:  ; HEADER: AUTO
 .succeed:
     mov  eax, [%$vm]
 .end:
-    leave
-    ret  0x4
+    func_epilogue
+    func_ret
+    func_end
 
 get_VirtualProtect:  ; HEADER: AUTO
-    prologue_sd
+    func_begin
+    func_prologue
 
     ; TH10 only has GetModuleHandleA.  Some recent games only have GetModuleHandleW.  Use whatever we've got.
     mov  eax, iat_funcs  ; REWRITE: <codecave:AUTO>
@@ -1053,12 +1033,15 @@ get_VirtualProtect:  ; HEADER: AUTO
     call [eax]
     test eax, eax
     jz   .error
-
-    epilogue_sd
-    ret
+    jmp  .done
 
 .error:
     mov  eax, iat_funcs  ; REWRITE: <codecave:AUTO>
     mov  eax, [eax + iat_funcs.GetLastError - iat_funcs]
     call [eax]
-    int 3
+    die
+
+.done:
+    func_epilogue
+    func_ret
+    func_end
