@@ -35,7 +35,7 @@ new_cancel_cap_bigendian:  ; DELETE
 ; ==========================================
 
 ; 0x42f43c  (6800f54200)  (in BulletManager::constructor (life before main))
-pointerify_bullets_constructor:  ; HEADER: AUTO
+pointerize_bullets_constructor:  ; HEADER: AUTO
     ; Allocate space for the bullets.
     ;
     ; This is not what the original code did (which called default value initializers on a
@@ -63,7 +63,7 @@ pointerify_bullets_constructor:  ; HEADER: AUTO
     abs_jmp_hack 0x42f478
 
 ; 0x42f36a  (b95ee91a00)  (in BulletManager::reset)
-pointerify_bullets_keep_the_pointers:  ; HEADER: AUTO
+pointerize_bullets_keep_the_pointers:  ; HEADER: AUTO
     push esi  ; save
     ; Keep the pointer when the struct is memset to 0.
     push dword [BULLET_ARRAY_PTR]
@@ -105,7 +105,7 @@ pointerify_bullets_keep_the_pointers:  ; HEADER: AUTO
 ; 0x423e2c  (c745f410f7f600)  (in a funcSet/funcCall func)
 ; 0x4241ec  (c745f410f7f600)  (in a funcSet/funcCall func)
 ; 0x42529c  (c745f410f7f600)  (in a funcSet/funcCall func)
-pointerify_bullets_static_0c:  ; HEADER: AUTO
+pointerize_bullets_static_0c:  ; HEADER: AUTO
     mov  eax, [BULLET_ARRAY_PTR]
     mov  dword [ebp-0x0c], eax
     ret
@@ -116,63 +116,63 @@ pointerify_bullets_static_0c:  ; HEADER: AUTO
 ; 0x4250dc  (c745f810f7f600)  (in a funcSet/funcCall func)
 ; 0x4251e6  (c745f810f7f600)  (in a funcSet/funcCall func)
 ; 0042f3a0  (c745f810f7f600) (in BulletManager::reset_bullet_array)
-pointerify_bullets_static_08:  ; HEADER: AUTO
+pointerize_bullets_static_08:  ; HEADER: AUTO
     mov  eax, [BULLET_ARRAY_PTR]
     mov  dword [ebp-0x08], eax
     ret
 
 ; 0x43083a  (c745e410f7f600) (in some cancel func)
-pointerify_bullets_static_1c:  ; HEADER: AUTO
+pointerize_bullets_static_1c:  ; HEADER: AUTO
     mov  eax, [BULLET_ARRAY_PTR]
     mov  dword [ebp-0x1c], eax
     ret
 
 ; 0x430abe  (c745e810f7f600) (in another cancel func)
-pointerify_bullets_static_18:  ; HEADER: AUTO
+pointerize_bullets_static_18:  ; HEADER: AUTO
     mov  eax, [BULLET_ARRAY_PTR]
     mov  dword [ebp-0x18], eax
     ret
 
 ; 0x430d3a  (c745ec10f7f600) (in yet another cancel func)
-pointerify_bullets_static_14:  ; HEADER: AUTO
+pointerize_bullets_static_14:  ; HEADER: AUTO
     mov  eax, [BULLET_ARRAY_PTR]
     mov  dword [ebp-0x14], eax
     ret
 
 ; 0x42f379  (0580a80100) (in BulletManager::reset_bullet_array)
 ; 0x431254  (0580a80100) (in BulletManager::on_tick)
-pointerify_bullets_offset_eax:  ; HEADER: AUTO
+pointerize_bullets_offset_eax:  ; HEADER: AUTO
     mov  eax, [BULLET_ARRAY_PTR]
     ret
 
 ; 0x42f657  (81c280a80100) (in BulletManager::shoot_one_bullet)
 ; 0x42fe23  (81c280a80100) (in BulletManager::shoot_one_bullet)
-pointerify_bullets_offset_edx:  ; HEADER: AUTO
+pointerize_bullets_offset_edx:  ; HEADER: AUTO
     mov  edx, [BULLET_ARRAY_PTR]
     ret
 
 ; 0x0042f46e  (81c238096600)  (in BulletManager::constructor)
 ; 0x00430943  (81c238096600)  (in a cancel func)
-pointerify_lasers_offset_edx:  ; HEADER: AUTO
+pointerize_lasers_offset_edx:  ; HEADER: AUTO
     mov  edx, [LASER_ARRAY_PTR]
     ret
 
 ; 0x00430bcc  (0538096600)  (in another cancel func)
 ; 0x00430f2d  (0538096600)  (in BulletManager::shoot_lasers)
 ; 0x00431b76  (0538096600)  (in BulletManager::on_tick)
-pointerify_lasers_offset_eax:  ; HEADER: AUTO
+pointerize_lasers_offset_eax:  ; HEADER: AUTO
     mov  eax, [LASER_ARRAY_PTR]
     ret
 
 ; 0x00432b7d  (81c138096600)  (in BulletManager::on_draw)
-pointerify_lasers_offset_ecx:  ; HEADER: AUTO
+pointerize_lasers_offset_ecx:  ; HEADER: AUTO
     mov  ecx, [LASER_ARRAY_PTR]
     ret
 
 ; ==============================================
 
 ; 0x440021 (68e4020000)
-pointerify_items_constructor:  ; HEADER: AUTO
+pointerize_items_constructor:  ; HEADER: AUTO
     ; The line before this pushed the cancel cap + 1 (and we couldn't replace
     ; it because bullet_cap promises to preserve and replace such values).
     ;
@@ -203,7 +203,7 @@ pointerify_items_constructor:  ; HEADER: AUTO
     abs_jmp_hack 0x44002f
 
 ; 0x4337ff  (8b7dfcf3ab)
-pointerify_items_keep_the_pointer:  ; HEADER: AUTO
+pointerize_items_keep_the_pointer:  ; HEADER: AUTO
     ; avoid zeroing out the pointer during this memcpy
     push dword [ITEM_ARRAY_PTR]
     mov  edi, [ebp-0x4]  ; original code
@@ -212,21 +212,21 @@ pointerify_items_keep_the_pointer:  ; HEADER: AUTO
     abs_jmp_hack 0x433804
 
 ; 0x4400b8  (8b55f403d1)
-pointerify_items_spawn:  ; HEADER: AUTO
+pointerize_items_spawn:  ; HEADER: AUTO
     mov  edx, [ebp-0xc]
     mov  edx, [edx]  ; follow pointer
     add  edx, ecx
     abs_jmp_hack 0x4400bd
 
 ; 0x4401b0  (8b45f405c0aa1700)
-pointerify_items_spawn_2_eax:
+pointerize_items_spawn_2_eax:
     mov  eax, [new_cancel_cap_bigendian]  ; REWRITE: <codecave:cancel-cap>
     bswap eax
     imul eax, ITEM_SIZE
     add  eax, [ITEM_ARRAY_PTR]
     ret
 
-pointerify_items_spawn_2_edx:
+pointerize_items_spawn_2_edx:
     mov  edx, [new_cancel_cap_bigendian]  ; REWRITE: <codecave:cancel-cap>
     bswap edx
     imul edx, ITEM_SIZE
@@ -234,7 +234,7 @@ pointerify_items_spawn_2_edx:
     ret
 
 ; 0x440196  (8b4df4894df8)
-pointerify_items_spawn_wrap:
+pointerize_items_spawn_wrap:
     mov  ecx, [ebp-0xc]
     mov  ecx, [ecx]   ; added instruction
     mov  [ebp-0x8], ecx

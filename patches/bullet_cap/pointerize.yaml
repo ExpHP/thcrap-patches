@@ -1,4 +1,4 @@
-# pointerify.yaml - Binhacks dedicated to the pointer-ification of embedded static arrays in early games.
+# pointerize.yaml - Binhacks dedicated to the pointer-ification of embedded static arrays in early games.
 
 binhacks:
   /fields-if(th08):
@@ -14,7 +14,7 @@ binhacks:
       addr: "0x42f489"
       code: "9090909090"
 
-    ExpHP.bullet-cap.pointerify-bullets-constructor:
+    ExpHP.bullet-cap.pointerize-bullets-constructor:
       addr: "0x42f43c"  # (in BulletManager::constructor (life before main))
       expected: "6800f54200"
       codecave:
@@ -44,7 +44,7 @@ binhacks:
         - "A3C8575B01        " # mov  [LASER_ARRAY_PTR], eax
         - "E800000000C70424 78f44200 C3" # jump to 0x42f478
 
-    ExpHP.bullet-cap.pointerify-keep-the-pointers:
+    ExpHP.bullet-cap.pointerize-keep-the-pointers:
       addr: "0x42f36a"
       expected: "b95ee91a00"
       codecave:
@@ -85,7 +85,7 @@ binhacks:
         - "5E                " # pop  esi
         - "E800000000C70424 76f34200 C3" # jump to 0x42f376
 
-    ExpHP.bullet-cap.pointerify-bullets-static-0c:
+    ExpHP.bullet-cap.pointerize-bullets-static-0c:
       addr:
         - "0x423a6c"  # (in a funcSet/funcCall func)
         - "0x423e2c"  # (in a funcSet/funcCall func)
@@ -97,7 +97,7 @@ binhacks:
         - "8945F4            " # mov  dword [ebp-0x0c], eax
         - "C3                " # ret
 
-    ExpHP.bullet-cap.pointerify-bullets-static-08:
+    ExpHP.bullet-cap.pointerize-bullets-static-08:
       addr:
         - "0x424a2c"  # (in a funcSet/funcCall func)
         - "0x424c4c"  # (in a funcSet/funcCall func)
@@ -111,7 +111,7 @@ binhacks:
         - "8945F8            " # mov  dword [ebp-0x08], eax
         - "C3                " # ret
 
-    ExpHP.bullet-cap.pointerify-bullets-static-1c:
+    ExpHP.bullet-cap.pointerize-bullets-static-1c:
       addr: "0x43083a"  # (in some cancel func)
       expected: "c745e410f7f600"
       call-codecave:
@@ -119,7 +119,7 @@ binhacks:
         - "8945E4            " # mov  dword [ebp-0x1c], eax
         - "C3                " # ret
 
-    ExpHP.bullet-cap.pointerify-bullets-static-18:
+    ExpHP.bullet-cap.pointerize-bullets-static-18:
       addr: "0x430abe"  # (in another cancel func)
       expected: "c745e810f7f600"
       call-codecave:
@@ -127,7 +127,7 @@ binhacks:
         - "8945E8            " # mov  dword [ebp-0x18], eax
         - "C3                " # ret
 
-    ExpHP.bullet-cap.pointerify-bullets-static-14:
+    ExpHP.bullet-cap.pointerize-bullets-static-14:
       addr: "0x430d3a"  # (in yet another cancel func)
       expected: "c745ec10f7f600"
       call-codecave:
@@ -135,7 +135,7 @@ binhacks:
         - "8945EC            " # mov  dword [ebp-0x14], eax
         - "C3                " # ret
 
-    ExpHP.bullet-cap.pointerify-bullets-offset-eax:
+    ExpHP.bullet-cap.pointerize-bullets-offset-eax:
       addr:
         - "0x42f379"  # (in BulletManager::reset_bullet_array)
         - "0x431254"  # (in BulletManager::on_tick)
@@ -144,7 +144,7 @@ binhacks:
         - "A110F7F600        " # mov  eax, [BULLET_ARRAY_PTR]
         - "C3                " # ret
 
-    ExpHP.bullet-cap.pointerify-bullets-offset-edx:
+    ExpHP.bullet-cap.pointerize-bullets-offset-edx:
       addr:
         - "0x42f657"  # (in BulletManager::shoot_one_bullet)
         - "0x42fe23"  # (in BulletManager::shoot_one_bullet)
@@ -153,7 +153,7 @@ binhacks:
         - "8B1510F7F600      " # mov  edx, [BULLET_ARRAY_PTR]
         - "C3                " # ret
 
-    ExpHP.bullet-cap.pointerify-lasers-offset-edx:
+    ExpHP.bullet-cap.pointerize-lasers-offset-edx:
       addr:
         - "0x42f46c"  # (in BulletManager::constructor)
         - "0x430941"  # (in a cancel func)
@@ -162,7 +162,7 @@ binhacks:
         - "8B15C8575B01      " # mov  edx, [LASER_ARRAY_PTR]
         - "C3                " # ret
 
-    ExpHP.bullet-cap.pointerify-lasers-offset-eax:
+    ExpHP.bullet-cap.pointerize-lasers-offset-eax:
       addr:
         - "0x430bcb"  # (in another cancel func)
         - "0x430f2c"  # (in BulletManager::shoot_lasers)
@@ -172,14 +172,14 @@ binhacks:
         - "A1C8575B01        " # mov  eax, [LASER_ARRAY_PTR]
         - "C3                " # ret
 
-    ExpHP.bullet-cap.pointerify-lasers-offset-ecx:
+    ExpHP.bullet-cap.pointerize-lasers-offset-ecx:
       addr: "0x432b7b"  # (in BulletManager::on_draw)
       expected: "81c138096600"
       call-codecave:
         - "8B0DC8575B01      " # mov  ecx, [LASER_ARRAY_PTR]
         - "C3                " # ret
 
-    ExpHP.bullet-cap.pointerify-items-constructor:
+    ExpHP.bullet-cap.pointerize-items-constructor:
       addr: "0x440021"
       expected: "68e4020000"
       codecave:
@@ -212,7 +212,7 @@ binhacks:
 
         - "E800000000C70424 2f004400 C3" # jump to 0x44002f
 
-    ExpHP.bullet-cap.pointerify-items-keep-the-pointer:
+    ExpHP.bullet-cap.pointerize-items-keep-the-pointer:
       addr: "0x4337ff"
       expected: "8b7dfcf3ab"
       codecave:
@@ -223,7 +223,7 @@ binhacks:
         - "8F0548366501      " # pop  dword [ITEM_ARRAY_PTR]
         - "E800000000C70424 04384300 C3" # jump to 0x433804
 
-    ExpHP.bullet-cap.pointerify-items-spawn:
+    ExpHP.bullet-cap.pointerize-items-spawn:
       addr: "0x4400b8"
       expected: "8b55f403d1"
       codecave:
@@ -232,7 +232,7 @@ binhacks:
         - "01CA              " # add  edx, ecx
         - "E800000000C70424 bd004400 C3" # jump to 0x4400bd
 
-    ExpHP.bullet-cap.pointerify-items-spawn-2-eax:
+    ExpHP.bullet-cap.pointerize-items-spawn-2-eax:
       addr:
         - "0x4400e4"
         - "0x4401b0"
@@ -246,7 +246,7 @@ binhacks:
         - "030548366501      " # add  eax, [ITEM_ARRAY_PTR]
         - "C3                " # ret
 
-    ExpHP.bullet-cap.pointerify-items-spawn-2-edx:
+    ExpHP.bullet-cap.pointerize-items-spawn-2-edx:
       addr:
         - "0x440455"
       expected:
@@ -259,7 +259,7 @@ binhacks:
         - "031548366501      " # add  edx, [ITEM_ARRAY_PTR]
         - "C3                " # ret
 
-    ExpHP.bullet-cap.pointerify-items-spawn-wrap:
+    ExpHP.bullet-cap.pointerize-items-spawn-wrap:
       addr: "0x440196"
       expected: "8b4df4894df8"
       codecave:

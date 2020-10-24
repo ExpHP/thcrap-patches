@@ -39,6 +39,8 @@ install_08:  ; HEADER: AUTO
 ; TH125: 0x41d9a3  (e8f8c70000)
 ; TH128: 0x426970  (e83be30000)
 ; TH13:  0x42c4f0  (e88bed0000)
+; TH14:  0x4365c5  (e836f50000)
+; TH143: 0x432f6a  (e8611b0100)
 ; TH15:  0x43cbef  (e8fc0b0100)
 ; TH16:  0x42d76e  (e83dee0000)
 ; TH165: 0x429719  (e892000100)
@@ -55,6 +57,8 @@ install_125:  ; HEADER: AUTO
     call_eax 0x42a1a0  ; TH125
     call_eax 0x434cb0  ; TH128
     call_eax 0x43b280  ; TH13
+    call_eax 0x445b00  ; TH14
+    call_eax 0x444ad0  ; TH143
     call_eax 0x44d7f0  ; TH15
     call_eax 0x43c5b0  ; TH16
     call_eax 0x4397b0  ; TH165
@@ -66,6 +70,8 @@ install_125:  ; HEADER: AUTO
     abs_jmp_hack 0x41d9a8  ; TH125
     abs_jmp_hack 0x426975  ; TH128
     abs_jmp_hack 0x42c4f5  ; TH13
+    abs_jmp_hack 0x4365ca  ; TH14
+    abs_jmp_hack 0x432f6f  ; TH143
     abs_jmp_hack 0x43cbf4  ; TH15
     abs_jmp_hack 0x42d773  ; TH16
     abs_jmp_hack 0x42971e  ; TH165

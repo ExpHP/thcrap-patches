@@ -66,7 +66,7 @@ istruc ListHeader
     at ListHeader.old_cap, dd 0x800
     at ListHeader.elem_size, dd 0xbc8
 iend
-    dd 0xa58  ; array size (includes non-cancel items)
+    dd 0xa58  ; array length (includes non-cancel items)
     dd SCALE_1
     dd BLACKLIST_BEGIN
     dd BLACKLIST_END

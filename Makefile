@@ -167,17 +167,7 @@ BULLET_CAP_PATCH=$(REPO)/bullet_cap
 .PHONY: bullet-cap
 bullet-cap: \
 	$(BULLET_CAP_PATCH)/global.js \
-	$(BULLET_CAP_PATCH)/$(TH10_VER).js \
-	$(BULLET_CAP_PATCH)/$(TH11_VER).js \
-	$(BULLET_CAP_PATCH)/$(TH12_VER).js \
-	$(BULLET_CAP_PATCH)/$(TH125_VER).js \
-	$(BULLET_CAP_PATCH)/$(TH128_VER).js \
-	$(BULLET_CAP_PATCH)/$(TH13_VER).js \
-	$(BULLET_CAP_PATCH)/$(TH15_VER).js \
-	$(BULLET_CAP_PATCH)/$(TH16_VER).js \
-	$(BULLET_CAP_PATCH)/$(TH165_VER).js \
-	$(BULLET_CAP_PATCH)/$(TH17_VER).js \
-	# $(call glob-th-js-from-asm,$(BULLET_CAP_PATCH)) \
+	$(call glob-th-js-from-asm,$(BULLET_CAP_PATCH)) \
 
 .INTERMEDIATE: $(BULLET_CAP_PATCH)/global.yaml
 $(BULLET_CAP_PATCH)/global.yaml: $(BULLET_CAP_PATCH)/global.asm $(BULLET_CAP_PATCH)/common.asm
@@ -193,7 +183,7 @@ $(BULLET_CAP_PATCH)/th%.yaml: $(BULLET_CAP_PATCH)/th%.asm $(BULLET_CAP_PATCH)/co
 $(BULLET_CAP_PATCH)/global.js: $(BULLET_CAP_PATCH)/global.yaml
 	scripts/convert-yaml.py $^ >$@
 
-$(BULLET_CAP_PATCH)/th%.js: $(BULLET_CAP_PATCH)/th%.yaml $(BULLET_CAP_PATCH)/binhacks.yaml  $(BULLET_CAP_PATCH)/pointerify.yaml
+$(BULLET_CAP_PATCH)/th%.js: $(BULLET_CAP_PATCH)/th%.yaml $(BULLET_CAP_PATCH)/binhacks.yaml  $(BULLET_CAP_PATCH)/pointerize.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
 
 #================================================

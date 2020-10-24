@@ -549,13 +549,13 @@ get_modified_address:  ; HEADER: AUTO
     call determine_array_elem_size  ; REWRITE: [codecave:AUTO]
     mov  [%$elem_size], eax
 
-    ; Was it pointerified?
-    test dword [%$reg_region_data + RegionData.flags], _REGION_FLAG_POINTERIFIED
-    jz   .withinregion.notpointerified
+    ; Was it pointerized?
+    test dword [%$reg_region_data + RegionData.flags], _REGION_FLAG_POINTERIZED
+    jz   .withinregion.notpointerized
 
-.withinregion.pointerified:
+.withinregion.pointerized:
     test dword [%$struct_base], -1
-    jz   .cannotpointerify  ; we're working with offsets so we can't dereference
+    jz   .cannotpointerize  ; we're working with offsets so we can't dereference
 
     mov  eax, [%$new_array_loc]
     mov  eax, [eax]  ; follow the pointer at this location
@@ -563,7 +563,7 @@ get_modified_address:  ; HEADER: AUTO
     add  eax, [%$old_offset_into_array]
     mov  [%$new_ptr], eax
 
-.withinregion.notpointerified:
+.withinregion.notpointerized:
     ; Are we within the first item?
     mov  eax, [%$old_ptr]
     sub  eax, [%$reg_region_data + RegionData.start]
@@ -598,8 +598,8 @@ get_modified_address:  ; HEADER: AUTO
     die  ; address is not inside the struct
 .middleofarray:
     die  ; address is not in the first or last array item
-.cannotpointerify:
-    die  ; requested a pointerified address when struct_base is null
+.cannotpointerize:
+    die  ; requested a pointerized address when struct_base is null
 
 .done:
     mov  eax, [%$new_ptr]

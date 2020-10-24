@@ -62,7 +62,7 @@ iend
     dd WHITELIST_END
 
     ; something wierd in BulletManager::on_tick where it needs to wrap, idfk why
-    dd 0x645000  ; offset of dummy bullet in bullet array
+    dd 0x645000  ; offset of dummy bullet from beginning of bullet array
     dd SCALE_SIZE
     dd WHITELIST_BEGIN
     dd 0x431b5a
@@ -117,9 +117,35 @@ iend
     dd 0x44001d
     dd WHITELIST_END
 
-    dd 0x17aac0  ; offset of dummy item in item array
+    dd 0x17aac0  ; offset of dummy item from beginning of item array
     dd SCALE_SIZE
     dd REPLACE_ALL
+    dd LIST_END
+
+bullet_mgr_layout:  ; HEADER: AUTO
+istruc LayoutHeader
+    at LayoutHeader.location, dd LOCATION_STATIC(0xf54e90)
+    at LayoutHeader.offset_to_replacements, dd bullet_mgr_layout.replacements - bullet_mgr_layout
+iend
+    dd REGION_NORMAL(0)
+    dd REGION_ARRAY_POINTERIZED(0x1a880, CAPID_BULLET, SCALE_SIZE)
+    dd REGION_ARRAY_POINTERIZED(0x660938, CAPID_LASER, SCALE_SIZE)
+    dd REGION_NORMAL(0x6ba538)
+    dd REGION_END(0x6ba578)
+.replacements:
+    ; We pointerized everything so no fields were moved.
+    dd LIST_END
+
+item_mgr_layout:  ; HEADER: AUTO
+istruc LayoutHeader
+    at LayoutHeader.location, dd LOCATION_STATIC(0x1653648)
+    at LayoutHeader.offset_to_replacements, dd item_mgr_layout.replacements - item_mgr_layout
+iend
+    dd REGION_ARRAY_POINTERIZED(0, CAPID_CANCEL, SCALE_SIZE)
+    dd REGION_NORMAL(0x17ada4)
+    dd REGION_END(0x1b094)
+.replacements:
+    ; We pointerized everything so no fields were moved.
     dd LIST_END
 
 perf_fix_data:  ; HEADER: AUTO

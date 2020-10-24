@@ -1,11 +1,14 @@
 ; IDs for global structs that can be affected by this mod.
 %define STRUCT_BULLET_MGR  1
 %define STRUCT_ITEM_MGR    2
+%define __STRUCT_TEST  0x20
 
 ; IDs for the modifiable caps.
 %define CAPID_BULLET 0x40
 %define CAPID_LASER  0x41
 %define CAPID_CANCEL 0x42
+%define __CAPID_TEST_1 0x80
+%define __CAPID_TEST_2 0x81
 
 ; =============================
 ;        CAP CHANGES
@@ -59,14 +62,14 @@ endstruc
 ; Indicates an array that we resize starting at a given offset.
 %define REGION_ARRAY(start, capid, scale)               start, capid, 0, scale, scale
 ; Indicates an array that we move behind a pointer and resize, starting at a given offset.
-%define REGION_ARRAY_POINTERIFIED(start, capid, scale)  start, capid, _REGION_FLAG_POINTERIFIED, scale, 0
+%define REGION_ARRAY_POINTERIZED(start, capid, scale)  start, capid, _REGION_FLAG_POINTERIZED, scale, 0
 ; Marks the struct size as the final offset.
 %define REGION_END(end)                                 REGION_NORMAL(end), _REGION_TOKEN_END
 
 ; Sentinel used after final offset.
 %define _REGION_TOKEN_END   0xabcdefed
 ; Indicates that a region of the struct has been pointerized
-%define _REGION_FLAG_POINTERIFIED  0x1
+%define _REGION_FLAG_POINTERIZED  0x1
 
 ; After that is a list of offsets to change.  Each entry consists of:
 ;

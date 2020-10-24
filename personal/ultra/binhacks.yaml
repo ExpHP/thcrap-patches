@@ -23,9 +23,10 @@ binhacks:
         - "8B88FC010000      " # mov  ecx, dword [eax+0x1fc]
         - "E800000000C70424 e60e4300 C3" # jump to 0x430ee6
 
-  /fields-if(th15..th17):
+  /fields-if(th14..th17):
     ExpHP.ultra.patch-1:
       addr:
+        # /value-if(th14): "0x41922c"  # doesn't work right?
         /value-if(th15): "0x41c646"
         /value-if(th16): "0x414e26"
         /value-if(th165): "0x412b16"
@@ -39,6 +40,7 @@ binhacks:
 
     ExpHP.ultra.patch-2:
       addr:
+        # /value-if(th14): "0x419293"  # doesn't work right?
         /value-if(th15): "0x414e93"
         /value-if(th16): "0x414e93"
         /value-if(th165): "0x412b92"

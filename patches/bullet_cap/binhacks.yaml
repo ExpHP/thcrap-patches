@@ -1,12 +1,12 @@
 codecaves:
   bullet-cap:
     /value-if(th08): "00006000"
-    /value-if(any(th10..th13, th15..th17)): "00007d00"
+    /value-if(any(th10..th17)): "00007d00"
   laser-cap:
-    /value-if(any(th08, th10..th13)): "00001000"
+    /value-if(any(th08, th10..th143)): "00001000"
     /value-if(th15..th17): "00002000"
   cancel-cap:
-    /value-if(all(integer, th15..th17)): "00010000"
+    /value-if(all(not(th165), th14..th17)): "00010000"
     /value-if(all(integer, th10..th13)): "00008000"
     /value-if(th08):  "00008300"
     /value-if(any(th125, th165)): "00000c80"
@@ -41,6 +41,8 @@ binhacks:
         /value-if(th125): "0x41d9a3"
         /value-if(th128): "0x426970"
         /value-if(th13):  "0x42c4f0"
+        /value-if(th14):  "0x4365c5"
+        /value-if(th143): "0x432f6a"
         /value-if(th15):  "0x43cbef"
         /value-if(th16):  "0x42d76e"
         /value-if(th165): "0x429719"
@@ -52,6 +54,8 @@ binhacks:
         /value-if(th125): "e8f8c70000"
         /value-if(th128): "e83be30000"
         /value-if(th13):  "e88bed0000"
+        /value-if(th14):  "e836f50000"
+        /value-if(th143): "e8611b0100"
         /value-if(th15):  "e8fc0b0100"
         /value-if(th16):  "e83dee0000"
         /value-if(th165): "e892000100"
@@ -68,6 +72,8 @@ binhacks:
         - /item-if(th125): "B8A0A14200FFD0    " # call_eax 0x42a1a0
         - /item-if(th128): "B8B04C4300FFD0    " # call_eax 0x434cb0
         - /item-if(th13):  "B880B24300FFD0    " # call_eax 0x43b280
+        - /item-if(th14):  "B8005B4400FFD0    " # call_eax 0x43b280
+        - /item-if(th143): "B8D04A4400FFD0    " # call_eax 0x444ad0
         - /item-if(th15):  "B8F0D74400FFD0    " # call_eax 0x44d7f0
         - /item-if(th16):  "B8B0C54300FFD0    " # call_eax 0x43c5b0
         - /item-if(th165): "B8B0974300FFD0    " # call_eax 0x4397b0
@@ -79,6 +85,8 @@ binhacks:
         - /item-if(th125): "E800000000C70424A8D94100C3" # abs_jmp_hack 0x41d9a8
         - /item-if(th128): "E800000000C7042475694200C3" # abs_jmp_hack 0x426975
         - /item-if(th13):  "E800000000C70424F5C44200C3" # abs_jmp_hack 0x42c4f5
+        - /item-if(th14):  "E800000000C70424CA654300C3" # abs_jmp_hack 0x4365ca
+        - /item-if(th143): "E800000000C704246F2F4300C3" # abs_jmp_hack 0x432f6f
         - /item-if(th15):  "E800000000C70424F4CB4300C3" # abs_jmp_hack 0x43cbf4
         - /item-if(th16):  "E800000000C7042473D74200C3" # abs_jmp_hack 0x42d773
         - /item-if(th165): "E800000000C704241E974200C3" # abs_jmp_hack 0x42971e
