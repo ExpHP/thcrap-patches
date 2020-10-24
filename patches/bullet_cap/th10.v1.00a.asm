@@ -24,18 +24,6 @@ iend
     dd SCALE_1
     dd REPLACE_ALL
 
-    dd 0x3e07a6  ; offset of dummy bullet state
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-
-    dd 0x3e0b50  ; offset of bullet.anm
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-
-    dd 0x3e0b54  ; size of bullet manager
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-
     dd 0xf82d5  ; num dwords in bullet manager
     dd SCALE_SIZE_DIV(4)
     dd REPLACE_ALL
@@ -64,33 +52,51 @@ istruc ListHeader
     at ListHeader.old_cap, dd 0x800
     at ListHeader.elem_size, dd 0x3f0
 iend
-    dd 0x896  ; array size (includes non-cancel items)
+    dd 0x896  ; array length (includes non-cancel items)
     dd SCALE_1
-    dd REPLACE_ALL
-
-    dd 0x21cec0  ; ItemManager size
-    dd SCALE_SIZE
     dd REPLACE_ALL
 
     dd 0x873a8   ; array size in dwords
     dd SCALE_SIZE_DIV(4)
     dd REPLACE_ALL
 
+    ; FIXME: This should technically be under item_mgr_layout.replacements but we
+    ;        don't have scale constants there to do the division...
     dd 0x873b0   ; ItemManager size in dwords
     dd SCALE_SIZE_DIV(4)
     dd REPLACE_ALL
 
-    ; offsets of fields after array
-    dd 0x21ceb4  ; num items alive
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-    dd 0x21ceb8  ; next cancel item index
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-    dd 0x21cebc  ; num cancel items spawned this frame
-    dd SCALE_SIZE
-    dd REPLACE_ALL
+    dd LIST_END
 
+bullet_mgr_layout:  ; HEADER: AUTO
+istruc LayoutHeader
+    at LayoutHeader.location, dd LOCATION_PTR(0x4776f0)
+    at LayoutHeader.offset_to_replacements, dd bullet_mgr_layout.replacements - bullet_mgr_layout
+iend
+    dd REGION_NORMAL(0)
+    dd REGION_ARRAY(0x60, CAPID_BULLET, SCALE_SIZE)
+    dd REGION_NORMAL(0x3e0b50)
+    dd REGION_END(0x3e0b54)
+.replacements:
+    dd 0x3e07a6, REPLACE_ALL  ; offset of dummy bullet state
+    dd 0x3e0b50, REPLACE_ALL  ; offset of bullet.anm
+    dd 0x3e0b54, REPLACE_ALL  ; size of bullet manager
+    dd LIST_END
+
+item_mgr_layout:  ; HEADER: AUTO
+istruc LayoutHeader
+    at LayoutHeader.location, dd LOCATION_PTR(0x477818)
+    at LayoutHeader.offset_to_replacements, dd item_mgr_layout.replacements - item_mgr_layout
+iend
+    dd REGION_NORMAL(0)
+    dd REGION_ARRAY(0x24eb4, CAPID_CANCEL, SCALE_SIZE)
+    dd REGION_NORMAL(0x21ceb4)
+    dd REGION_END(0x21cec0)
+.replacements:
+    dd 0x21ceb4, REPLACE_ALL  ; num items alive
+    dd 0x21ceb8, REPLACE_ALL  ; next cancel item index
+    dd 0x21cebc, REPLACE_ALL  ; num cancel items spawned this frame
+    dd 0x21cec0, REPLACE_ALL  ; ItemManager size
     dd LIST_END
 
 perf_fix_data:  ; HEADER: AUTO

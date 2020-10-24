@@ -40,67 +40,6 @@ iend
     dd 0x494d78  ; BulletManager::sub_494d72_destruction_related
     dd WHITELIST_END
 
-    ; offset of dummy bullet state
-    dd 0x71b4b0
-    dd SCALE_SIZE
-    dd WHITELIST_BEGIN
-    dd 0x40ea91  ; BulletManager::destroy all
-    dd 0x40ec8e  ; BulletManager::operator new
-    dd WHITELIST_END
-
-    ; LoLK snapshot bullet array
-    dd 0x71b4e8
-    dd SCALE_SIZE
-    dd WHITELIST_BEGIN
-    dd 0x40ebf5  ; BulletManager::operator new
-    dd 0x40ee7b  ; BulletManager::operator free
-    dd WHITELIST_END
-
-    ; anm id array
-    dd 0xe36934
-    dd SCALE_AN_PLUS_B(2, 0)  ; two bullet arrays
-    dd WHITELIST_BEGIN
-    dd 0x40ea97  ; BulletManager::destroy_all 
-    dd 0x40ec07  ; BulletManager::operator new
-    dd 0x41427c  ; sub_4141f0
-    dd 0x414ab2  ; BulletManager::sub_4149f0
-    dd WHITELIST_END
-
-    ; LoLK snapshot anm id array
-    dd 0xe38878
-    dd SCALE_AN_PLUS_B(2, 4)  ; two bullet arrays and an int array
-    dd WHITELIST_BEGIN
-    dd 0x40ec1a   ; BulletManager::operator new
-    dd WHITELIST_END
-
-    ; Related to cancels
-    dd 0xe3a7bc
-    dd SCALE_AN_PLUS_B(2, 8)  ; two bullet arrays, two int arrays
-    dd WHITELIST_BEGIN
-    dd 0x40eb68  ; BulletManager::destroy_all
-    dd WHITELIST_END
-
-    ; offsets of "current" and "next" pointers used during bullet iteration.
-    dd 0xe3a7c4
-    dd SCALE_AN_PLUS_B(2, 8)
-    dd REPLACE_ALL  ; 12 usages
-    dd 0xe3a7c8
-    dd SCALE_AN_PLUS_B(2, 8)
-    dd REPLACE_ALL  ; 18 usages
-
-    dd 0xe3a7cc  ; bullet.anm
-    dd SCALE_AN_PLUS_B(2, 8)
-    dd REPLACE_ALL  ; 38 usages
-
-    dd 0xe3a7d0  ; size of BulletManager
-    dd SCALE_AN_PLUS_B(2, 8)
-    dd WHITELIST_BEGIN
-    dd 0x40eba7  ; BulletManager::operator new
-    dd 0x40ec13  ; BulletManager::operator new
-    dd 0x40eeab  ; BulletManager::operator free
-    dd 0x494d61  ; BulletManager::sub_494d60_destruction_related
-    dd WHITELIST_END
-
     dd 0x71b44c  ; size of bullet array
     dd SCALE_SIZE
     dd WHITELIST_BEGIN
@@ -108,7 +47,7 @@ iend
     dd WHITELIST_END
 
     dd 0x1f40  ; size of anmid array
-    dd SCALE_AN_PLUS_B(0, 4)
+    dd SCALE_FIXED(4)
     dd WHITELIST_BEGIN
     dd 0x40ea8a  ; BulletManager::destroy_all
     dd WHITELIST_END
@@ -177,25 +116,86 @@ iend
     dd 0x415b9c  ; ItemManager::destroy_all
     dd WHITELIST_END
 
-    dd 0x4d8c4  ; struct size
-    dd SCALE_SIZE
+    dd LIST_END
+
+bullet_mgr_layout:  ; HEADER: AUTO
+istruc LayoutHeader
+    at LayoutHeader.location, dd LOCATION_PTR(0x4b550c)
+    at LayoutHeader.offset_to_replacements, dd bullet_mgr_layout.replacements - bullet_mgr_layout
+iend
+    dd REGION_NORMAL(0)
+    dd REGION_ARRAY(0x9c, CAPID_BULLET, SCALE_SIZE)
+    dd REGION_ARRAY(0x71b4e8, CAPID_BULLET, SCALE_SIZE)
+    dd REGION_ARRAY(0xe36934, CAPID_BULLET, SCALE_FIXED(4))
+    dd REGION_ARRAY(0xe38878, CAPID_BULLET, SCALE_FIXED(4))
+    dd REGION_NORMAL(0xe3a7bc)
+    dd REGION_END(0xe3a7d0)
+.replacements:
+    dd 0x71b4b0  ; offset of dummy bullet state
     dd WHITELIST_BEGIN
-    dd 0x42bb26  ; ItemManager::operator new
-    dd 0x42bb5c  ; ItemManager::operator new
-    dd 0x42bce2  ; ItemManager::operator free
-    dd 0x494f51  ; ItemManager::sub_494f50_destruction_related
+    dd 0x40ea91  ; BulletManager::destroy all
+    dd 0x40ec8e  ; BulletManager::operator new
     dd WHITELIST_END
 
+    dd 0x71b4e8  ; LoLK snapshot bullet array
+    dd WHITELIST_BEGIN
+    dd 0x40ebf5  ; BulletManager::operator new
+    dd 0x40ee7b  ; BulletManager::operator free
+    dd WHITELIST_END
+
+    dd 0xe36934  ; anm id array
+    dd WHITELIST_BEGIN
+    dd 0x40ea97  ; BulletManager::destroy_all 
+    dd 0x40ec07  ; BulletManager::operator new
+    dd 0x41427c  ; sub_4141f0
+    dd 0x414ab2  ; BulletManager::sub_4149f0
+    dd WHITELIST_END
+
+    dd 0xe38878  ; LoLK snapshot anm id array
+    dd WHITELIST_BEGIN
+    dd 0x40ec1a   ; BulletManager::operator new
+    dd WHITELIST_END
+
+    dd 0xe3a7bc  ; Related to cancels
+    dd WHITELIST_BEGIN
+    dd 0x40eb68  ; BulletManager::destroy_all
+    dd WHITELIST_END
+
+    dd 0xe3a7c4  ; "current" pointer for iteration
+    dd REPLACE_ALL  ; 12 usages
+    dd 0xe3a7c8  ; "next" pointer for iteration
+    dd REPLACE_ALL  ; 18 usages
+
+    dd 0xe3a7cc  ; bullet.anm
+    dd REPLACE_ALL  ; 38 usages
+
+    dd 0xe3a7d0  ; size of BulletManager
+    dd WHITELIST_BEGIN
+    dd 0x40eba7  ; BulletManager::operator new
+    dd 0x40ec13  ; BulletManager::operator new
+    dd 0x40eeab  ; BulletManager::operator free
+    dd 0x494d61  ; BulletManager::sub_494d60_destruction_related
+    dd WHITELIST_END
+
+    dd LIST_END
+
+item_mgr_layout:  ; HEADER: AUTO
+istruc LayoutHeader
+    at LayoutHeader.location, dd LOCATION_PTR(0x4b5634)
+    at LayoutHeader.offset_to_replacements, dd item_mgr_layout.replacements - item_mgr_layout
+iend
+    dd REGION_NORMAL(0)
+    dd REGION_ARRAY(0x10, CAPID_CANCEL, SCALE_SIZE)
+    dd REGION_NORMAL(0x4d8b0)
+    dd REGION_END(0x4d8c4)
+.replacements:
     dd 0x4d8b0  ; next item index
-    dd SCALE_SIZE
     dd REPLACE_ALL  ; 19 instances
 
     dd 0x4d8b4  ; num items onscreen
-    dd SCALE_SIZE
     dd REPLACE_ALL  ; 19 instances
 
     dd 0x4d8b8  ; camera charge multiplier
-    dd SCALE_SIZE
     dd WHITELIST_BEGIN
     dd 0x415bc4  ; ItemManager::destroy_all
     dd 0x41f677  ; Enemy::ecl_run_over_300
@@ -205,7 +205,6 @@ iend
     dd WHITELIST_END
 
     dd 0x4d8bc  ; on_tick, in a rather unusual location
-    dd SCALE_SIZE
     dd WHITELIST_BEGIN
     dd 0x429d41  ; GameThread::on_tick_0f
     dd 0x429f3d  ; GameThread::on_tick_0f
@@ -214,12 +213,19 @@ iend
     dd WHITELIST_END
 
     dd 0x4d8c0  ; on_draw, in a rather unusual location
-    dd SCALE_SIZE
     dd WHITELIST_BEGIN
     dd 0x429d4b  ; GameThread::on_tick_0f
     dd 0x429f47  ; GameThread::on_tick_0f
     dd 0x42bbb9  ; ItemManager::operator new
     dd 0x42bc75  ; ItemManager::operator free
+    dd WHITELIST_END
+
+    dd 0x4d8c4  ; struct size
+    dd WHITELIST_BEGIN
+    dd 0x42bb26  ; ItemManager::operator new
+    dd 0x42bb5c  ; ItemManager::operator new
+    dd 0x42bce2  ; ItemManager::operator free
+    dd 0x494f51  ; ItemManager::sub_494f50_destruction_related
     dd WHITELIST_END
 
     dd LIST_END

@@ -25,18 +25,6 @@ iend
     dd SCALE_1
     dd REPLACE_ALL
 
-    dd 0x46d216  ; offset of dummy bullet state
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-
-    dd 0x46d674  ; offset of bullet.anm
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-
-    dd 0x46d678  ; size of bullet manager
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-
     dd 0x46d610  ; size of bullet array
     dd SCALE_SIZE
     dd REPLACE_ALL
@@ -70,24 +58,41 @@ iend
     dd SCALE_1
     dd REPLACE_ALL
 
-    ; offsets of fields after array
-    dd 0x265e64  ; num items alive
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-    dd 0x265e68  ; next cancel item index
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-    dd 0x265e6c  ; num cancel items spawned this frame
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-    dd 0x265e70  ; ItemManager size
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-
     dd 0x265e50  ; array size
     dd SCALE_SIZE
     dd REPLACE_ALL
 
+    dd LIST_END
+
+bullet_mgr_layout:  ; HEADER: AUTO
+istruc LayoutHeader
+    at LayoutHeader.location, dd LOCATION_PTR(0x4a8d68)
+    at LayoutHeader.offset_to_replacements, dd bullet_mgr_layout.replacements - bullet_mgr_layout
+iend
+    dd REGION_NORMAL(0)
+    dd REGION_ARRAY(0x64, CAPID_BULLET, SCALE_SIZE)
+    dd REGION_NORMAL(0x46d674)
+    dd REGION_END(0x46d678)
+.replacements:
+    dd 0x46d216, REPLACE_ALL  ; offset of dummy bullet state
+    dd 0x46d674, REPLACE_ALL  ; offset of bullet.anm
+    dd 0x46d678, REPLACE_ALL  ; size of bullet manager
+    dd LIST_END
+
+item_mgr_layout:  ; HEADER: AUTO
+istruc LayoutHeader
+    at LayoutHeader.location, dd LOCATION_PTR(0x4a8e90)
+    at LayoutHeader.offset_to_replacements, dd item_mgr_layout.replacements - item_mgr_layout
+iend
+    dd REGION_NORMAL(0)
+    dd REGION_ARRAY(0x29e64, CAPID_CANCEL, SCALE_SIZE)
+    dd REGION_NORMAL(0x265e64)
+    dd REGION_END(0x265e70)
+.replacements:
+    dd 0x265e64, REPLACE_ALL  ; num items alive
+    dd 0x265e68, REPLACE_ALL  ; next cancel item index
+    dd 0x265e6c, REPLACE_ALL  ; num cancel items spawned this frame
+    dd 0x265e70, REPLACE_ALL  ; ItemManager size
     dd LIST_END
 
 perf_fix_data:  ; HEADER: AUTO

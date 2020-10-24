@@ -25,22 +25,6 @@ iend
     dd SCALE_1
     dd REPLACE_ALL
 
-    dd 0x4fbbb6  ; offset of dummy bullet state
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-
-    dd 0x4fc0d8  ; offset of bullet.anm
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-
-    dd 0x4fc0dc  ; size of bullet manager
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-
-    dd 0x4fc074  ; size of bullet array
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-
     dd LIST_END
 
 laser_replacements:  ; HEADER: AUTO
@@ -83,30 +67,44 @@ iend
     dd 0x495b0a - 4
     dd WHITELIST_END
 
-    ; offsets of fields after array
-    dd 0x3deb4  ; next cancel item index
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-    dd 0x3deb8  ; num items alive
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-    dd 0x3debc  ; cancel camera charge multiplier
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-    dd 0x3dec0  ; on_tick  (why is it here in this game?
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-    dd 0x3dec4  ; on_draw  (why is it here in this game?)
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-    dd 0x3dec8  ; struct size
-    dd SCALE_SIZE
-    dd REPLACE_ALL
-
     dd 0x3dea0  ; array size
     dd SCALE_SIZE
     dd REPLACE_ALL
 
+    dd LIST_END
+
+bullet_mgr_layout:  ; HEADER: AUTO
+istruc LayoutHeader
+    at LayoutHeader.location, dd LOCATION_PTR(0x4b677c)
+    at LayoutHeader.offset_to_replacements, dd bullet_mgr_layout.replacements - bullet_mgr_layout
+iend
+    dd REGION_NORMAL(0)
+    dd REGION_ARRAY(0x64, CAPID_BULLET, SCALE_SIZE)
+    dd REGION_NORMAL(0x4fc0d8)
+    dd REGION_END(0x4fc0dc)
+.replacements:
+    dd 0x4fbbb6, REPLACE_ALL  ; offset of dummy bullet state
+    dd 0x4fc0d8, REPLACE_ALL  ; offset of bullet.anm
+    dd 0x4fc0dc, REPLACE_ALL  ; size of bullet manager
+    dd 0x4fc074, REPLACE_ALL  ; size of bullet array
+    dd LIST_END
+
+item_mgr_layout:  ; HEADER: AUTO
+istruc LayoutHeader
+    at LayoutHeader.location, dd LOCATION_PTR(0x4b68a0)
+    at LayoutHeader.offset_to_replacements, dd item_mgr_layout.replacements - item_mgr_layout
+iend
+    dd REGION_NORMAL(0)
+    dd REGION_ARRAY(0x14, CAPID_CANCEL, SCALE_SIZE)
+    dd REGION_NORMAL(0x3deb4)
+    dd REGION_END(0x3dec8)
+.replacements:
+    dd 0x3deb4, REPLACE_ALL  ; next cancel item index
+    dd 0x3deb8, REPLACE_ALL  ; num items alive
+    dd 0x3debc, REPLACE_ALL  ; cancel camera charge multiplier
+    dd 0x3dec0, REPLACE_ALL  ; on_tick  (why is it here in this game?
+    dd 0x3dec4, REPLACE_ALL  ; on_draw  (why is it here in this game?)
+    dd 0x3dec8, REPLACE_ALL  ; struct size
     dd LIST_END
 
 perf_fix_data:  ; HEADER: AUTO

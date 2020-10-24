@@ -2,7 +2,7 @@
 
 Fixes the infamous crashes in Hidden Star in Four Seasons that can happen when a large number of bullets are canceled along with some other effect.
 
-The fix is to simply 
+In summary, the fix is to leak everything. 
 
 ---
 

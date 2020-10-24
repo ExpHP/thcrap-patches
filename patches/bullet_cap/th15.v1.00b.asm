@@ -147,15 +147,13 @@ iend
     dd REGION_NORMAL(0x141f0c8)
     dd REGION_END(0x141f0dc)
 .replacements:
-    ; offset of dummy bullet state
-    dd 0xa0d162
+    dd 0xa0d162  ; offset of dummy bullet state
     dd WHITELIST_BEGIN
     dd 0x418e48  ; BulletManager::initialize
     dd 0x418f81  ; BulletManager::destroy_all
     dd WHITELIST_END
 
-    ; LoLK snapshot bullet array
-    dd 0xa0d96c
+    dd 0xa0d96c  ; LoLK snapshot bullet array
     dd WHITELIST_BEGIN
     dd 0x4128ba  ; BulletManager::write_autosave_data
     dd 0x412aa2  ; BulletManager::read_autosave_data
@@ -165,8 +163,7 @@ iend
     dd 0x43b88b  ; BulletManager::restore_snapshot
     dd WHITELIST_END
 
-    ; anm id array
-    dd 0x141b240
+    dd 0x141b240  ; anm id array
     dd WHITELIST_BEGIN
     dd 0x418cd5  ; BulletManager::constructor
     dd 0x418f87  ; BulletManager::destroy_all
@@ -175,8 +172,7 @@ iend
     dd 0x43b99a  ; BulletManager::restore_snapshot
     dd WHITELIST_END
 
-    ; snapshot anm id array
-    dd 0x141d184
+    dd 0x141d184  ; snapshot anm id array
     dd WHITELIST_BEGIN
     dd 0x4129c5  ; BulletManager::write_autosave_data
     dd 0x412c9b  ; BulletManager::read_autosave_data
