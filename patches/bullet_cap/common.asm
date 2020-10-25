@@ -159,16 +159,18 @@ endstruc  ; DELETE
 ; ================================
 
 struc PointerizeData
+    .bullet_mgr_base: resd 1
     .bullet_array_ptr: resd 1
     .laser_array_ptr: resd 1
+    .item_mgr_base: resd 1
     .item_array_ptr: resd 1
     .bullet_size: resd 1
     .laser_size: resd 1
     .item_size: resd 1
-    .bullet_mgr_base: resd 1
-    .bullet_mgr_size: resd 1
     .bullet_state_dummy_value: resd 1
     .bullet_state_offset: resd 1
+    .bullet_mgr_size: resd 1
+    .item_mgr_size: resd 1
     .func_malloc: resd 1
 endstruc
 

@@ -17,22 +17,22 @@
         "cancel-cap": "00008300",
         "bullet-cap-config.anm-search-lag-spike-size": "00002000",
         "bullet-cap-config.mof-sa-lag-spike-size": "ffffffff",
-        "ExpHP.bullet-cap.pointerize-data": "10F7F600 // C8575B01 // 48366501 // B8100000 // 9C050000 // E4020000 // 904EF500 // 78A56B00 // 06000000 // B80D0000 // D4434A00",
+        "ExpHP.bullet-cap.pointerize-data": "904EF500 // 10F7F600 // C8575B01 // 48366501 // 48366501 // B8100000 // 9C050000 // E4020000 // 06000000 // B80D0000 // 78A56B00 // 94B01700 // D4434A00",
         "of(ExpHP.bullet-cap.install)": "E8[codecave:ExpHP.bullet-cap.initialize] // B8A0114300 // FFD0 // E800000000C70424 19b44300 C3",
         "of(ExpHP.bullet-cap.pointerize-bullets-constructor)": "E8[codecave:ExpHP.bullet-cap.allocate-pointerized-bmgr-arrays] // E800000000C7042478F44200C3",
         "of(ExpHP.bullet-cap.pointerize-keep-the-pointers)": "E8[codecave:ExpHP.bullet-cap.clear-pointerized-bullet-mgr] // E800000000C7042476F34200C3",
-        "of(ExpHP.bullet-cap.pointerize-bullets-static-0c)": "B8<codecave:ExpHP.bullet-cap.pointerize-data> // 8B00 // 8B00 // 8945F4 // C3",
-        "of(ExpHP.bullet-cap.pointerize-bullets-static-08)": "B8<codecave:ExpHP.bullet-cap.pointerize-data> // 8B00 // 8B00 // 8945F8 // C3",
-        "of(ExpHP.bullet-cap.pointerize-bullets-static-1c)": "B8<codecave:ExpHP.bullet-cap.pointerize-data> // 8B00 // 8B00 // 8945E4 // C3",
-        "of(ExpHP.bullet-cap.pointerize-bullets-static-18)": "B8<codecave:ExpHP.bullet-cap.pointerize-data> // 8B00 // 8B00 // 8945E8 // C3",
-        "of(ExpHP.bullet-cap.pointerize-bullets-static-14)": "B8<codecave:ExpHP.bullet-cap.pointerize-data> // 8B00 // 8B00 // 8945EC // C3",
-        "of(ExpHP.bullet-cap.pointerize-bullets-offset-eax)": "B8<codecave:ExpHP.bullet-cap.pointerize-data> // 8B00 // 8B00 // C3",
-        "of(ExpHP.bullet-cap.pointerize-bullets-offset-edx)": "BA<codecave:ExpHP.bullet-cap.pointerize-data> // 8B12 // 8B12 // C3",
-        "of(ExpHP.bullet-cap.pointerize-lasers-offset-edx)": "BA<codecave:ExpHP.bullet-cap.pointerize-data> // 8B5204 // 8B12 // C3",
-        "of(ExpHP.bullet-cap.pointerize-lasers-offset-eax)": "B8<codecave:ExpHP.bullet-cap.pointerize-data> // 8B4004 // 8B00 // C3",
-        "of(ExpHP.bullet-cap.pointerize-lasers-offset-ecx)": "B9<codecave:ExpHP.bullet-cap.pointerize-data> // 8B4904 // 8B09 // C3",
+        "of(ExpHP.bullet-cap.pointerize-bullets-static-0c)": "E8[codecave:ExpHP.bullet-cap.get-pointerized-bullet-array-eax] // 8945F4 // C3",
+        "of(ExpHP.bullet-cap.pointerize-bullets-static-08)": "E8[codecave:ExpHP.bullet-cap.get-pointerized-bullet-array-eax] // 8945F8 // C3",
+        "of(ExpHP.bullet-cap.pointerize-bullets-static-1c)": "E8[codecave:ExpHP.bullet-cap.get-pointerized-bullet-array-eax] // 8945E4 // C3",
+        "of(ExpHP.bullet-cap.pointerize-bullets-static-18)": "E8[codecave:ExpHP.bullet-cap.get-pointerized-bullet-array-eax] // 8945E8 // C3",
+        "of(ExpHP.bullet-cap.pointerize-bullets-static-14)": "E8[codecave:ExpHP.bullet-cap.get-pointerized-bullet-array-eax] // 8945EC // C3",
+        "of(ExpHP.bullet-cap.pointerize-bullets-offset-eax)": "E8[codecave:ExpHP.bullet-cap.get-pointerized-bullet-array-eax] // C3",
+        "of(ExpHP.bullet-cap.pointerize-bullets-offset-edx)": "50 // E8[codecave:ExpHP.bullet-cap.get-pointerized-bullet-array-eax] // 89C2 // 58 // C3",
+        "of(ExpHP.bullet-cap.pointerize-lasers-offset-eax)": "E8[codecave:ExpHP.bullet-cap.get-pointerized-laser-array-eax] // C3",
+        "of(ExpHP.bullet-cap.pointerize-lasers-offset-edx)": "50 // E8[codecave:ExpHP.bullet-cap.get-pointerized-laser-array-eax] // 89C2 // 58 // C3",
+        "of(ExpHP.bullet-cap.pointerize-lasers-offset-ecx)": "50 // E8[codecave:ExpHP.bullet-cap.get-pointerized-laser-array-eax] // 89C1 // 58 // C3",
         "of(ExpHP.bullet-cap.pointerize-items-constructor)": "83C404 // E8[codecave:ExpHP.bullet-cap.allocate-pointerized-imgr-arrays] // E800000000C704242F004400C3",
-        "of(ExpHP.bullet-cap.pointerize-items-keep-the-pointer)": "BF<codecave:ExpHP.bullet-cap.pointerize-data> // 8B7F08 // FF37 // 8B7DFC // F3AB // BF<codecave:ExpHP.bullet-cap.pointerize-data> // 8B7F08 // 8F07 // E800000000C7042404384300C3",
+        "of(ExpHP.bullet-cap.pointerize-items-keep-the-pointer)": "E8[codecave:ExpHP.bullet-cap.clear-pointerized-item-mgr] // E800000000C7042404384300C3",
         "of(ExpHP.bullet-cap.pointerize-items-spawn)": "8B55F4 // 8B12 // 01CA // E800000000C70424 bd004400 C3",
         "of(ExpHP.bullet-cap.pointerize-items-spawn-wrap)": "8B4DF4 // 8B09 // 894DF8 // E800000000C70424 aa014400 C3"
     },
@@ -109,14 +109,6 @@
             "expected": "81c280a80100",
             "code": "E8 [codecave:of(ExpHP.bullet-cap.pointerize-bullets-offset-edx)] // 90"
         },
-        "ExpHP.bullet-cap.pointerize-lasers-offset-edx": {
-            "addr": [
-                "0x42f46c",
-                "0x430941"
-            ],
-            "expected": "81c238096600",
-            "code": "E8 [codecave:of(ExpHP.bullet-cap.pointerize-lasers-offset-edx)] // 90"
-        },
         "ExpHP.bullet-cap.pointerize-lasers-offset-eax": {
             "addr": [
                 "0x430bcb",
@@ -125,6 +117,14 @@
             ],
             "expected": "0538096600",
             "code": "E8 [codecave:of(ExpHP.bullet-cap.pointerize-lasers-offset-eax)]"
+        },
+        "ExpHP.bullet-cap.pointerize-lasers-offset-edx": {
+            "addr": [
+                "0x42f46c",
+                "0x430941"
+            ],
+            "expected": "81c238096600",
+            "code": "E8 [codecave:of(ExpHP.bullet-cap.pointerize-lasers-offset-edx)] // 90"
         },
         "ExpHP.bullet-cap.pointerize-lasers-offset-ecx": {
             "addr": "0x432b7b",

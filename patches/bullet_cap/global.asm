@@ -846,72 +846,6 @@ perform_dword_range_replacement:  ; HEADER: AUTO
     func_end
 
 ;=========================================
-; Utils
-
-; Returns 0 if data at `a` == data at `b`, nonzero otherwise.
-; (sign of nonzero outputs is unspecified because I'm too lazy to verify whether it matches memcmp)
-; __stdcall MemCompare(a*, b*, len)
-mem_compare:  ; HEADER: AUTO
-    func_begin
-    func_arg %$str_a, %$str_b, %$length
-    func_prologue esi, edi
-
-    mov  edi, [%$str_a]
-    mov  esi, [%$str_b]
-    mov  ecx, [%$length]
-    xor  eax, eax
-    dec  esi
-    dec  edi
-.iter:
-    inc  esi
-    inc  edi
-    dec  ecx
-    js   .ret 
-    mov  al, [esi]
-    sub  al, [edi]
-    jz   .iter
-.ret:
-    func_epilogue
-    func_ret
-    func_end
-
-; __stdcall MemcpyOrBust(dest*, src*, len)
-memcpy_or_bust:  ; HEADER: AUTO
-    func_begin
-    func_arg %$dest, %$source, %$length
-    func_local %$VirtualProtect, %$old_protect
-    func_prologue esi, edi
-
-    call get_VirtualProtect  ; REWRITE: [codecave:AUTO]
-    mov  [%$VirtualProtect], eax
-
-    ; make sure we can write
-    lea  eax, [%$old_protect]
-    push eax
-    push PAGE_EXECUTE_READWRITE
-    push dword [%$length]
-    push dword [%$dest]
-    call [%$VirtualProtect]
-
-    ; do the actual memcpy
-    mov  ecx, [%$length]
-    mov  esi, [%$source]
-    mov  edi, [%$dest]
-    rep movsb
-
-    ; cleanup
-    lea  eax, [%$old_protect]
-    push eax
-    push dword [%$old_protect]
-    push dword [%$length]
-    push dword [%$dest]
-    call [%$VirtualProtect]
-
-    func_epilogue
-    func_ret
-    func_end
-
-;=========================================
 
 ; Replacement for the world list search in AnmManager::get_vm_by_id in TH10 and TH11 that
 ; makes the quadratic lag spikes become linear beyond a point.  Basically the problem is that
@@ -1038,6 +972,28 @@ allocate_pointerized_bmgr_arrays:  ; HEADER: AUTO
     pop  ebx
     ret
 
+allocate_pointerized_imgr_arrays:  ; HEADER: AUTO
+    push ebx
+    mov  ebx, pointerize_data  ; REWRITE: <codecave:AUTO>
+
+    mov  eax, [new_cancel_cap_bigendian]  ; REWRITE: <codecave:cancel-cap>
+    bswap eax
+    ; inc eax unnecessary because we don't pointerize the dummy item
+
+    imul eax, [ebx+PointerizeData.item_size]
+    push eax
+    mov  eax, [ebx+PointerizeData.func_malloc]
+    call eax
+    add  esp, 0x4  ; caller cleans stack
+    mov  ecx, [ebx+PointerizeData.item_array_ptr]
+    mov  [ecx], eax
+
+    ; Technically the original code also called constructors on the items, but there's
+    ; no point because the game will memset the array before it ever gets used.
+
+    pop ebx
+    ret
+
 ; __stdcall void ClearPointerizedBulletMgr()
 clear_pointerized_bullet_mgr:  ; HEADER: AUTO
     func_begin
@@ -1094,26 +1050,56 @@ clear_pointerized_bullet_mgr:  ; HEADER: AUTO
     func_ret
     func_end
 
-allocate_pointerized_imgr_arrays:  ; HEADER: AUTO
-    push ebx
+clear_pointerized_item_mgr:  ; HEADER: AUTO
+    func_begin
+    func_prologue esi, edi, ebx
     mov  ebx, pointerize_data  ; REWRITE: <codecave:AUTO>
 
-    mov  eax, [new_cancel_cap_bigendian]  ; REWRITE: <codecave:cancel-cap>
-    bswap eax
-    ; inc eax unnecessary because we don't pointerize the dummy item
+    ; Save the pointer before we zero it!
+    mov  eax, [ebx+PointerizeData.item_array_ptr]
+    push dword [eax]
 
-    imul eax, [ebx+PointerizeData.item_size]
-    push eax
-    mov  eax, [ebx+PointerizeData.func_malloc]
-    call eax
-    add  esp, 0x4  ; caller cleans stack
-    mov  ecx, [ebx+PointerizeData.item_array_ptr]
-    mov  [ecx], eax
+    ; Zero the struct, like the original code
+    mov  edi, [ebx+PointerizeData.item_mgr_base]
+    mov  ecx, [ebx+PointerizeData.item_mgr_size]
+    xor  eax, eax
+    rep stosb
 
-    ; Technically the original code also called constructors on the items, but there's
-    ; no point because the game will memset the array before it ever gets used.
+    mov  eax, [ebx+PointerizeData.item_array_ptr]
+    pop  dword [eax]
 
-    pop ebx
+    ; ...and zero our array
+    push CAPID_CANCEL
+    call get_new_cap  ; REWRITE: [codecave:AUTO]
+    mov  ecx, eax
+    imul ecx, [ebx+PointerizeData.item_size]
+    mov  edi, [ebx+PointerizeData.item_array_ptr]
+    mov  edi, [edi]
+    xor  eax, eax
+    rep stosb
+
+    func_epilogue
+    func_ret
+    func_end
+
+; ----------------
+; Functions for getting the pointerized arrays, which guarantee that only eax is modified.
+; For use in extremely simple codecaves.
+;
+; (they don't save very many lines in the binhacks themselves, but they're factored out
+;  so that binhacks don't directly mention any specific offsets into PointerizeData,
+;  which would require mass updates by hand whenever the struct's layout changes)
+
+get_pointerized_bullet_array_eax:  ; HEADER: AUTO
+    mov  eax, pointerize_data  ; REWRITE: <codecave:AUTO>
+    mov  eax, [eax+PointerizeData.bullet_array_ptr]
+    mov  eax, [eax]
+    ret
+
+get_pointerized_laser_array_eax:  ; HEADER: AUTO
+    mov  eax, pointerize_data  ; REWRITE: <codecave:AUTO>
+    mov  eax, [eax+PointerizeData.laser_array_ptr]
+    mov  eax, [eax]
     ret
 
 ;=========================================
@@ -1169,6 +1155,72 @@ get_VirtualProtect:  ; HEADER: AUTO
     die
 
 .done:
+    func_epilogue
+    func_ret
+    func_end
+
+;=========================================
+; Utils
+
+; Returns 0 if data at `a` == data at `b`, nonzero otherwise.
+; (sign of nonzero outputs is unspecified because I'm too lazy to verify whether it matches memcmp)
+; __stdcall MemCompare(a*, b*, len)
+mem_compare:  ; HEADER: AUTO
+    func_begin
+    func_arg %$str_a, %$str_b, %$length
+    func_prologue esi, edi
+
+    mov  edi, [%$str_a]
+    mov  esi, [%$str_b]
+    mov  ecx, [%$length]
+    xor  eax, eax
+    dec  esi
+    dec  edi
+.iter:
+    inc  esi
+    inc  edi
+    dec  ecx
+    js   .ret 
+    mov  al, [esi]
+    sub  al, [edi]
+    jz   .iter
+.ret:
+    func_epilogue
+    func_ret
+    func_end
+
+; __stdcall MemcpyOrBust(dest*, src*, len)
+memcpy_or_bust:  ; HEADER: AUTO
+    func_begin
+    func_arg %$dest, %$source, %$length
+    func_local %$VirtualProtect, %$old_protect
+    func_prologue esi, edi
+
+    call get_VirtualProtect  ; REWRITE: [codecave:AUTO]
+    mov  [%$VirtualProtect], eax
+
+    ; make sure we can write
+    lea  eax, [%$old_protect]
+    push eax
+    push PAGE_EXECUTE_READWRITE
+    push dword [%$length]
+    push dword [%$dest]
+    call [%$VirtualProtect]
+
+    ; do the actual memcpy
+    mov  ecx, [%$length]
+    mov  esi, [%$source]
+    mov  edi, [%$dest]
+    rep movsb
+
+    ; cleanup
+    lea  eax, [%$old_protect]
+    push eax
+    push dword [%$old_protect]
+    push dword [%$length]
+    push dword [%$dest]
+    call [%$VirtualProtect]
+
     func_epilogue
     func_ret
     func_end

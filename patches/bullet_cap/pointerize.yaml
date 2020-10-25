@@ -3,16 +3,18 @@
 codecaves:
   /fields-if(th08):
     ExpHP.bullet-cap.pointerize-data:
+      - "904EF500          " # at PointerizeData.bullet_mgr_base, dd 0xf54e90
       - "10F7F600          " # at PointerizeData.bullet_array_ptr, dd 0xf54e90 + 0x1a880
       - "C8575B01          " # at PointerizeData.laser_array_ptr, dd 0xf54e90 + 0x660938
-      - "48366501          " # at PointerizeData.item_array_ptr, dd 0x1653648
+      - "48366501          " # at PointerizeData.item_mgr_base, dd 0x1653648
+      - "48366501          " # at PointerizeData.item_array_ptr, dd 0x1653648 + 0x0
       - "B8100000          " # at PointerizeData.bullet_size, dd 0x10b8
       - "9C050000          " # at PointerizeData.laser_size, dd 0x59c
       - "E4020000          " # at PointerizeData.item_size, dd 0x2e4
-      - "904EF500          " # at PointerizeData.bullet_mgr_base, dd 0xf54e90
-      - "78A56B00          " # at PointerizeData.bullet_mgr_size, dd 0x6ba578
       - "06000000          " # at PointerizeData.bullet_state_dummy_value, dd 6
       - "B80D0000          " # at PointerizeData.bullet_state_offset, dd 0xdb8
+      - "78A56B00          " # at PointerizeData.bullet_mgr_size, dd 0x6ba578
+      - "94B01700          " # at PointerizeData.item_mgr_size, dd 0x17b094
       - "D4434A00          " # at PointerizeData.func_malloc, dd 0x4a43d4
 
 binhacks:
@@ -51,9 +53,7 @@ binhacks:
         - "0x42529c"  # (in a funcSet/funcCall func)
       expected: "c745f410f7f600"
       call-codecave:
-        - "B8<codecave:ExpHP.bullet-cap.pointerize-data>" # mov  eax, pointerize_data
-        - "8B00              " # mov  eax, [eax+PointerizeData.bullet_array_ptr]
-        - "8B00              " # mov  eax, [eax]
+        - "E8[codecave:ExpHP.bullet-cap.get-pointerized-bullet-array-eax]" # call get_pointerized_bullet_array_eax
         - "8945F4            " # mov  dword [ebp-0x0c], eax
         - "C3                " # ret
 
@@ -67,9 +67,7 @@ binhacks:
         - "0x42f3a0"  # (in BulletManager::reset_bullet_array)
       expected: "c745f810f7f600"
       call-codecave:
-        - "B8<codecave:ExpHP.bullet-cap.pointerize-data>" # mov  eax, pointerize_data
-        - "8B00              " # mov  eax, [eax+PointerizeData.bullet_array_ptr]
-        - "8B00              " # mov  eax, [eax]
+        - "E8[codecave:ExpHP.bullet-cap.get-pointerized-bullet-array-eax]" # call get_pointerized_bullet_array_eax
         - "8945F8            " # mov  dword [ebp-0x08], eax
         - "C3                " # ret
 
@@ -77,9 +75,7 @@ binhacks:
       addr: "0x43083a"  # (in some cancel func)
       expected: "c745e410f7f600"
       call-codecave:
-        - "B8<codecave:ExpHP.bullet-cap.pointerize-data>" # mov  eax, pointerize_data
-        - "8B00              " # mov  eax, [eax+PointerizeData.bullet_array_ptr]
-        - "8B00              " # mov  eax, [eax]
+        - "E8[codecave:ExpHP.bullet-cap.get-pointerized-bullet-array-eax]" # call get_pointerized_bullet_array_eax
         - "8945E4            " # mov  dword [ebp-0x1c], eax
         - "C3                " # ret
 
@@ -87,9 +83,7 @@ binhacks:
       addr: "0x430abe"  # (in another cancel func)
       expected: "c745e810f7f600"
       call-codecave:
-        - "B8<codecave:ExpHP.bullet-cap.pointerize-data>" # mov  eax, pointerize_data
-        - "8B00              " # mov  eax, [eax+PointerizeData.bullet_array_ptr]
-        - "8B00              " # mov  eax, [eax]
+        - "E8[codecave:ExpHP.bullet-cap.get-pointerized-bullet-array-eax]" # call get_pointerized_bullet_array_eax
         - "8945E8            " # mov  dword [ebp-0x18], eax
         - "C3                " # ret
 
@@ -97,9 +91,7 @@ binhacks:
       addr: "0x430d3a"  # (in yet another cancel func)
       expected: "c745ec10f7f600"
       call-codecave:
-        - "B8<codecave:ExpHP.bullet-cap.pointerize-data>" # mov  eax, pointerize_data
-        - "8B00              " # mov  eax, [eax+PointerizeData.bullet_array_ptr]
-        - "8B00              " # mov  eax, [eax]
+        - "E8[codecave:ExpHP.bullet-cap.get-pointerized-bullet-array-eax]" # call get_pointerized_bullet_array_eax
         - "8945EC            " # mov  dword [ebp-0x14], eax
         - "C3                " # ret
 
@@ -109,9 +101,7 @@ binhacks:
         - "0x431254"  # (in BulletManager::on_tick)
       expected: "0580a80100"
       call-codecave:
-        - "B8<codecave:ExpHP.bullet-cap.pointerize-data>" # mov  eax, pointerize_data
-        - "8B00              " # mov  eax, [eax+PointerizeData.bullet_array_ptr]
-        - "8B00              " # mov  eax, [eax]
+        - "E8[codecave:ExpHP.bullet-cap.get-pointerized-bullet-array-eax]" # call get_pointerized_bullet_array_eax
         - "C3                " # ret
 
     ExpHP.bullet-cap.pointerize-bullets-offset-edx:
@@ -120,20 +110,10 @@ binhacks:
         - "0x42fe23"  # (in BulletManager::shoot_one_bullet)
       expected: "81c280a80100"
       call-codecave:
-        - "BA<codecave:ExpHP.bullet-cap.pointerize-data>" # mov  edx, pointerize_data
-        - "8B12              " # mov  edx, [edx+PointerizeData.bullet_array_ptr]
-        - "8B12              " # mov  edx, [edx]
-        - "C3                " # ret
-
-    ExpHP.bullet-cap.pointerize-lasers-offset-edx:
-      addr:
-        - "0x42f46c"  # (in BulletManager::constructor)
-        - "0x430941"  # (in a cancel func)
-      expected: "81c238096600"
-      call-codecave:
-        - "BA<codecave:ExpHP.bullet-cap.pointerize-data>" # mov  edx, pointerize_data
-        - "8B5204            " # mov  edx, [edx+PointerizeData.laser_array_ptr]
-        - "8B12              " # mov  edx, [edx]
+        - "50                " # push eax
+        - "E8[codecave:ExpHP.bullet-cap.get-pointerized-bullet-array-eax]" # call get_pointerized_bullet_array_eax
+        - "89C2              " # mov  edx, eax
+        - "58                " # pop  eax
         - "C3                " # ret
 
     ExpHP.bullet-cap.pointerize-lasers-offset-eax:
@@ -143,18 +123,29 @@ binhacks:
         - "0x431b75"  # (in BulletManager::on_tick)
       expected: "0538096600"
       call-codecave:
-        - "B8<codecave:ExpHP.bullet-cap.pointerize-data>" # mov  eax, pointerize_data
-        - "8B4004            " # mov  eax, [eax+PointerizeData.laser_array_ptr]
-        - "8B00              " # mov  eax, [eax]
+        - "E8[codecave:ExpHP.bullet-cap.get-pointerized-laser-array-eax]" # call get_pointerized_laser_array_eax
+        - "C3                " # ret
+
+    ExpHP.bullet-cap.pointerize-lasers-offset-edx:
+      addr:
+        - "0x42f46c"  # (in BulletManager::constructor)
+        - "0x430941"  # (in a cancel func)
+      expected: "81c238096600"
+      call-codecave:
+        - "50                " # push eax
+        - "E8[codecave:ExpHP.bullet-cap.get-pointerized-laser-array-eax]" # call get_pointerized_laser_array_eax
+        - "89C2              " # mov  edx, eax
+        - "58                " # pop  eax
         - "C3                " # ret
 
     ExpHP.bullet-cap.pointerize-lasers-offset-ecx:
       addr: "0x432b7b"  # (in BulletManager::on_draw)
       expected: "81c138096600"
       call-codecave:
-        - "B9<codecave:ExpHP.bullet-cap.pointerize-data>" # mov  ecx, pointerize_data
-        - "8B4904            " # mov  ecx, [ecx+PointerizeData.laser_array_ptr]
-        - "8B09              " # mov  ecx, [ecx]
+        - "50                " # push eax
+        - "E8[codecave:ExpHP.bullet-cap.get-pointerized-laser-array-eax]" # call get_pointerized_laser_array_eax
+        - "89C1              " # mov  ecx, eax
+        - "58                " # pop  eax
         - "C3                " # ret
 
     ExpHP.bullet-cap.pointerize-items-constructor:
@@ -174,15 +165,8 @@ binhacks:
       addr: "0x4337ff"
       expected: "8b7dfcf3ab"
       codecave:
-        # avoid zeroing out the pointer during this memcpy
-        - "BF<codecave:ExpHP.bullet-cap.pointerize-data>" # mov  edi, pointerize_data
-        - "8B7F08            " # mov  edi, [edi+PointerizeData.item_array_ptr]
-        - "FF37              " # push dword [edi]
-        - "8B7DFC            " # mov  edi, [ebp-0x4]  ; original code
-        - "F3AB              " # rep stosd            ; original code
-        - "BF<codecave:ExpHP.bullet-cap.pointerize-data>" # mov  edi, pointerize_data
-        - "8B7F08            " # mov  edi, [edi+PointerizeData.item_array_ptr]
-        - "8F07              " # pop  dword [edi]
+        - "E8[codecave:ExpHP.bullet-cap.clear-pointerized-item-mgr]" # call clear_pointerized_item_mgr
+        # after the rep stosd
         - "E800000000C7042404384300C3" # abs_jmp_hack 0x433804
 
     ExpHP.bullet-cap.pointerize-items-spawn:
