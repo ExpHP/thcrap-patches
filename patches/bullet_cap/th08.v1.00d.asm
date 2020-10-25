@@ -141,9 +141,12 @@ istruc LayoutHeader
     at LayoutHeader.location, dd LOCATION_STATIC(0x1653648)
     at LayoutHeader.offset_to_replacements, dd item_mgr_layout.replacements - item_mgr_layout
 iend
+    ; NOTE: To reduce binhacks, the last item in the array is not included in the pointerization; this is a dummy item
+    ; whose only purpose is to be returned by ItemManager::spawn_item when it fails to create an item.
+    ; (this is in contrast to bullets, where the dummy bullet is a sentinel for wraparound and must be pointerized)
     dd REGION_ARRAY_POINTERIZED(0, CAPID_CANCEL, SCALE_SIZE)
-    dd REGION_NORMAL(0x17ada4)
-    dd REGION_END(0x1b094)
+    dd REGION_NORMAL(0x17aac0)  ; offset of dummy item
+    dd REGION_END(0x17b094)
 .replacements:
     ; We pointerized everything so no fields were moved.
     dd LIST_END

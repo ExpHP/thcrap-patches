@@ -154,16 +154,32 @@ endstruc  ; DELETE
 
 %define LIST_END 0
 
-; ===============================
+; ================================
+; SPECIALIZED STUFF FOR SOME GAMES
+; ================================
 
-struc PerfFixData  ; DELETE
-    .anm_manager_ptr: resd 1  ; DELETE
-    .world_list_head_offset: resd 1  ; DELETE
-    .anm_id_offset: resd 1  ; DELETE
-endstruc  ; DELETE
+struc PointerizeData
+    .bullet_array_ptr: resd 1
+    .laser_array_ptr: resd 1
+    .item_array_ptr: resd 1
+    .bullet_size: resd 1
+    .laser_size: resd 1
+    .item_size: resd 1
+    .bullet_mgr_base: resd 1
+    .bullet_mgr_size: resd 1
+    .bullet_state_dummy_value: resd 1
+    .bullet_state_offset: resd 1
+    .func_malloc: resd 1
+endstruc
 
-struc ZunList  ; DELETE
-    .entry: resd 1  ; DELETE
-    .next: resd 1  ; DELETE
-    .prev: resd 1  ; DELETE
-endstruc  ; DELETE
+struc PerfFixData
+    .anm_manager_ptr: resd 1
+    .world_list_head_offset: resd 1
+    .anm_id_offset: resd 1
+endstruc
+
+struc ZunList
+    .entry: resd 1
+    .next: resd 1
+    .prev: resd 1
+endstruc

@@ -3,7 +3,8 @@
 %include "common.asm"
 %include "util.asm"
 
-game_data:  ; DELETE
+game_data:  ; HEADER: AUTO
+    dd 0  ; default definition, overriden per-game
 
 state:  ; HEADER: AUTO
 istruc State  ; DELETE

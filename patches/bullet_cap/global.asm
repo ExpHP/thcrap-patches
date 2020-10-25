@@ -22,6 +22,12 @@
     lea %2, [%2 + 0x4]
 %endmacro
 
+;=========================================
+; Caves defined per-game
+
+pointerize_data:  ; HEADER: AUTO
+    dd 0  ; default definition, overriden per-game
+
 iat_funcs:  ; DELETE
 .GetLastError: dd 0  ; DELETE
 .GetModuleHandleA: dd 0  ; DELETE
@@ -45,6 +51,9 @@ new_bullet_cap_bigendian:  ; DELETE
 new_laser_cap_bigendian:  ; DELETE
 new_cancel_cap_bigendian:  ; DELETE
 config_lag_spike_cutoff_bigendian:  ; DELETE
+
+;=========================================
+; Data caves
 
 data:  ; HEADER: ExpHP.bullet-cap.data
 wstrings:
@@ -902,6 +911,8 @@ memcpy_or_bust:  ; HEADER: AUTO
     func_ret
     func_end
 
+;=========================================
+
 ; Replacement for the world list search in AnmManager::get_vm_by_id in TH10 and TH11 that
 ; makes the quadratic lag spikes become linear beyond a point.  Basically the problem is that
 ; the game keeps searching for VMs that it just inserted at the very end of the list, so this
@@ -991,6 +1002,122 @@ less_spikey_find_world_vm:  ; HEADER: AUTO
     func_ret
     func_end
 
+;=========================================
+; Stuff for TH06-TH08 pointerization
+
+allocate_pointerized_bmgr_arrays:  ; HEADER: AUTO
+    push ebx
+    mov  ebx, pointerize_data  ; REWRITE: <codecave:AUTO>
+
+    ; Allocate space for the bullets.
+    ;
+    ; This is not what the original code did (which called default value initializers on a
+    ; static bullet array).  And we don't need to worry about calling those initializers
+    ; because the bullets are about to be memset to 0 anyways.
+    mov  eax, [new_bullet_cap_bigendian]  ; REWRITE: <codecave:bullet-cap>
+    bswap eax
+    inc  eax  ; plus dummy bullet
+    imul eax, [ebx+PointerizeData.bullet_size]
+    push eax
+    mov  eax, [ebx+PointerizeData.func_malloc]
+    call eax
+    add  esp, 0x4  ; caller cleans stack
+    mov  ecx, [ebx+PointerizeData.bullet_array_ptr]
+    mov  [ecx], eax
+
+    ; oh and uhhh lasers too cause they're on the same struct
+    mov  eax, [new_laser_cap_bigendian]  ; REWRITE: <codecave:laser-cap>
+    bswap eax
+    imul eax, [ebx+PointerizeData.laser_size]
+    push eax
+    mov  eax, [ebx+PointerizeData.func_malloc]
+    call eax
+    add  esp, 0x4  ; caller cleans stack
+    mov  ecx, [ebx+PointerizeData.laser_array_ptr]
+    mov  [ecx], eax
+    pop  ebx
+    ret
+
+; __stdcall void ClearPointerizedBulletMgr()
+clear_pointerized_bullet_mgr:  ; HEADER: AUTO
+    func_begin
+    func_local %$bullet_array_size
+    func_prologue esi, edi, ebx
+    mov  ebx, pointerize_data  ; REWRITE: <codecave:AUTO>
+
+    ; Keep the pointers when the struct is memset to 0.
+    mov  eax, [ebx+PointerizeData.bullet_array_ptr]
+    push dword [eax]
+    mov  eax, [ebx+PointerizeData.laser_array_ptr]
+    push dword [eax]
+
+    ; Memset the entire struct (this is the original code)
+    mov  ecx, [ebx+PointerizeData.bullet_mgr_size]
+    mov  edi, [ebx+PointerizeData.bullet_mgr_base]
+    xor  eax, eax
+    rep stosb
+
+    mov  eax, [ebx+PointerizeData.laser_array_ptr]
+    pop  dword [eax]
+    mov  eax, [ebx+PointerizeData.bullet_array_ptr]
+    pop  dword [eax]
+
+    ; we also have to memset our arrays now, too
+    mov  ecx, [new_bullet_cap_bigendian]  ; REWRITE: <codecave:bullet-cap>
+    bswap ecx
+    inc  ecx  ; plus dummy bullet
+    imul ecx, [ebx+PointerizeData.bullet_size]
+    mov  [%$bullet_array_size], ecx
+    mov  edi, [ebx+PointerizeData.bullet_array_ptr]
+    mov  edi, [edi]
+    xor  eax, eax
+    rep stosb
+
+    mov  ecx, [new_laser_cap_bigendian]  ; REWRITE: <codecave:laser-cap>
+    bswap ecx
+    imul ecx, [ebx+PointerizeData.laser_size]
+    mov  edi, [ebx+PointerizeData.laser_array_ptr]
+    mov  edi, [edi]
+    xor  eax, eax
+    rep stosb
+
+    ; set the sentinel state on the dummy bullet (our other binhacks aren't enough to make this happen).
+    mov  edi, [ebx+PointerizeData.bullet_array_ptr]
+    mov  edi, [edi]  ; pointer to array
+    add  edi, [%$bullet_array_size]  ; pointer to AFTER dummy bullet
+    sub  edi, [ebx+PointerizeData.bullet_size]  ; pointer to dummy bullet
+    add  edi, [ebx+PointerizeData.bullet_state_offset]  ; pointer to dummy's state field
+    mov  ax, word [ebx+PointerizeData.bullet_state_dummy_value]
+    mov  word [edi], ax
+
+    func_epilogue
+    func_ret
+    func_end
+
+allocate_pointerized_imgr_arrays:  ; HEADER: AUTO
+    push ebx
+    mov  ebx, pointerize_data  ; REWRITE: <codecave:AUTO>
+
+    mov  eax, [new_cancel_cap_bigendian]  ; REWRITE: <codecave:cancel-cap>
+    bswap eax
+    ; inc eax unnecessary because we don't pointerize the dummy item
+
+    imul eax, [ebx+PointerizeData.item_size]
+    push eax
+    mov  eax, [ebx+PointerizeData.func_malloc]
+    call eax
+    add  esp, 0x4  ; caller cleans stack
+    mov  ecx, [ebx+PointerizeData.item_array_ptr]
+    mov  [ecx], eax
+
+    ; Technically the original code also called constructors on the items, but there's
+    ; no point because the game will memset the array before it ever gets used.
+
+    pop ebx
+    ret
+
+;=========================================
+
 get_VirtualProtect:  ; HEADER: AUTO
     func_begin
     func_prologue
@@ -1045,3 +1172,5 @@ get_VirtualProtect:  ; HEADER: AUTO
     func_epilogue
     func_ret
     func_end
+
+;=========================================
