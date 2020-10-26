@@ -58,20 +58,20 @@ iend
     dd 0x601
     dd SCALE_1
     dd WHITELIST_BEGIN
-    dd 0x42f442
+    dd 0x42f442  ; BulletManager::constructor
     dd WHITELIST_END
 
     ; something wierd in BulletManager::on_tick where it needs to wrap, idfk why
     dd 0x645000  ; offset of dummy bullet from beginning of bullet array
     dd SCALE_SIZE
     dd WHITELIST_BEGIN
-    dd 0x431b5a
+    dd 0x431b5a  ; BulletManager::on_tick
     dd WHITELIST_END
 
     dd 0x5ff  ; index of last bullet in bullet array
     dd SCALE_1
     dd WHITELIST_BEGIN
-    dd 0x431b51
+    dd 0x431b51  ; BulletManager::on_tick
     dd WHITELIST_END
 
     ; No need to adjust field offsets because we use binhacks to replace the
@@ -117,9 +117,6 @@ iend
     dd 0x44001d
     dd WHITELIST_END
 
-    dd 0x17aac0  ; offset of dummy item from beginning of item array
-    dd SCALE_SIZE
-    dd REPLACE_ALL
     dd LIST_END
 
 bullet_mgr_layout:  ; HEADER: AUTO
