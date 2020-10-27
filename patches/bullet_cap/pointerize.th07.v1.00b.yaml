@@ -1,0 +1,95 @@
+binhacks:
+  ExpHP.bullet-cap.pointerize-bullets-reg(eax):
+    addr: ['0x4232f7', '0x423380', '0x425a6c']
+    call-codecave: a118b26300c3
+    expected: 05c0b80000
+  ExpHP.bullet-cap.pointerize-bullets-reg(ecx):
+    addr: ['0x42423e']
+    call-codecave: 8b0d18b26300c3
+    expected: 81c1c0b80000
+  ExpHP.bullet-cap.pointerize-bullets-reg(edx):
+    addr: ['0x4237a3']
+    call-codecave: 8b1518b26300c3
+    expected: 81c2c0b80000
+  ExpHP.bullet-cap.pointerize-bullets-stack(12):
+    addr: ['0x418fcc']
+    call-codecave: a118b263008945f4c3
+    expected: c745f418b26300
+  ExpHP.bullet-cap.pointerize-bullets-stack(20):
+    addr: ['0x424c0a']
+    call-codecave: a118b263008945ecc3
+    expected: c745ec18b26300
+  ExpHP.bullet-cap.pointerize-bullets-stack(224):
+    addr: ['0x418136', '0x4182e6']
+    call-codecave: a118b26300898520ffffffc3
+    expected: c78520ffffff18b26300
+  ExpHP.bullet-cap.pointerize-bullets-stack(228):
+    addr: ['0x419106', '0x419726']
+    call-codecave: a118b2630089851cffffffc3
+    expected: c7851cffffff18b26300
+  ExpHP.bullet-cap.pointerize-bullets-stack(232):
+    addr: ['0x417e66', '0x419a66', '0x419dd6', '0x41a006']
+    call-codecave: a118b26300898518ffffffc3
+    expected: c78518ffffff18b26300
+  ExpHP.bullet-cap.pointerize-bullets-stack(24):
+    addr: ['0x42474a', '0x4249be']
+    call-codecave: a118b263008945e8c3
+    expected: c745e818b26300
+  ExpHP.bullet-cap.pointerize-bullets-stack(28):
+    addr: ['0x41896a']
+    call-codecave: a118b263008945e4c3
+    expected: c745e418b26300
+  ExpHP.bullet-cap.pointerize-bullets-stack(32):
+    addr: ['0x418c45']
+    call-codecave: a118b263008945e0c3
+    expected: c745e018b26300
+  ExpHP.bullet-cap.pointerize-bullets-stack(8):
+    addr: ['0x417c3d', '0x418ee0', '0x4194ec', '0x41961c', '0x419897', '0x4199cc',
+      '0x4277a9']
+    call-codecave: a118b263008945f8c3
+    expected: c745f818b26300
+  ExpHP.bullet-cap.pointerize-items-spawn(24):
+    addr: ['0x432708']
+    call-codecave: 8b55e88b1201cac3
+    expected: 8b55e803d1
+  ExpHP.bullet-cap.pointerize-items-spawn-wrap(eax, 24):
+    addr: ['0x432795']
+    call-codecave: 8b45e88b008945f8c3
+    expected: 8b45e88945f8
+  ExpHP.bullet-cap.pointerize-lasers-reg(eax):
+    addr: ['0x4233bb', '0x42480a', '0x424e0c', '0x426c4c']
+    call-codecave: a1805f9900c3
+    expected: '0528663600'
+  ExpHP.bullet-cap.pointerize-lasers-reg(ecx):
+    addr: ['0x4263c6']
+    call-codecave: 8b0d805f9900c3
+    expected: 81c128663600
+  ExpHP.bullet-cap.pointerize-lasers-reg(edx):
+    addr: ['0x424a8a']
+    call-codecave: 8b15805f9900c3
+    expected: 81c228663600
+  ExpHP.bullet-cap.pointerize-lasers-stack(32):
+    addr: ['0x41888e']
+    call-codecave: a1805f99008945e0c3
+    expected: c745e0805f9900
+  ExpHP.bullet-cap.pointerize-lasers-stack(40):
+    addr: ['0x418b4e']
+    call-codecave: a1805f99008945d8c3
+    expected: c745d8805f9900
+  pointerize-bullets-constructor: {addr: '0x423388', codecave: 'e8[codecave:ExpHP.bullet-cap.allocate-pointerized-bmgr-arrays]e800000000c70424e5334200c3',
+    expected: 8b4de883e901}
+  pointerize-bullets-memset: {addr: '0x4232ef', call-codecave: 'e8[codecave:ExpHP.bullet-cap.clear-pointerized-bullet-mgr]c3',
+    expected: 8b7dfc f3ab}
+  pointerize-bullets-nop: {addr: '0x423410', code: '9090909090'}
+  pointerize-item-other:
+    addr: ['0x433a9c', '0x433b2c', '0x433c4c']
+    call-codecave: 8b008945f8c745fc00000000c3
+    expected: 8945f8c745fc00000000
+  pointerize-item-tick:
+    addr: ['0x4329a0']
+    call-codecave: 8b8534ffffff8b008945dcc3
+    expected: 8b8534ffffff8945dc
+  pointerize-items-constructor: {addr: '0x43264d', codecave: 'e8[codecave:ExpHP.bullet-cap.allocate-pointerized-imgr-arrays]e800000000c704246f264300c3',
+    expected: 8b4df883e901}
+  pointerize-items-memset: {addr: '0x4275f8', call-codecave: 'e8[codecave:ExpHP.bullet-cap.clear-pointerized-item-mgr]c3',
+    expected: bf705c5700 f3ab}

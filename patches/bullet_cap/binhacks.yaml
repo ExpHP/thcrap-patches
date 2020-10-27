@@ -26,6 +26,14 @@ codecaves:
   bullet-cap-config.mof-sa-lag-spike-size: "ffffffff" # deprecated name, takes over if non-negative
 
 binhacks:
+  # Uncomment this to give yourself a chance to attach CE if you need to debug a crash in life before main.
+  # ExpHP.bullet-cap.loop:
+  #   addr:
+  #     - /item-if(th07): "0x47ea7d"
+  #     - /item-if(th08): "0x4a619e"
+  #   expected: "6a60"  # push 60
+  #   code: "EBFE"
+
   ExpHP.bullet-cap.install:
     /fields-if(any(th07..th08)):
       addr:

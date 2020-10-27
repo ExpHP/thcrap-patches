@@ -104,15 +104,6 @@ iend
     dd WHITELIST_END
     dd LIST_END
 
-    ; FIXME FIXME these require binhacks
-    dd 0x4188b7 - 1  ; Enemy::hardcoded_func_07_s4_set
-    dd 0x418b77 - 1  ; Enemy::hardcoded_func_08_s4_set
-    dd 0x424834 - 1  ; BulletManager::sub_424740_cancels_bullets
-    dd 0x424ab5 - 1  ; BulletManager::sub_4249a0_cancels_bullets
-    dd 0x424e5a - 1  ; BulletManager::shoot_laser
-    dd 0x4263f0 - 1  ; BulletManager::on_tick_0c
-    dd 0x426c76 - 1  ; BulletManager::on_draw_0a
-
 cancel_replacements:  ; HEADER: AUTO
 istruc ListHeader
     at ListHeader.old_cap, dd 0x44c
@@ -170,6 +161,23 @@ iend
 
 perf_fix_data:  ; HEADER: AUTO
     dd 0  ; irrelevant, this game has no VM lists
+
+pointerize_data:  ; HEADER: AUTO
+istruc PointerizeData
+    at PointerizeData.bullet_mgr_base, dd 0x62f958
+    at PointerizeData.bullet_array_ptr, dd 0x62f958 + 0xb8c0
+    at PointerizeData.laser_array_ptr, dd 0x62f958 + 0x366628
+    at PointerizeData.item_mgr_base, dd 0x575c70
+    at PointerizeData.item_array_ptr, dd 0x575c70 + 0x0
+    at PointerizeData.bullet_size, dd 0xd68
+    at PointerizeData.laser_size, dd 0x4ec
+    at PointerizeData.item_size, dd 0x288
+    at PointerizeData.bullet_state_dummy_value, dd 6
+    at PointerizeData.bullet_state_offset, dd 0xbfc
+    at PointerizeData.bullet_mgr_size, dd 0x37a164
+    at PointerizeData.item_mgr_size, dd 0xae57c
+    at PointerizeData.func_malloc, dd 0x47d441
+iend
 
 iat_funcs:  ; HEADER: AUTO
 .GetLastError: dd 0x48d07c

@@ -31,6 +31,8 @@ PERSONAL=personal
 update:
 	cd $(REPO) && ./update.sh
 
+PYTHON=PYTHONPATH=scripts python3
+
 #================================================
 
 glob-th-js-from-yaml = $(patsubst %.yaml,%.js,$(wildcard $(1)/th*.yaml))
@@ -64,7 +66,7 @@ subseason-patches: .make/subseason-patches.stamp
 SUBSEASON_PATCH_TEMPLATE=$(REPO)/subseason_TEMPLATE
 
 .make/subseason-patches.stamp: scripts/gen-subseason-patches.py $(SUBSEASON_PATCH_TEMPLATE)/*
-	python3 $< $(SUBSEASON_PATCH_TEMPLATE) --repo $(REPO)
+	$(PYTHON) $< $(SUBSEASON_PATCH_TEMPLATE) --repo $(REPO)
 	touch $@
 
 #================================================
@@ -175,6 +177,11 @@ $(BULLET_CAP_PATCH)/global.yaml: $(BULLET_CAP_PATCH)/global.asm $(BULLET_CAP_PAT
 	@echo "codecaves:" >>$@
 	scripts/list-asm $< >>$@
 
+$(BULLET_CAP_PATCH)/pointerize.${TH07_VER}.yaml \
+$(BULLET_CAP_PATCH)/pointerize.${TH08_VER}.yaml \
+: $(BULLET_CAP_PATCH)/pointerize.th%.yaml: $(BULLET_CAP_PATCH)/pointerize.py
+	$(PYTHON) $< --game th$* >$@
+
 $(BULLET_CAP_PATCH)/th%.yaml: $(BULLET_CAP_PATCH)/th%.asm $(BULLET_CAP_PATCH)/common.asm
 	@echo "# this yaml file is auto-generated" >$@
 	@echo "codecaves:" >>$@
@@ -183,7 +190,10 @@ $(BULLET_CAP_PATCH)/th%.yaml: $(BULLET_CAP_PATCH)/th%.asm $(BULLET_CAP_PATCH)/co
 $(BULLET_CAP_PATCH)/global.js: $(BULLET_CAP_PATCH)/global.yaml
 	scripts/convert-yaml.py $^ >$@
 
-$(BULLET_CAP_PATCH)/th%.js: $(BULLET_CAP_PATCH)/th%.yaml $(BULLET_CAP_PATCH)/binhacks.yaml  $(BULLET_CAP_PATCH)/pointerize.yaml
+$(BULLET_CAP_PATCH)/th%.js: $(BULLET_CAP_PATCH)/th%.yaml $(BULLET_CAP_PATCH)/binhacks.yaml $(BULLET_CAP_PATCH)/pointerize.th%.yaml
+	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
+
+$(BULLET_CAP_PATCH)/th%.js: $(BULLET_CAP_PATCH)/th%.yaml $(BULLET_CAP_PATCH)/binhacks.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
 
 #================================================

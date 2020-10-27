@@ -151,6 +151,23 @@ iend
 perf_fix_data:  ; HEADER: AUTO
     dd 0  ; irrelevant, this game has no VM lists
 
+pointerize_data:  ; HEADER: AUTO
+istruc PointerizeData
+    at PointerizeData.bullet_mgr_base, dd 0xf54e90
+    at PointerizeData.bullet_array_ptr, dd 0xf54e90 + 0x1a880
+    at PointerizeData.laser_array_ptr, dd 0xf54e90 + 0x660938
+    at PointerizeData.item_mgr_base, dd 0x1653648
+    at PointerizeData.item_array_ptr, dd 0x1653648 + 0x0
+    at PointerizeData.bullet_size, dd 0x10b8
+    at PointerizeData.laser_size, dd 0x59c
+    at PointerizeData.item_size, dd 0x2e4
+    at PointerizeData.bullet_state_dummy_value, dd 6
+    at PointerizeData.bullet_state_offset, dd 0xdb8
+    at PointerizeData.bullet_mgr_size, dd 0x6ba578
+    at PointerizeData.item_mgr_size, dd 0x17b094
+    at PointerizeData.func_malloc, dd 0x4a43d4
+iend
+
 iat_funcs:  ; HEADER: AUTO
 .GetLastError: dd 0x4b4074
 .GetModuleHandleA: dd 0x4b40e0
