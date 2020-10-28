@@ -9,24 +9,32 @@
 
 %include "util.asm"
 
-; 0x430e6c  (b9f85e7d01)
+; TH07: 0x424d5d  (b9d8da4b00)
+; TH08: 0x430e6c  (b9f85e7d01)
 th08_1:  ; HEADER: AUTO
     mov  eax, dword [ebp+0x8]
-    shl  word [eax+0x1f6], 0x2
-    shl  word [eax+0x1f4], 0x2
+    shl  word [eax+0xbe], 0x2  ; TH07
+    shl  word [eax+0xbc], 0x2  ; TH07
+    shl  word [eax+0x1f6], 0x2  ; TH08
+    shl  word [eax+0x1f4], 0x2  ; TH08
     ; original code
-    mov  ecx, 0x17d5ef8
-    abs_jmp_hack 0x430e71
+    mov  ecx, 0x4bdad8  ; TH07
+    mov  ecx, 0x17d5ef8  ; TH08
+    ret
 
-; 0x430edd  (8b45088b88fc010000)
+; TH07: 0x424dce  (8b45088b88c4000000)
+; TH08: 0x430edd  (8b45088b88fc010000)
 th08_2:  ; HEADER: AUTO
     mov  eax, dword [ebp+0x8]
-    shr  word [eax+0x1f6], 0x2
-    shr  word [eax+0x1f4], 0x2
+    shr  word [eax+0xbe], 0x2  ; TH07
+    shr  word [eax+0xbc], 0x2  ; TH07
+    shr  word [eax+0x1f6], 0x2  ; TH08
+    shr  word [eax+0x1f4], 0x2  ; TH08
     ; original code
     mov  eax, dword [ebp+0x8]
-    mov  ecx, dword [eax+0x1fc]
-    abs_jmp_hack 0x430ee6
+    mov  ecx, dword [eax+0xc4]  ; TH07
+    mov  ecx, dword [eax+0x1fc]  ; TH08
+    ret
 
 
 ; TH14:  0x41922c  (f30f11442410)

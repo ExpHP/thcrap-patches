@@ -1,16 +1,16 @@
 codecaves:
   bullet-cap:
     /value-if(th06): "00002800"
-    /value-if(th07): "00000400" # FIXME
+    /value-if(th07): "00004000"
     /value-if(th08): "00006000"
     /value-if(any(th10..th17)): "00007d00"
   laser-cap:
-    /value-if(th06..th07): "00000040" # FIXME
+    /value-if(th06..th07): "00000400"
     /value-if(any(th08, th10..th143)): "00001000"
     /value-if(th15..th17): "00002000"
   cancel-cap:
     /value-if(th06):  "00002000"
-    /value-if(th07):  "0000044c" # FIXME
+    /value-if(th07):  "000044c0"
     /value-if(th08):  "00008300"
     /value-if(all(integer, th10..th13)): "00008000"
     /value-if(all(not(th165), th14..th17)): "00010000"

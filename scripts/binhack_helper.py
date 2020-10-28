@@ -6,6 +6,7 @@ Helper library for "binhack scripts", which are automatible ways of making binha
 
 import collections
 import keystone
+import inspect
 import random
 import re
 
@@ -19,7 +20,7 @@ class LocatableSymbolResolver:
     an asm string multiple times while changing the symbol addresses.
     """
     def __init__(self):
-        self._random_prefix = f'{random.randrange(2**64):016x}'
+        self._random_prefix = _random_symbol()
         self._next_suffix = 0
         self._values = {}
 
@@ -93,7 +94,14 @@ class LocatableSymbolResolver:
         else:
             return False
 
-class Codecaves:
+class AsmContext:
+    """ A helper object for writing assembly strings, which can be obtained
+    by giving a 1-argument closure instead of a string to ``ThcrapGen.asm``.
+
+    The methods on this type can be used to generate some common patterns in binhacks
+    (like an absolute jump), and can be used to produce things like '[codecave:blah]'
+    in the output string.
+    """
     def __init__(self, auto_prefix=''):
         self.auto_prefix = auto_prefix
         self.resolver = LocatableSymbolResolver()
@@ -113,15 +121,17 @@ class Codecaves:
     def rel_global(self, name):
         """ Generate a single-use symbol that will be replaced with ``[codecave:...]``
         (thcrap relative ref syntax) in the final output, WITHOUT adding the ``auto_prefix``. """
-        return self._gen_codecave_ref(self.get_auto_name(name), kind='rel')
+        return self._gen_codecave_ref(name, kind='rel')
     def abs_global(self, name):
         """ Generate a single-use symbol that will be replaced with ``<codecave:...>``
         (thcrap absolute ref syntax) in the final output, WITHOUT adding the ``auto_prefix``. """
-        return self._gen_codecave_ref(self.get_auto_name(name), kind='abs')
+        return self._gen_codecave_ref(name, kind='abs')
     def jmp(self, addr):
+        """ Generate asm text for an unconditional jump to an absolute address, without any side-effects. """
+        symbol = _random_symbol()
         return f'''
-            call next
-        next:
+            call {symbol}
+        {symbol}:
             mov dword ptr [esp], {addr:#x}
             ret
         '''
@@ -164,6 +174,9 @@ class Codecaves:
         hex_parts.append(bytes_to_hex(bits[prev_stop:]))
         return ''.join(hex_parts)
 
+def _random_symbol():
+    return f'_{random.randrange(2**64):016x}'
+
 def bytes_to_hex(bits):
     """ Convert bytes to a hex string. """
     return ''.join(f'{x:02x}' for x in bits)
@@ -191,20 +204,45 @@ def _check_asm_for_footguns(asm):
         if m:
             raise ValueError(f"detected decimal integer: {m.group(0)}  (see keystone issue #481)")
 
+class Binhack(dict):
+    """ dict for the yaml of a single binhack, with convenience methods. """
+    def at(self, addr):
+        """ Adds an address (or iterable of addresses) to 'addr'. """
+        if isinstance(addr, collections.Iterable):
+            for x in addr: self.at(x)
+            return
+
+        if 'addr' not in self:
+            self['addr'] = []
+        if isinstance(self['addr'], (str, int)):
+            self['addr'] = [self['addr']]
+
+        self['addr'].append(addr)
+
 class BinhackCollection:
     def __init__(self, name, callback):
         self.callback = callback
         self.name = name
         self.binhacks = {}
 
-    def _format_name(self, args):
-        argstr = ', '.join(map(str, args))
+    def _format_name(self, *args, **kw):
+        # Get a tuple of the arguments as if they were all supplied positionally,
+        # even if some were actually supplied via keyword.
+        bound_args = inspect.signature(self.callback).bind(*args, **kw)
+        bound_args.apply_defaults()
+        args_as_positional = bound_args.args
+        # Format the name like 'name(arg1, arg2)'
+        argstr = ', '.join(map(str, args_as_positional))
         return f'{self.name}({argstr})'
 
-    def __call__(self, *args):
-        name_with_args = self._format_name(args)
+    def at(self, addr, *args, **kw):
+        """ Alternate way of writing ``self(*args, **kw).at(addr)`` that lets you put the address first. """
+        self(*args, **kw).at(addr)
+
+    def __call__(self, *args, **kw):
+        name_with_args = self._format_name(*args, **kw)
         if name_with_args not in self.binhacks:
-            self.binhacks[name_with_args] = Binhack(self.callback(*args))
+            self.binhacks[name_with_args] = Binhack(self.callback(*args, **kw))
         return self.binhacks[name_with_args]
 
 class ThcrapGen:
@@ -216,6 +254,8 @@ class ThcrapGen:
     def binhack_collection(self, name, callback):
         """
         Define a new parameterized collection of binhacks.
+
+        TODO: document.
         """
         name = (self.auto_prefix or '') + name
         if name in self.binhack_collections:
@@ -224,18 +264,41 @@ class ThcrapGen:
         return self.binhack_collections[name]
 
     def binhack(self, name, binhack):
+        name = (self.auto_prefix or '') + name
         if name in self.single_binhacks:
             raise KeyError(f'binhack {repr(name)} already exists')
         self.single_binhacks[name] = Binhack(binhack)
         return self.single_binhacks[name]
 
     def asm(self, asm):
-        caves = Codecaves(auto_prefix=self.auto_prefix)
+        """
+        Compile an x86 assembly string into hexadecimal for thcrap.
+
+        >>> thc = ThcrapGen()
+        >>> thc.asm('''
+        ...   mov eax, 0x3
+        ...   push eax
+        ... ''')
+        'b80300000050'
+
+        If you need to do something that requires special thcrap syntax like calling a
+        codecave, supply a function instead of a string.  The function will be given a
+        single argument of type ``AsmContext``, which has methods that will allow you to
+        insert these symbols.
+
+        >>> thc = ThcrapGen('my-namespace.')
+        >>> thc.asm(lambda c: f'''
+        ...   call {c.rel_auto('cool-cave')}
+        ... ''')
+        'e8[codecave:my-namespace.cool-cave]'
+        """
+        ctx = AsmContext(auto_prefix=self.auto_prefix)
         if callable(asm):
-            asm = asm(caves)
-        return caves._asm_to_thcrap_hex(asm)
+            asm = asm(ctx)
+        return ctx._asm_to_thcrap_hex(asm)
 
     def cereal(self):
+        """ Get the output JSON/YAML object. """
         cereal = {'binhacks': {}}
         for key, binhack in self.single_binhacks.items():
             cereal['binhacks'][key] = dict(binhack)
@@ -254,21 +317,6 @@ class ThcrapGen:
             if isinstance(binhack['addr'], list):
                 binhack['addr'] = [hexify_if_int(x) for x in binhack['addr']]
         return cereal
-
-class Binhack(dict):
-    """ dict for the yaml of a single binhack, with convenience methods. """
-    def at(self, addr):
-        """ Adds an address (or iterable of addresses) to 'addr'. """
-        if isinstance(addr, collections.Iterable):
-            for x in addr: self.at(x)
-            return
-
-        if 'addr' not in self:
-            self['addr'] = []
-        if isinstance(self['addr'], (str, int)):
-            self['addr'] = [self['addr']]
-
-        self['addr'].append(addr)
 
 def default_arg_parser(require_game=False):
     import argparse

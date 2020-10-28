@@ -228,6 +228,7 @@ SPRITE_DEATH_PATCH=$(REPO)/sprite_death_fix
 
 .PHONY: sprite-death-fix
 sprite-death-fix: \
+	$(SPRITE_DEATH_PATCH)/$(TH07_VER).js \
 	$(SPRITE_DEATH_PATCH)/$(TH08_VER).js \
 	$(SPRITE_DEATH_PATCH)/$(TH10_VER).js \
 	$(SPRITE_DEATH_PATCH)/$(TH11_VER).js \
@@ -251,7 +252,9 @@ ULTRA_PATCH=$(PERSONAL)/ultra
 
 .PHONY: ultra
 ultra: \
+	$(ULTRA_PATCH)/$(TH07_VER).js \
 	$(ULTRA_PATCH)/$(TH08_VER).js \
+	$(ULTRA_PATCH)/$(TH14_VER).js \
 	$(ULTRA_PATCH)/$(TH15_VER).js \
 	$(ULTRA_PATCH)/$(TH16_VER).js \
 	$(ULTRA_PATCH)/$(TH165_VER).js \

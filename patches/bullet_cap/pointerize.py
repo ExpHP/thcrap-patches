@@ -147,71 +147,80 @@ def add_access_binhacks(game, thc):
     })
 
     if game == 'th07':
-        bullets_stack(0x08).at(0x417c3d)  # Enemy::hardcoded_func_01_s2_call
-        bullets_stack(0xe8).at(0x417e66)  # Enemy::hardcoded_func_02_s2_call
-        bullets_stack(0xe0).at(0x418136)  # Enemy::hardcoded_func_04_s378_set
-        bullets_stack(0xe0).at(0x4182e6)  # Enemy::hardcoded_func_06_s3_call
-        bullets_stack(0x1c).at(0x41896a)  # Enemy::hardcoded_func_07_s4_set
-        bullets_stack(0x20).at(0x418c45)  # Enemy::hardcoded_func_08_s4_set
-        bullets_stack(0x08).at(0x418ee0)  # Enemy::hardcoded_func_10_s5678_call
-        bullets_stack(0x0c).at(0x418fcc)  # Enemy::hardcoded_func_11_s5678_call
-        bullets_stack(0xe4).at(0x419106)  # Enemy::hardcoded_func_12_s5_call
-        bullets_stack(0x08).at(0x4194ec)  # Enemy::hardcoded_func_13_s5_set
-        bullets_stack(0x08).at(0x41961c)  # Enemy::hardcoded_func_14_s5_call
-        bullets_stack(0xe4).at(0x419726)  # Enemy::hardcoded_func_16_s6_call
-        bullets_stack(0x08).at(0x419897)  # Enemy::hardcoded_func_17_s6_call
-        bullets_stack(0x08).at(0x4199cc)  # Enemy::hardcoded_func_18_s6_call
-        bullets_stack(0xe8).at(0x419a66)  # Enemy::hardcoded_func_21_s5_call_hl
-        bullets_stack(0xe8).at(0x419dd6)  # Enemy::hardcoded_func_22_s7_set
-        bullets_stack(0xe8).at(0x41a006)  # Enemy::hardcoded_func_23_s8_set
-        bullets_stack(0x18).at(0x42474a)  # BulletManager::sub_424740_cancels_bullets
-        bullets_stack(0x18).at(0x4249be)  # BulletManager::sub_4249a0_cancels_bullets
-        bullets_stack(0x14).at(0x424c0a)  # BulletManager::sub_424c00_cancels_bullets
-        bullets_stack(0x08).at(0x4277a9)  # BulletManager::sub_4277a0
+        # TH07 memsets the bullet manager during GameManager::on_cleanup, which is...
+        # unnecessary? And it deletes our pointers.
+        thc.binhack('pointerize-dont-clear-bmgr-on-reset', {
+            'addr': 0x42778e,
+            'expected': 'f3ab', # rep stosd
+            'code': '9090',
+        })
 
-        bullets_reg('eax').at(0x4232f7)  # BulletManager::reset
-        bullets_reg('eax').at(0x423380)  # BulletManager::constructor
-        bullets_reg('edx').at(0x4237a3)  # BulletManager::shoot_one
-        bullets_reg('ecx').at(0x42423e)  # BulletManager::shoot_one
-        bullets_reg('eax').at(0x425a6c)  # BulletManager::on_tick_0c
+    if game == 'th07':
+        bullets_stack.at(0x417c3d, 0x08)  # Enemy::hardcoded_func_01_s2_call
+        bullets_stack.at(0x417e66, 0xe8)  # Enemy::hardcoded_func_02_s2_call
+        bullets_stack.at(0x418136, 0xe0)  # Enemy::hardcoded_func_04_s378_set
+        bullets_stack.at(0x4182e6, 0xe0)  # Enemy::hardcoded_func_06_s3_call
+        bullets_stack.at(0x41896a, 0x1c)  # Enemy::hardcoded_func_07_s4_set
+        bullets_stack.at(0x418c45, 0x20)  # Enemy::hardcoded_func_08_s4_set
+        bullets_stack.at(0x418ee0, 0x08)  # Enemy::hardcoded_func_10_s5678_call
+        bullets_stack.at(0x418fcc, 0x0c)  # Enemy::hardcoded_func_11_s5678_call
+        bullets_stack.at(0x419106, 0xe4)  # Enemy::hardcoded_func_12_s5_call
+        bullets_stack.at(0x4194ec, 0x08)  # Enemy::hardcoded_func_13_s5_set
+        bullets_stack.at(0x41961c, 0x08)  # Enemy::hardcoded_func_14_s5_call
+        bullets_stack.at(0x419726, 0xe4)  # Enemy::hardcoded_func_16_s6_call
+        bullets_stack.at(0x419897, 0x08)  # Enemy::hardcoded_func_17_s6_call
+        bullets_stack.at(0x4199cc, 0x08)  # Enemy::hardcoded_func_18_s6_call
+        bullets_stack.at(0x419a66, 0xe8)  # Enemy::hardcoded_func_21_s5_call_hl
+        bullets_stack.at(0x419dd6, 0xe8)  # Enemy::hardcoded_func_22_s7_set
+        bullets_stack.at(0x41a006, 0xe8)  # Enemy::hardcoded_func_23_s8_set
+        bullets_stack.at(0x42474a, 0x18)  # BulletManager::sub_424740_cancels_bullets
+        bullets_stack.at(0x4249be, 0x18)  # BulletManager::sub_4249a0_cancels_bullets
+        bullets_stack.at(0x424c0a, 0x14)  # BulletManager::sub_424c00_cancels_bullets
+        bullets_stack.at(0x4277a9, 0x08)  # BulletManager::sub_4277a0
 
-        lasers_stack(0x20).at(0x41888e)  # Enemy::hardcoded_func_07_s4_set
-        lasers_stack(0x28).at(0x418b4e)  # Enemy::hardcoded_func_08_s4_set
+        bullets_reg.at(0x4232f7, 'eax')  # BulletManager::reset
+        bullets_reg.at(0x423380, 'eax')  # BulletManager::constructor
+        bullets_reg.at(0x4237a3, 'edx')  # BulletManager::shoot_one
+        bullets_reg.at(0x42423e, 'ecx')  # BulletManager::shoot_one
+        bullets_reg.at(0x425a6c, 'eax')  # BulletManager::on_tick_0c
 
-        lasers_reg('eax').at(0x4233bb)  # BulletManager::constructor
-        lasers_reg('eax').at(0x42480a)  # BulletManager::sub_424740_cancels_bullets
-        lasers_reg('edx').at(0x424a8a)  # BulletManager::sub_4249a0_cancels_bullets
-        lasers_reg('eax').at(0x424e0c)  # BulletManager::shoot_laser
-        lasers_reg('ecx').at(0x4263c6)  # BulletManager::on_tick_0c
-        lasers_reg('eax').at(0x426c4c)  # BulletManager::on_draw_0a
+        lasers_stack.at(0x41888e, 0x20)  # Enemy::hardcoded_func_07_s4_set
+        lasers_stack.at(0x418b4e, 0x28)  # Enemy::hardcoded_func_08_s4_set
+
+        lasers_reg.at(0x4233bb, 'eax')  # BulletManager::constructor
+        lasers_reg.at(0x42480a, 'eax')  # BulletManager::sub_424740_cancels_bullets
+        lasers_reg.at(0x424a8a, 'edx')  # BulletManager::sub_4249a0_cancels_bullets
+        lasers_reg.at(0x424e0c, 'eax')  # BulletManager::shoot_laser
+        lasers_reg.at(0x4263c6, 'ecx')  # BulletManager::on_tick_0c
+        lasers_reg.at(0x426c4c, 'eax')  # BulletManager::on_draw_0a
 
     if game == 'th08':
-        bullets_stack(0x0c).at(0x423a6c)  # Enemy::hardcoded_func_04_reimu
-        bullets_stack(0x0c).at(0x423e2c)  # Enemy::hardcoded_func_21_reimu
-        bullets_stack(0x0c).at(0x4241ec)  # Enemy::hardcoded_func_07_reimu
-        bullets_stack(0x08).at(0x424a2c)  # Enemy::hardcoded_func_12_reisen
-        bullets_stack(0x08).at(0x424c4c)  # Enemy::hardcoded_func_14_reisin
-        bullets_stack(0x08).at(0x424e5c)  # Enemy::hardcoded_func_16_eirin
-        bullets_stack(0x08).at(0x4250dc)  # Enemy::hardcoded_func_27_sakuya_lw
-        bullets_stack(0x08).at(0x4251e6)  # Enemy::hardcoded_func_28_youmu_lw
-        bullets_stack(0x0c).at(0x42529c)  # Enemy::hardcoded_func_29_youmu_lw
-        bullets_stack(0x08).at(0x42f3a0)  # BulletManager::reset
-        bullets_stack(0x1c).at(0x43083a)  # BulletManager::cancel_all
-        bullets_stack(0x18).at(0x430abe)  # BulletManager::sub_430aa0
-        bullets_stack(0x14).at(0x430d3a)  # BulletManager::ecl_161__cancel_radius?
+        bullets_stack.at(0x0c, 0x423a6c)  # Enemy::hardcoded_func_04_reimu
+        bullets_stack.at(0x0c, 0x423e2c)  # Enemy::hardcoded_func_21_reimu
+        bullets_stack.at(0x0c, 0x4241ec)  # Enemy::hardcoded_func_07_reimu
+        bullets_stack.at(0x08, 0x424a2c)  # Enemy::hardcoded_func_12_reisen
+        bullets_stack.at(0x08, 0x424c4c)  # Enemy::hardcoded_func_14_reisin
+        bullets_stack.at(0x08, 0x424e5c)  # Enemy::hardcoded_func_16_eirin
+        bullets_stack.at(0x08, 0x4250dc)  # Enemy::hardcoded_func_27_sakuya_lw
+        bullets_stack.at(0x08, 0x4251e6)  # Enemy::hardcoded_func_28_youmu_lw
+        bullets_stack.at(0x0c, 0x42529c)  # Enemy::hardcoded_func_29_youmu_lw
+        bullets_stack.at(0x08, 0x42f3a0)  # BulletManager::reset
+        bullets_stack.at(0x1c, 0x43083a)  # BulletManager::cancel_all
+        bullets_stack.at(0x18, 0x430abe)  # BulletManager::sub_430aa0
+        bullets_stack.at(0x14, 0x430d3a)  # BulletManager::ecl_161__cancel_radius?
 
-        bullets_reg('eax').at(0x42f379)  # BulletManager::reset
-        bullets_reg('ecx').at(0x42f44e)  # BulletManager::constructor
-        bullets_reg('edx').at(0x42f657)  # BulletManager::shoot_one
-        bullets_reg('edx').at(0x42fe23)  # BulletManager::shoot_one
-        bullets_reg('eax').at(0x431254)  # BulletManager::on_tick
+        bullets_reg.at(0x42f379, 'eax')  # BulletManager::reset
+        bullets_reg.at(0x42f44e, 'ecx')  # BulletManager::constructor
+        bullets_reg.at(0x42f657, 'edx')  # BulletManager::shoot_one
+        bullets_reg.at(0x42fe23, 'edx')  # BulletManager::shoot_one
+        bullets_reg.at(0x431254, 'eax')  # BulletManager::on_tick
 
-        lasers_reg('edx').at(0x42f46c)  # BulletManager::constructor
-        lasers_reg('edx').at(0x430941)  # BulletManager::cancel_all
-        lasers_reg('eax').at(0x430bcb)  # BulletManager::sub_430aa0
-        lasers_reg('eax').at(0x430f2c)  # BulletManager::shoot_laser
-        lasers_reg('eax').at(0x431b75)  # BulletManager::on_tick
-        lasers_reg('ecx').at(0x432b7b)  # BulletManager::on_draw
+        lasers_reg.at(0x42f46c, 'edx')  # BulletManager::constructor
+        lasers_reg.at(0x430941, 'edx')  # BulletManager::cancel_all
+        lasers_reg.at(0x430bcb, 'eax')  # BulletManager::sub_430aa0
+        lasers_reg.at(0x430f2c, 'eax')  # BulletManager::shoot_laser
+        lasers_reg.at(0x431b75, 'eax')  # BulletManager::on_tick
+        lasers_reg.at(0x432b7b, 'ecx')  # BulletManager::on_draw
 
     # ============================================
     # Tiny laser cap fixes
@@ -219,30 +228,31 @@ def add_access_binhacks(game, thc):
     # Normally bullet_cap uses its search-and-replace framework to substitute this sort of thing,
     # but the laser cap in th06 and th07 is so tiny that it sometimes gets optimized to a single byte.
     #
-    # To make matters even worse, the 'cmp' intruction ends up being 4 bytes, too small to fit a call,
+    # To make matters even worse, the 'cmp' intruction ends up being 4 bytes, too small to fit a jump,
     # so we also have to replace the 'jge'!
-
-    # FIXME: replace the 'jge'
-    # if game == 'th07':
-    #     laser_cap = thc.binhack_collection('fix-laser-cap', lambda offset: {
-    #         'expected': thc.asm(f'''
-    #             cmp  dword ptr [ebp-{offset}], 0x40
-    #         '''),
-    #         'call-codecave': thc.asm(lambda c: f'''
-    #             mov  eax, {c.abs_global('bullet-cap')}
-    #             mov  eax, [eax]
-    #             bswap eax
-    #             cmp  dword ptr [ebp-{offset}], eax
-    #             ret
-    #         '''),
-    #     })
-    #     laser_cap(0x24).at(0x4188b7)  # Enemy::hardcoded_func_07_s4_set
-    #     laser_cap(0x2c).at(0x418b77)  # Enemy::hardcoded_func_08_s4_set
-    #     laser_cap(0x10).at(0x424834)  # BulletManager::sub_424740_cancels_bullets
-    #     laser_cap(0x10).at(0x424ab5)  # BulletManager::sub_4249a0_cancels_bullets
-    #     laser_cap(0x04).at(0x424e5a)  # BulletManager::shoot_laser
-    #     laser_cap(0x08).at(0x4263f0)  # BulletManager::on_tick_0c
-    #     laser_cap(0x04).at(0x426c76)  # BulletManager::on_draw_0a
+    if game == 'th07':
+        laser_cap = thc.binhack_collection('fix-laser-cap', lambda offset, br_not_taken, br_taken: {
+            'expected': thc.asm(f'''
+                cmp  dword ptr [ebp-{offset:#x}], 0x40
+            ''') + '0f', # first byte of the jge; we can't easily get the whole thing because it's a relative address
+            'codecave': thc.asm(lambda c: f'''
+                mov  eax, {c.abs_global('laser-cap')}
+                mov  eax, [eax]
+                bswap eax
+                cmp  dword ptr [ebp-{offset:#x}], eax
+                jl   skip
+                {c.jmp(br_taken)}
+            skip:
+                {c.jmp(br_not_taken)}
+            '''),
+        })
+        laser_cap.at(0x4188b3, 0x24, br_not_taken=0x4188b3+4+6, br_taken=0x418b39)  # Enemy::hardcoded_func_07_s4_set
+        laser_cap.at(0x418b73, 0x2c, br_not_taken=0x418b73+4+6, br_taken=0x418e6e)  # Enemy::hardcoded_func_08_s4_set
+        laser_cap.at(0x424830, 0x10, br_not_taken=0x424830+4+6, br_taken=0x424984)  # BulletManager::sub_424740_cancels_bullets
+        laser_cap.at(0x424ab1, 0x10, br_not_taken=0x424ab1+4+6, br_taken=0x424be2)  # BulletManager::sub_4249a0_cancels_bullets
+        laser_cap.at(0x424e56, 0x04, br_not_taken=0x424e56+4+6, br_taken=0x4250bf)  # BulletManager::shoot_laser
+        laser_cap.at(0x4263ec, 0x08, br_not_taken=0x4263ec+4+6, br_taken=0x426a4e)  # BulletManager::on_tick_0c
+        laser_cap.at(0x426c72, 0x04, br_not_taken=0x426c72+4+6, br_taken=0x426f03)  # BulletManager::on_draw_0a
 
     # ============================================
     # ItemManager stuff.
@@ -265,7 +275,7 @@ def add_access_binhacks(game, thc):
     # Place where ItemManager::spawn_item loops to index 0.
     item_spawn_wrap = thc.binhack_collection(
         'pointerize-items-spawn-wrap',
-        lambda clobber, imgr_offset: {
+        lambda imgr_offset, clobber: {
             'expected': thc.asm(f'''
                 mov  {clobber}, [ebp-{imgr_offset:#x}]
                 mov  [ebp-0x8], {clobber}
@@ -280,11 +290,11 @@ def add_access_binhacks(game, thc):
     )
 
     if game == 'th07':
-        item_spawn_top(0x18).at(0x432708)
-        item_spawn_wrap('eax', 0x18).at(0x432795)
+        item_spawn_top.at(0x432708, 0x18)
+        item_spawn_wrap.at(0x432795, 0x18, clobber='eax')
     if game == 'th08':
-        item_spawn_top(0x0c).at(0x4400b8)
-        item_spawn_wrap('ecx', 0x0c).at(0x440196)
+        item_spawn_top.at(0x4400b8, 0x0c)
+        item_spawn_wrap.at(0x440196, 0x0c, clobber='ecx')
 
     if game == 'th07':
         # In TH07, ItemManager::on_tick doesn't use the list (it BUILDS it!)

@@ -1,5 +1,14 @@
 binhacks:
   ExpHP.debug-counters.draw:
+    /fields-if(th07):
+      addr: "0x439391"
+      expected: "a148f66200"
+      codecave:
+        - "E8[codecave:ExpHP.debug-counters.show-debug-data]" # call show_debug_data
+
+        - "A148F66200        " # mov  eax, [0x62f648] ; original code
+        - "E800000000C7042496934300C3" # abs_jmp_hack 0x439396
+
     /fields-if(th08):
       addr: "0x447225"
       expected: "a1b4d06401"
@@ -118,7 +127,7 @@ binhacks:
         - "E800000000C70424 c89f4200 C3" # jump to 0x429fc8
 
 codecaves:
-  /fields-if(not(th08)):
+  /fields-if(not(any(th07..th08))):
     ExpHP.debug-counters.line-info:
       - "<codecave:ExpHP.debug-counters.anmid-data>"
       - "25376420616E6D6964000000" # dd "%7d anmid"
@@ -138,14 +147,15 @@ codecaves:
       - "25376420656E656D79000000" # dd "%7d enemy"
       - "00000000"
 
-  /fields-if(th08):
+  /fields-if(any(th07..th08)):
     ExpHP.debug-counters.line-info:
-      - "<codecave:ExpHP.debug-counters.effect-3-data>"
-      - "253764206566662E33000000" # dd "%7d eff.3"
-      - "<codecave:ExpHP.debug-counters.effect-2-data>"
-      - "253764206566662E32000000" # dd "%7d eff.2"
-      - "<codecave:ExpHP.debug-counters.effect-1-data>"
-      - "253764206566662E31000000" # dd "%7d eff.1"
+      - "<codecave:ExpHP.debug-counters.effect-indexed-data>"
+      - "253764206566662E49000000" # dd "%7d eff.I"
+      # familiar effect count is always equal to familiar count, which the game already shows, so don't bother
+      # - /item-if(th08): "<codecave:ExpHP.debug-counters.effect-familiar-data>"
+      # - /item-if(th08): "253764206566662E46000000" # dd "%7d eff.F"
+      - "<codecave:ExpHP.debug-counters.effect-general-data>"
+      - "253764206566662E47000000" # dd "%7d eff.G"
       - "<codecave:ExpHP.debug-counters.bullet-data>"
       - "253764206574616D61000000" # dd "%7d etama"
       - "<codecave:ExpHP.debug-counters.laser-data>"

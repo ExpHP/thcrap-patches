@@ -17,6 +17,13 @@
 ;=================================
 ; Main binhack:  We put this immediately after the call to AsciiManager::drawf_debug in FpsCounter::on_draw.
 
+; 0x439391 (a148f66200)
+binhack_07:  ; HEADER: AUTO
+    call show_debug_data  ; REWRITE: [codecave:AUTO]
+
+    mov  eax, [0x62f648] ; original code
+    abs_jmp_hack 0x439396
+
 ; 0x447225 (a1b4d06401)
 binhack_08:  ; HEADER: AUTO
     call show_debug_data  ; REWRITE: [codecave:AUTO]
@@ -117,8 +124,9 @@ line_info_strings:  ; HEADER: AUTO
     dd "%7d items"
     dd "%7d itemN"
     dd "%7d itemC"
-    dd "%7d eff.1"
-    dd "%7d eff.2"
+    dd "%7d eff.I"
+    dd "%7d eff.G"
+    dd "%7d eff.F"
     dd "%7d lgods"
     dd "%7d enemy"
     dd "%7d enmyA"

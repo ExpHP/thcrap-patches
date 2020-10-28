@@ -1,7 +1,9 @@
 binhacks:
-  /fields-if(th08):
+  /fields-if(any(th07..th08)):
     ExpHP.sprite-death-fix.hack:
-      addr: "0x462f19"
+      addr:
+        /value-if(th07): "0x44f699"
+        /value-if(th08): "0x462f19"
       expected: "8b75088b45fc"
       call-codecave:
         - "E8[codecave:ExpHP.sprite-death-fix.fix]" # call fix
@@ -61,6 +63,13 @@ binhacks:
 
 codecaves:
   ExpHP.sprite-death-fix.data:
+    /value-if(th07):
+      - "449E4B00          " # at Data.anm_manager_ptr, dd 0x4b9e44
+      - "<codecave:ExpHP.sprite-death-fix.wrapper-thiscall>" # at Data.flush_sprites_abi, dd wrapper_thiscall
+      - "C0F54400          " # at Data.flush_sprites, dd  0x44f5c0
+      - "34E50200          " # at Data.buffer_offset, dd 0x2e534
+      - "34E51700          " # at Data.cursor_offset, dd 0x17e534
+
     /value-if(th08):
       - "90DC8B01          " # at Data.anm_manager_ptr, dd 0x18bdc90
       - "<codecave:ExpHP.sprite-death-fix.wrapper-thiscall>" # at Data.flush_sprites_abi, dd wrapper_thiscall

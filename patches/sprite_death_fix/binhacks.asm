@@ -16,6 +16,15 @@ endstruc
 data:  ; HEADER: AUTO
     dd 0 ; replace with conditionals for things below
 
+data_07:  ; HEADER: AUTO
+istruc Data  ; DELETE
+    at Data.anm_manager_ptr, dd 0x4b9e44
+    at Data.flush_sprites_abi, dd wrapper_thiscall  ; REWRITE: <codecave:AUTO>
+    at Data.flush_sprites, dd  0x44f5c0
+    at Data.buffer_offset, dd 0x2e534
+    at Data.cursor_offset, dd 0x17e534
+iend  ; DELETE
+
 data_08:  ; HEADER: AUTO
 istruc Data  ; DELETE
     at Data.anm_manager_ptr, dd 0x18bdc90
@@ -136,7 +145,8 @@ iend  ; DELETE
 ; ============================================
 ; Binhacks
 
-; 0x462f19  (8b75088b45fc)
+; TH07:  0x44f699  (8b75088b45fc)
+; TH08:  0x462f19  (8b75088b45fc)
 binhack_08:  ; HEADER: AUTO
     call fix  ; REWRITE: [codecave:AUTO]
     ; original code
