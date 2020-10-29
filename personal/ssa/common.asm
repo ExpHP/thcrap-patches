@@ -22,6 +22,10 @@
 %define PAGE_READWRITE 0x4
 %define INVALID_HANDLE_VALUE -1
 
+; Not a codecave we ourselves use, but rather a special one that thcrap looks for.
+thcrap_keyword_protection:  ; HEADER: protection
+    db 0x64  ; READ_WRITE_EXECUTE
+
 data:  ; HEADER: ExpHP.ddc-gap.data
 ; Arrange in decreasing order of type alignment; future versions of thcrap may align codecaves
 ; so that this actually results in proper alignment.

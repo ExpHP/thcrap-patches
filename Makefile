@@ -31,7 +31,14 @@ PERSONAL=personal
 update:
 	cd $(REPO) && ./update.sh
 
+#================================================
+
 PYTHON=PYTHONPATH=scripts python3
+
+%.asm.yaml: %.asm
+	@echo "# this yaml file is auto-generated" >$@
+	@echo "codecaves:" >>$@
+	scripts/list-asm $< >>$@
 
 #================================================
 
@@ -63,254 +70,213 @@ TH17_VER = th17.v1.00b
 .PHONY: subseason-patches
 subseason-patches: .make/subseason-patches.stamp
 
-SUBSEASON_PATCH_TEMPLATE=$(REPO)/subseason_TEMPLATE
+DIR=$(REPO)/subseason_TEMPLATE
 
-.make/subseason-patches.stamp: scripts/gen-subseason-patches.py $(SUBSEASON_PATCH_TEMPLATE)/*
-	$(PYTHON) $< $(SUBSEASON_PATCH_TEMPLATE) --repo $(REPO)
+.make/subseason-patches.stamp: scripts/gen-subseason-patches.py $(DIR)/*
+	$(PYTHON) $< $(REPO)/subseason_TEMPLATE --repo $(REPO)
 	touch $@
 
 #================================================
 
-SP_RESOURCES_PATCH=$(REPO)/sp_resources
+DIR=$(REPO)/sp_resources
 
 .PHONY: sp-resources
-sp-resources: $(SP_RESOURCES_PATCH)/$(TH13_VER).js
+sp-resources: $(DIR)/$(TH13_VER).js
 
-$(SP_RESOURCES_PATCH)/th%.js: $(SP_RESOURCES_PATCH)/th%.yaml
+$(DIR)/th%.js: $(DIR)/th%.yaml
 	scripts/convert-yaml.py $< >$@
 
 #================================================
 
-C_KEY_PATCH=$(REPO)/c_key
+DIR=$(REPO)/c_key
 
 .PHONY: c-key
-c-key: $(C_KEY_PATCH)/$(TH17_VER).js
+c-key: $(DIR)/$(TH17_VER).js
 
-$(C_KEY_PATCH)/th%.js: $(C_KEY_PATCH)/th%.yaml
+$(DIR)/th%.js: $(DIR)/th%.yaml
 	scripts/convert-yaml.py $< >$@
 
 #================================================
 
-TH17_PERF_PATCH=$(PERSONAL)/th17perf
+DIR=$(PERSONAL)/th17perf
 
 .PHONY: th17perf
 th17perf: \
-	$(TH17_PERF_PATCH)/$(TH17_VER).js \
+	$(DIR)/$(TH17_VER).js \
 
-$(TH17_PERF_PATCH)/th%.js: $(TH17_PERF_PATCH)/th%.yaml
+$(DIR)/th%.js: $(DIR)/th%.yaml
 	scripts/convert-yaml.py $< >$@
 
 #================================================
 
-NUMGUIDE_PATCH=$(PERSONAL)/numguide
+DIR=$(PERSONAL)/numguide
 
 .PHONY: numguide
 numguide: \
-	$(NUMGUIDE_PATCH)/$(TH12_VER).js \
+	$(DIR)/$(TH12_VER).js \
 
-$(NUMGUIDE_PATCH)/th%.js: $(NUMGUIDE_PATCH)/th%.yaml
+$(DIR)/th%.js: $(DIR)/th%.yaml
 	scripts/convert-yaml.py $< >$@
 
 #================================================
 
-CONTINUE_PATCH=$(REPO)/continue
+DIR=$(REPO)/continue
 
 .PHONY: continue
 continue: \
-	$(call glob-th-js-from-yaml,$(CONTINUE_PATCH)) \
+	$(call glob-th-js-from-yaml,$(DIR)) \
 
-$(CONTINUE_PATCH)/th%.js: $(CONTINUE_PATCH)/th%.yaml
+$(DIR)/th%.js: $(DIR)/th%.yaml
 	scripts/convert-yaml.py $< >$@
 
 #================================================
 
-CTRL_SPEEDUP_PATCH=$(REPO)/ctrl_speedup
+DIR=$(REPO)/ctrl_speedup
 
 .PHONY: ctrl-speedup
 ctrl-speedup: \
-	$(call glob-th-js-from-yaml,$(CTRL_SPEEDUP_PATCH)) \
+	$(call glob-th-js-from-yaml,$(DIR)) \
 
-$(CTRL_SPEEDUP_PATCH)/th%.js: $(CTRL_SPEEDUP_PATCH)/binhacks.yaml
+$(DIR)/th%.js: $(DIR)/binhacks.yaml
 	scripts/convert-yaml.py $< >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
 
 #================================================
 
-MOUSE_PATCH=$(PERSONAL)/mouse
+DIR=$(PERSONAL)/mouse
 
 .PHONY: mouse
 mouse: \
-	$(call glob-th-js-from-yaml,$(MOUSE_PATCH)) \
+	$(call glob-th-js-from-yaml,$(DIR)) \
 
-$(MOUSE_PATCH)/th%.js: $(MOUSE_PATCH)/th%.yaml
+$(DIR)/th%.js: $(DIR)/th%.yaml
 	scripts/convert-yaml.py $< >$@
 
 #================================================
 
-SSA_PATCH=$(PERSONAL)/ssa
+DIR=$(PERSONAL)/ssa
 
 .PHONY: ssa
 ssa: \
-	$(call glob-th-js-from-yaml,$(SSA_PATCH)) \
+	$(call glob-th-js-from-yaml,$(DIR)) \
 
-.INTERMEDIATE: $(SSA_PATCH)/common.yaml
-$(SSA_PATCH)/common.yaml: $(SSA_PATCH)/common.asm
-	@echo "# this yaml file is auto-generated" >$@
-	@echo "codecaves:" >>$@
-	@echo "  protection: 64" >>$@
-	scripts/list-asm $< >>$@
-
-$(SSA_PATCH)/th%.js: $(SSA_PATCH)/th%.yaml $(SSA_PATCH)/common.yaml
+$(DIR)/th%.js: $(DIR)/th%.yaml $(DIR)/common.asm.yaml
 	scripts/convert-yaml.py $^ >$@
 
 #================================================
 
-BULLET_CAP_PATCH=$(REPO)/bullet_cap
+DIR=$(REPO)/bullet_cap
 
 .PHONY: bullet-cap
 bullet-cap: \
-	$(BULLET_CAP_PATCH)/global.js \
-	$(call glob-th-js-from-asm,$(BULLET_CAP_PATCH)) \
+	$(DIR)/global.js \
+	$(call glob-th-js-from-asm,$(DIR)) \
 
-.INTERMEDIATE: $(BULLET_CAP_PATCH)/global.yaml
-$(BULLET_CAP_PATCH)/global.yaml: $(BULLET_CAP_PATCH)/global.asm $(BULLET_CAP_PATCH)/common.asm
-	@echo "# this yaml file is auto-generated" >$@
-	@echo "codecaves:" >>$@
-	scripts/list-asm $< >>$@
-
-$(BULLET_CAP_PATCH)/pointerize.${TH07_VER}.yaml \
-$(BULLET_CAP_PATCH)/pointerize.${TH08_VER}.yaml \
-: $(BULLET_CAP_PATCH)/pointerize.th%.yaml: $(BULLET_CAP_PATCH)/pointerize.py
+$(DIR)/pointerize.${TH07_VER}.yaml \
+$(DIR)/pointerize.${TH08_VER}.yaml \
+: $(DIR)/pointerize.th%.yaml: $(DIR)/pointerize.py
 	$(PYTHON) $< --game th$* >$@
 
-$(BULLET_CAP_PATCH)/th%.yaml: $(BULLET_CAP_PATCH)/th%.asm $(BULLET_CAP_PATCH)/common.asm
-	@echo "# this yaml file is auto-generated" >$@
-	@echo "codecaves:" >>$@
-	scripts/list-asm $< >>$@
-
-$(BULLET_CAP_PATCH)/global.js: $(BULLET_CAP_PATCH)/global.yaml
+$(DIR)/global.js: $(DIR)/global.asm.yaml
 	scripts/convert-yaml.py $^ >$@
 
-$(BULLET_CAP_PATCH)/th%.js: $(BULLET_CAP_PATCH)/th%.yaml $(BULLET_CAP_PATCH)/binhacks.yaml $(BULLET_CAP_PATCH)/pointerize.th%.yaml
+$(DIR)/th%.js: $(DIR)/th%.asm.yaml $(DIR)/binhacks.yaml $(DIR)/pointerize.th%.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
 
-$(BULLET_CAP_PATCH)/th%.js: $(BULLET_CAP_PATCH)/th%.yaml $(BULLET_CAP_PATCH)/binhacks.yaml
+$(DIR)/th%.js: $(DIR)/th%.asm.yaml $(DIR)/binhacks.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
 
 #================================================
 
-DEBUG_COUNTERS_PATCH=$(REPO)/debug_counters
+DIR=$(REPO)/debug_counters
 
 .PHONY: debug-counters
 debug-counters: \
-	$(DEBUG_COUNTERS_PATCH)/global.js \
-	$(call glob-th-js-from-asm,$(DEBUG_COUNTERS_PATCH)) \
+	$(DIR)/global.js \
+	$(call glob-th-js-from-asm,$(DIR)) \
 
-.INTERMEDIATE: $(DEBUG_COUNTERS_PATCH)/global.yaml
-$(DEBUG_COUNTERS_PATCH)/global.yaml: $(DEBUG_COUNTERS_PATCH)/global.asm $(DEBUG_COUNTERS_PATCH)/common.asm
-	@echo "# this yaml file is auto-generated" >$@
-	@echo "codecaves:" >>$@
-	scripts/list-asm $< >>$@
-
-$(DEBUG_COUNTERS_PATCH)/th%.yaml: $(DEBUG_COUNTERS_PATCH)/th%.asm $(DEBUG_COUNTERS_PATCH)/common.asm
-	@echo "# this yaml file is auto-generated" >$@
-	@echo "codecaves:" >>$@
-	scripts/list-asm $< >>$@
-
-$(DEBUG_COUNTERS_PATCH)/global.js: $(DEBUG_COUNTERS_PATCH)/global.yaml
+$(DIR)/global.js: $(DIR)/global.asm.yaml
 	scripts/convert-yaml.py $^ >$@
 
-$(DEBUG_COUNTERS_PATCH)/th%.js: $(DEBUG_COUNTERS_PATCH)/th%.yaml $(DEBUG_COUNTERS_PATCH)/binhacks.yaml
+$(DIR)/th%.js: $(DIR)/th%.asm.yaml $(DIR)/binhacks.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
 
 #================================================
 
-SPRITE_DEATH_PATCH=$(REPO)/sprite_death_fix
+DIR=$(REPO)/sprite_death_fix
 
 .PHONY: sprite-death-fix
 sprite-death-fix: \
-	$(SPRITE_DEATH_PATCH)/$(TH07_VER).js \
-	$(SPRITE_DEATH_PATCH)/$(TH08_VER).js \
-	$(SPRITE_DEATH_PATCH)/$(TH10_VER).js \
-	$(SPRITE_DEATH_PATCH)/$(TH11_VER).js \
-	$(SPRITE_DEATH_PATCH)/$(TH12_VER).js \
-	$(SPRITE_DEATH_PATCH)/$(TH125_VER).js \
-	$(SPRITE_DEATH_PATCH)/$(TH128_VER).js \
-	$(SPRITE_DEATH_PATCH)/$(TH13_VER).js \
-	$(SPRITE_DEATH_PATCH)/$(TH14_VER).js \
-	$(SPRITE_DEATH_PATCH)/$(TH143_VER).js \
-	$(SPRITE_DEATH_PATCH)/$(TH15_VER).js \
-	$(SPRITE_DEATH_PATCH)/$(TH16_VER).js \
-	$(SPRITE_DEATH_PATCH)/$(TH165_VER).js \
-	$(SPRITE_DEATH_PATCH)/$(TH17_VER).js \
+	$(DIR)/$(TH07_VER).js \
+	$(DIR)/$(TH08_VER).js \
+	$(DIR)/$(TH10_VER).js \
+	$(DIR)/$(TH11_VER).js \
+	$(DIR)/$(TH12_VER).js \
+	$(DIR)/$(TH125_VER).js \
+	$(DIR)/$(TH128_VER).js \
+	$(DIR)/$(TH13_VER).js \
+	$(DIR)/$(TH14_VER).js \
+	$(DIR)/$(TH143_VER).js \
+	$(DIR)/$(TH15_VER).js \
+	$(DIR)/$(TH16_VER).js \
+	$(DIR)/$(TH165_VER).js \
+	$(DIR)/$(TH17_VER).js \
 
-$(SPRITE_DEATH_PATCH)/th%.js: $(SPRITE_DEATH_PATCH)/binhacks.yaml
+$(DIR)/th%.js: $(DIR)/binhacks.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
 
 #================================================
 
-ULTRA_PATCH=$(PERSONAL)/ultra
+DIR=$(PERSONAL)/ultra
 
 .PHONY: ultra
 ultra: \
-	$(ULTRA_PATCH)/$(TH07_VER).js \
-	$(ULTRA_PATCH)/$(TH08_VER).js \
-	$(ULTRA_PATCH)/$(TH14_VER).js \
-	$(ULTRA_PATCH)/$(TH15_VER).js \
-	$(ULTRA_PATCH)/$(TH16_VER).js \
-	$(ULTRA_PATCH)/$(TH165_VER).js \
-	$(ULTRA_PATCH)/$(TH17_VER).js \
+	$(DIR)/$(TH07_VER).js \
+	$(DIR)/$(TH08_VER).js \
+	$(DIR)/$(TH14_VER).js \
+	$(DIR)/$(TH15_VER).js \
+	$(DIR)/$(TH16_VER).js \
+	$(DIR)/$(TH165_VER).js \
+	$(DIR)/$(TH17_VER).js \
 
-$(ULTRA_PATCH)/th%.js: $(ULTRA_PATCH)/binhacks.yaml
+$(DIR)/th%.js: $(DIR)/binhacks.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
 
 #================================================
 
-BASE_EXPHP_PATCH=$(REPO)/base_exphp
+DIR=$(REPO)/base_exphp
 
 .PHONY: base-exphp
 base-exphp: \
-	$(BASE_EXPHP_PATCH)/global.js \
+	$(DIR)/global.js \
 
-.INTERMEDIATE: $(BASE_EXPHP_PATCH)/global.yaml
-$(BASE_EXPHP_PATCH)/global.yaml: $(BASE_EXPHP_PATCH)/global.asm
-	@echo "# this yaml file is auto-generated" >$@
-	@echo "codecaves:" >>$@
-	scripts/list-asm $< >>$@
-
-$(BASE_EXPHP_PATCH)/global.js: $(BASE_EXPHP_PATCH)/global.yaml
+$(DIR)/global.js: $(DIR)/global.asm.yaml
 	scripts/convert-yaml.py $^ >$@
 
 #================================================
 
-ANM_LEAK_PATCH=$(REPO)/anm_leak
+DIR=$(REPO)/anm_leak
 
 .PHONY: anm-leak
 anm-leak: \
-	$(ANM_LEAK_PATCH)/global.js \
-	$(ANM_LEAK_PATCH)/$(TH15_VER).js \
-	$(ANM_LEAK_PATCH)/$(TH16_VER).js \
-	$(ANM_LEAK_PATCH)/$(TH165_VER).js \
-	$(ANM_LEAK_PATCH)/$(TH17_VER).js \
+	$(DIR)/global.js \
+	$(DIR)/$(TH15_VER).js \
+	$(DIR)/$(TH16_VER).js \
+	$(DIR)/$(TH165_VER).js \
+	$(DIR)/$(TH17_VER).js \
 
-.INTERMEDIATE: $(ANM_LEAK_PATCH)/global.yaml
-$(ANM_LEAK_PATCH)/global.yaml: $(ANM_LEAK_PATCH)/global.asm
-	@echo "# this yaml file is auto-generated" >$@
-	@echo "codecaves:" >>$@
-	scripts/list-asm $< >>$@
-
-$(ANM_LEAK_PATCH)/global.js: $(ANM_LEAK_PATCH)/global.yaml
+$(DIR)/global.js: $(DIR)/global.asm.yaml
 	scripts/convert-yaml.py $^ >$@
 
-$(ANM_LEAK_PATCH)/th%.js: $(ANM_LEAK_PATCH)/binhacks.yaml
+$(DIR)/th%.js: $(DIR)/binhacks.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
 
 #================================================
 
-AUTO_RELEASE_PATCH=$(PERSONAL)/auto-release
+DIR=$(PERSONAL)/auto-release
 
 .PHONY: auto-release
 auto-release: \
-	$(call glob-th-js-from-yaml,$(AUTO_RELEASE_PATCH)) \
+	$(call glob-th-js-from-yaml,$(DIR)) \
 
-$(AUTO_RELEASE_PATCH)/th%.js: $(AUTO_RELEASE_PATCH)/th%.yaml
+$(DIR)/th%.js: $(DIR)/th%.yaml
 	scripts/convert-yaml.py $^ >$@

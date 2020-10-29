@@ -4,7 +4,7 @@
 	],
 	"id": "subseason_{{season}}",
 	"servers": [
-		"https://raw.githubusercontent.com/ExpHP/thcrap-patches/master/subseason_{{season}}/"
+		"https://raw.githubusercontent.com/ExpHP/thcrap-patches/master/patches/subseason_{{season}}/"
 	],
 	"title": "(16) Use {{Season}} subseason, even in Extra stage. (Not required to watch replays)"
 }
