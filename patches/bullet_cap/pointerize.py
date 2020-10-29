@@ -195,19 +195,19 @@ def add_access_binhacks(game, thc):
         lasers_reg.at(0x426c4c, 'eax')  # BulletManager::on_draw_0a
 
     if game == 'th08':
-        bullets_stack.at(0x0c, 0x423a6c)  # Enemy::hardcoded_func_04_reimu
-        bullets_stack.at(0x0c, 0x423e2c)  # Enemy::hardcoded_func_21_reimu
-        bullets_stack.at(0x0c, 0x4241ec)  # Enemy::hardcoded_func_07_reimu
-        bullets_stack.at(0x08, 0x424a2c)  # Enemy::hardcoded_func_12_reisen
-        bullets_stack.at(0x08, 0x424c4c)  # Enemy::hardcoded_func_14_reisin
-        bullets_stack.at(0x08, 0x424e5c)  # Enemy::hardcoded_func_16_eirin
-        bullets_stack.at(0x08, 0x4250dc)  # Enemy::hardcoded_func_27_sakuya_lw
-        bullets_stack.at(0x08, 0x4251e6)  # Enemy::hardcoded_func_28_youmu_lw
-        bullets_stack.at(0x0c, 0x42529c)  # Enemy::hardcoded_func_29_youmu_lw
-        bullets_stack.at(0x08, 0x42f3a0)  # BulletManager::reset
-        bullets_stack.at(0x1c, 0x43083a)  # BulletManager::cancel_all
-        bullets_stack.at(0x18, 0x430abe)  # BulletManager::sub_430aa0
-        bullets_stack.at(0x14, 0x430d3a)  # BulletManager::ecl_161__cancel_radius?
+        bullets_stack.at(0x423a6c, 0x0c)  # Enemy::hardcoded_func_04_reimu
+        bullets_stack.at(0x423e2c, 0x0c)  # Enemy::hardcoded_func_21_reimu
+        bullets_stack.at(0x4241ec, 0x0c)  # Enemy::hardcoded_func_07_reimu
+        bullets_stack.at(0x424a2c, 0x08)  # Enemy::hardcoded_func_12_reisen
+        bullets_stack.at(0x424c4c, 0x08)  # Enemy::hardcoded_func_14_reisin
+        bullets_stack.at(0x424e5c, 0x08)  # Enemy::hardcoded_func_16_eirin
+        bullets_stack.at(0x4250dc, 0x08)  # Enemy::hardcoded_func_27_sakuya_lw
+        bullets_stack.at(0x4251e6, 0x08)  # Enemy::hardcoded_func_28_youmu_lw
+        bullets_stack.at(0x42529c, 0x0c)  # Enemy::hardcoded_func_29_youmu_lw
+        bullets_stack.at(0x42f3a0, 0x08)  # BulletManager::reset
+        bullets_stack.at(0x43083a, 0x1c)  # BulletManager::cancel_all
+        bullets_stack.at(0x430abe, 0x18)  # BulletManager::sub_430aa0
+        bullets_stack.at(0x430d3a, 0x14)  # BulletManager::ecl_161__cancel_radius?
 
         bullets_reg.at(0x42f379, 'eax')  # BulletManager::reset
         bullets_reg.at(0x42f44e, 'ecx')  # BulletManager::constructor
