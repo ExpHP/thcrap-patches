@@ -8,6 +8,7 @@ import collections
 import keystone
 import inspect
 import random
+import sys
 import re
 
 class LocatableSymbolResolver:
@@ -317,6 +318,12 @@ class ThcrapGen:
             if isinstance(binhack['addr'], list):
                 binhack['addr'] = [hexify_if_int(x) for x in binhack['addr']]
         return cereal
+
+    def print(self, file=sys.stdout):
+        from ruamel.yaml import YAML
+        yaml = YAML(typ='safe')
+        yaml.dump(self.cereal(), file)
+
 
 def default_arg_parser(require_game=False):
     import argparse

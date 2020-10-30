@@ -159,6 +159,7 @@ DIR=$(PERSONAL)/ssa
 ssa: \
 	$(call glob-th-js-from-yaml,$(DIR)) \
 
+.INTERMEDIATE: $(DIR)/common.asm.yaml
 $(DIR)/th%.js: $(DIR)/th%.yaml $(DIR)/common.asm.yaml
 	scripts/convert-yaml.py $^ >$@
 
@@ -171,11 +172,15 @@ bullet-cap: \
 	$(DIR)/global.js \
 	$(call glob-th-js-from-asm,$(DIR)) \
 
-$(DIR)/pointerize.${TH07_VER}.yaml \
-$(DIR)/pointerize.${TH08_VER}.yaml \
-: $(DIR)/pointerize.th%.yaml: $(DIR)/pointerize.py
+POINTERIZE_YAMLS= \
+	$(DIR)/pointerize.${TH07_VER}.yaml \
+	$(DIR)/pointerize.${TH08_VER}.yaml \
+
+.INTERMEDIATE: $(POINTERIZE_YAMLS)
+$(POINTERIZE_YAMLS) : $(DIR)/pointerize.th%.yaml: $(DIR)/pointerize.py
 	$(PYTHON) $< --game th$* >$@
 
+.INTERMEDIATE: $(DIR)/global.asm.yaml
 $(DIR)/global.js: $(DIR)/global.asm.yaml
 	scripts/convert-yaml.py $^ >$@
 
@@ -194,6 +199,7 @@ debug-counters: \
 	$(DIR)/global.js \
 	$(call glob-th-js-from-asm,$(DIR)) \
 
+.INTERMEDIATE: $(DIR)/global.asm.yaml
 $(DIR)/global.js: $(DIR)/global.asm.yaml
 	scripts/convert-yaml.py $^ >$@
 
@@ -238,7 +244,10 @@ ultra: \
 	$(DIR)/$(TH165_VER).js \
 	$(DIR)/$(TH17_VER).js \
 
-$(DIR)/th%.js: $(DIR)/binhacks.yaml
+$(DIR)/binhacks.th%.yaml: $(DIR)/binhacks.py
+	$(PYTHON) $< --game th$* >$@
+
+$(DIR)/th%.js: $(DIR)/binhacks.th%.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
 
 #================================================
@@ -249,6 +258,7 @@ DIR=$(REPO)/base_exphp
 base-exphp: \
 	$(DIR)/global.js \
 
+.INTERMEDIATE: $(DIR)/global.asm.yaml
 $(DIR)/global.js: $(DIR)/global.asm.yaml
 	scripts/convert-yaml.py $^ >$@
 
@@ -264,6 +274,7 @@ anm-leak: \
 	$(DIR)/$(TH165_VER).js \
 	$(DIR)/$(TH17_VER).js \
 
+.INTERMEDIATE: $(DIR)/global.asm.yaml
 $(DIR)/global.js: $(DIR)/global.asm.yaml
 	scripts/convert-yaml.py $^ >$@
 

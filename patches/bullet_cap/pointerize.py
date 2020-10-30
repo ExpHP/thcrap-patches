@@ -8,18 +8,13 @@ except ImportError:
     sys.exit(1)
 
 def main():
-    args = binhack_helper.default_arg_parser(require_game=True).parse_args()
-    game = args.game
-
+    game = binhack_helper.default_arg_parser(require_game=True).parse_args().game
     thc = binhack_helper.ThcrapGen('ExpHP.bullet-cap.')
 
-    if 'th07' <= game <= 'th08':
-        add_main_binhacks(game, thc)
-        add_access_binhacks(game, thc)
+    add_main_binhacks(game, thc)
+    add_access_binhacks(game, thc)
 
-    from ruamel.yaml import YAML
-    yaml = YAML(typ='unsafe')
-    yaml.dump(thc.cereal(), sys.stdout)
+    thc.print()
 
 def add_main_binhacks(game, thc):
     # ===============================================
