@@ -91,5 +91,3 @@ istruc ArraySpec
     at ArraySpec.field_offset, dd FIELD_IS_DWORD
     at ArraySpec.stride, dd 0x4
 iend
-
-get_color:  ; DELETE

@@ -90,6 +90,8 @@ show_debug_data:  ; HEADER: AUTO
     ret
     %pop
 
+; =============================================================================
+
 ; __stdcall void DrawfSpec(Float3*, Spec*, char* fmt)
 drawf_spec:  ; HEADER: AUTO
     ; read the first field (discriminant) of the spec and then advance it to point after
@@ -501,6 +503,8 @@ drawf_embedded_spec:  ; HEADER: AUTO
     epilogue_sd
     ret 0xc
     %pop
+
+; =============================================================================
 
 ; int ParseLimit(int* limit_const)
 parse_limit:  ; HEADER: AUTO

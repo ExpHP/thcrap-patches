@@ -25,7 +25,7 @@ adjust_cancel_array:  ; HEADER: base-exphp.adjust-cancel-array
 
 ; Address range spanned by .text
 address_range:  ; HEADER: AUTO
-    dd 0x401000
+    dd 0x402000  ; IN is the *only game* where .text doesn't start at 0x401000
     dd 0x4b3b78
 
 bullet_replacements:  ; HEADER: AUTO

@@ -85,5 +85,3 @@ istruc FieldSpec
     at FieldSpec.limit, dd LIMIT_NONE
     at FieldSpec.count_offset, dd 0xc0
 iend
-
-get_color:  ; DELETE

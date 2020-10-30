@@ -84,5 +84,3 @@ istruc ListSpec
     at ListSpec.limit, dd LIMIT_NONE
     at ListSpec.head_ptr_offset, dd 0x58
 iend
-
-get_color:  ; DELETE

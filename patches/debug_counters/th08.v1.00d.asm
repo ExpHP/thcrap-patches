@@ -72,9 +72,6 @@ istruc FieldSpec
     at FieldSpec.count_offset, dd 0x17ada8
 iend
 
-cancel_item_data:  ; HEADER: AUTO
-    dd 0
-
 laser_data:  ; HEADER: AUTO
     dd KIND_EMBEDDED
 istruc EmbeddedSpec
@@ -155,4 +152,3 @@ istruc ArraySpec
     at ArraySpec.field_offset, dd 0x350
     at ArraySpec.stride, dd 0x360
 iend
-get_color:  ; DELETE
