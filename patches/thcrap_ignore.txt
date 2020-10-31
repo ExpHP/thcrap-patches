@@ -2,4 +2,5 @@ subseason_TEMPLATE
 README.md
 *.yaml
 *.asm
+*.py
 .gitignore
