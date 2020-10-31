@@ -6,7 +6,7 @@ Patch for supporting `bullet_cap` without depending on it.
 
 This patch provides functions (in the form of thcrap codecaves) for locating fields on structs that may have been moved by `bullet_cap`.  When `bullet_cap` is not installed, these functions use trivial default implementations that reflect the behavior of the vanilla game.
 
-**NOTE:** For your convenience, all functions documented here preserve the values of the volatile `ecx` and `edx` registers *in addition* to the requirements of the `__stdcall` ABI (so that all general-purpose integer registers other than `eax` are preserved).
+**NOTE:** For your convenience, **all functions documented here preserve the values of the volatile `ecx` and `edx` registers** in addition to the requirements of the `__stdcall` ABI (so that all general-purpose integer registers other than `eax` are preserved).
 
 # Functions
 
@@ -88,9 +88,9 @@ Laser* __stdcall AdjustLaserArray(Laser* old_array_location);
 
 `StructId` is a dword-sized enumeration type identifying a global struct that is modified by `bullet_cap`.  Here are its values:
 
- Value  |Name used in<br>[th-re-data](https://github.com/exphp-share/th-re-data) | ZUN's name<br>(if known) | | Notes |
- :---:  | :---: | :---: | :--- |
-`0x100` | `BulletManager` | `BulletInf` | Prior to StB, this also contains the laser array. (in StB onwards, they live in a linked list on another struct) |
-`0x101` | `ItemManager`   | `ItemInf`   | |
+|  Value  |Name used in<br>[th-re-data](https://github.com/exphp-share/th-re-data) | ZUN's name<br>(if known) | | Notes |
+|  :---:  | :---: | :---: | :--- |
+| `0x100` | `BulletManager` | `BulletInf` | Prior to StB, this also contains the laser array. (in StB onwards, they live in a linked list on another struct) |
+| `0x101` | `ItemManager`   | `ItemInf`   | |
 
 The constants mostly serve to identify the *type* of the global, not a specific global.  So e.g. in PoFV, the ID `0x100` is suitable for both of the two instances of `BulletManager`, and what differentiates them is the `struct_base` (which would be `[0x4a7d98]` for Player 1 and `[0x4a7dd0]` for Player 2).
