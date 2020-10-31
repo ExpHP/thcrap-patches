@@ -88,7 +88,7 @@ Laser* __stdcall AdjustLaserArray(Laser* old_array_location);
 
 `StructId` is a dword-sized enumeration type identifying a global struct that is modified by `bullet_cap`.  Here are its values:
 
-|  Value  |Name used in<br>[th-re-data](https://github.com/exphp-share/th-re-data) | ZUN's name<br>(if known) | | Notes |
+|  Value  |Name of struct in [th-re-data](https://github.com/exphp-share/th-re-data) | ZUN's name (if known) | Notes |
 |  :---:  | :---: | :---: | :--- |
 | `0x100` | `BulletManager` | `BulletInf` | Prior to StB, this also contains the laser array. (in StB onwards, they live in a linked list on another struct) |
 | `0x101` | `ItemManager`   | `ItemInf`   | |
