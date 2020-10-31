@@ -1,12 +1,8 @@
-; (for once, this .asm file actually IS a source file.
-;  Its "compilation" hinges on a number of terrifyingly fragile string transformations
-;  stacked like a house of cards on top of nasm's output, and requires delicate placement
-;  of tons of cryptic meta-comments like "; DELETE".  But it *is* fully automated by make.)
-
 ; AUTO_PREFIX: ExpHP.bullet-cap.
 
 %include "util.asm"
 %include "common.asm"
+%include "layout-test.asm"
 
 %define MB_OK 0
 %define PAGE_EXECUTE_READWRITE 0x40
@@ -34,6 +30,9 @@ iat_funcs:  ; DELETE
 .GetModuleHandleW: dd 0  ; DELETE
 .GetProcAddress: dd 0  ; DELETE
 .MessageBoxA: dd 0  ; DELETE
+
+corefuncs:
+.malloc: dd 0  ; DELETE
 
 address_range:  ; DELETE
 .start: dd 0  ; DELETE
@@ -69,6 +68,23 @@ runonce:  ; HEADER: AUTO
     dd 0
 
 ;=========================================
+; Funcs that override methods from exphp-base
+
+override__adjust_field_ptr:  ; HEADER: base-exphp.adjust-field-ptr
+    func_begin
+    func_arg %$structid, %$field_ptr, %$struct_base
+    func_prologue ecx, edx
+
+    push dword [%$field_ptr]
+    push dword [%$structid]
+    push dword [%$struct_base]
+    call get_modified_address  ; REWRITE: [codecave:AUTO]
+
+    func_epilogue
+    func_ret
+    func_end
+
+;=========================================
 ; Funcs used by binhacks
 
 ; __stdcall Initialize()
@@ -76,6 +92,10 @@ initialize:  ; HEADER: AUTO
     mov  eax, [runonce]  ; REWRITE: <codecave:AUTO>
     test eax, eax
     jnz  .norun
+
+    mov  eax, the_worlds_saddest_unit_test  ; REWRITE: <codecave:AUTO>
+    add  eax, the_worlds_saddest_unit_test.code - the_worlds_saddest_unit_test
+    call eax
 
     ; set runonce to 1, regardless of codecave permissions
     push 1  ; put on stack so we can get pointer
@@ -249,12 +269,19 @@ get_struct_data:  ; HEADER: AUTO
     je   .bulletmgr
     cmp  dword [ebp+0x8], STRUCT_ITEM_MGR
     je   .itemmgr
+    cmp  dword [ebp+0x8], __STRUCT_TEST
+    je   .test
+
     die  ; probably read type from wrong address
 .bulletmgr:
     mov  eax, bullet_mgr_layout  ; REWRITE: <codecave:AUTO>
     jmp  .done
 .itemmgr:
     mov  eax, item_mgr_layout  ; REWRITE: <codecave:AUTO>
+    jmp  .done
+.test:
+    mov  eax, the_worlds_saddest_unit_test  ; REWRITE: <codecave:AUTO>
+    add  eax, the_worlds_saddest_unit_test.layout - the_worlds_saddest_unit_test
     jmp  .done
 .done:
     epilogue_sd
@@ -269,6 +296,10 @@ get_cap_data:  ; HEADER: AUTO
     je   .cancel
     cmp  dword [ebp+0x8], CAPID_LASER
     je   .laser
+    cmp  dword [ebp+0x8], __CAPID_TEST_1
+    je   .test1
+    cmp  dword [ebp+0x8], __CAPID_TEST_2
+    je   .test2
     die  ; probably read type from wrong address
 .bullet:
     mov  eax, bullet_replacements  ; REWRITE: <codecave:AUTO>
@@ -278,6 +309,14 @@ get_cap_data:  ; HEADER: AUTO
     jmp  .done
 .laser:
     mov  eax, laser_replacements  ; REWRITE: <codecave:AUTO>
+    jmp  .done
+.test1:
+    mov  eax, the_worlds_saddest_unit_test  ; REWRITE: <codecave:AUTO>
+    add  eax, the_worlds_saddest_unit_test.capdata_1 - the_worlds_saddest_unit_test
+    jmp  .done
+.test2:
+    mov  eax, the_worlds_saddest_unit_test  ; REWRITE: <codecave:AUTO>
+    add  eax, the_worlds_saddest_unit_test.capdata_2 - the_worlds_saddest_unit_test
     jmp  .done
 .done:
     epilogue_sd
@@ -292,35 +331,36 @@ get_new_cap:  ; HEADER: AUTO
     je   .cancel
     cmp  dword [ebp+0x8], CAPID_LASER
     je   .laser
+    cmp  dword [ebp+0x8], __CAPID_TEST_1
+    je   .test1
+    cmp  dword [ebp+0x8], __CAPID_TEST_2
+    je   .test2
     die  ; probably read type from wrong address
 .bullet:
     mov  eax, 0  ; REWRITE: <codecave:bullet-cap>
-    jmp  .done
+    jmp  .read_codecave_cap
 .cancel:
     mov  eax, 0  ; REWRITE: <codecave:cancel-cap>
-    jmp  .done
+    jmp  .read_codecave_cap
 .laser:
     mov  eax, 0  ; REWRITE: <codecave:laser-cap>
+    jmp  .read_codecave_cap
+.test1:
+    mov  eax, the_worlds_saddest_unit_test  ; REWRITE: <codecave:AUTO>
+    add  eax, the_worlds_saddest_unit_test.capdata_1 - the_worlds_saddest_unit_test
+    mov  eax, [eax+ListHeader_size]  ; new cap is after standard capdata
     jmp  .done
-.done:
+.test2:
+    mov  eax, the_worlds_saddest_unit_test  ; REWRITE: <codecave:AUTO>
+    add  eax, the_worlds_saddest_unit_test.capdata_2 - the_worlds_saddest_unit_test
+    mov  eax, [eax+ListHeader_size]  ; new cap is after standard capdata
+    jmp  .done
+.read_codecave_cap:
     mov  eax, [eax]  ; read codecave
     bswap eax  ; big endian to little endian
+.done:
     epilogue_sd
     ret 0x4
-
-;=========================================
-
-;     push dword [%$structid]
-;     call get_struct_data  ; REWRITE: [codecave:AUTO]
-;     mov  ecx, eax
-
-;     ; Locate the struct
-;     mov  eax, [ecx+LayoutHeader.address]
-;     test dword [ecx+LayoutHeader.is_pointer], -1
-;     jz   .notpointer
-;     mov  eax, [eax]
-; .notpointer:
-;     mov  [%$struct_base], eax
 
 ;=========================================
 ; Transforming values
@@ -383,8 +423,8 @@ adjust_value_for_cap_impl:  ; HEADER: AUTO
     movzx ecx, byte [%$scale_const + ScaleConst.one_mult]
     add  eax, ecx
     cmp  eax, 0
-    jg   .goodscale
-    die  ; negative or zero scale, probably an error
+    jge  .goodscale
+    die  ; negative scale, probably an error
 .goodscale:
     mov  [%$scale], eax
 
@@ -511,6 +551,7 @@ get_modified_address:  ; HEADER: AUTO
     mov  eax, [%$reg_region_data + RegionData_size+RegionData.start]
     cmp  eax, _REGION_TOKEN_END
     je   .beyondlastregion  ; we're past the end then...
+    add  eax, [%$struct_base]
     cmp  eax, [%$old_ptr]
     jle  .beyondregion
     jmp  .withinregion
@@ -576,11 +617,13 @@ get_modified_address:  ; HEADER: AUTO
     ; Are we within the first item?
     mov  eax, [%$old_ptr]
     sub  eax, [%$reg_region_data + RegionData.start]
+    sub  eax, [%$struct_base]
     cmp  eax, [%$elem_size]
     jl   .done  ; inside first item; nothing more to do
 
     ; Are we within the last item?
     mov  eax, [%$reg_region_data + RegionData_size + RegionData.start]
+    add  eax, [%$struct_base]
     sub  eax, [%$elem_size]
     cmp  [%$old_ptr], eax
     jl   .middleofarray  ; not inside last item
@@ -940,8 +983,10 @@ less_spikey_find_world_vm:  ; HEADER: AUTO
 ; Stuff for TH06-TH08 pointerization
 
 allocate_pointerized_bmgr_arrays:  ; HEADER: AUTO
-    push ebx
+    func_begin
+    func_prologue ebx, edi
     mov  ebx, pointerize_data  ; REWRITE: <codecave:AUTO>
+    mov  edi, corefuncs        ; REWRITE: <codecave:AUTO>
 
     ; Allocate space for the bullets.
     ;
@@ -953,7 +998,7 @@ allocate_pointerized_bmgr_arrays:  ; HEADER: AUTO
     inc  eax  ; plus dummy bullet
     imul eax, [ebx+PointerizeData.bullet_size]
     push eax
-    mov  eax, [ebx+PointerizeData.func_malloc]
+    mov  eax, [edi + corefuncs.malloc - corefuncs]
     call eax
     add  esp, 0x4  ; caller cleans stack
     mov  ecx, [ebx+PointerizeData.bullet_array_ptr]
@@ -964,17 +1009,20 @@ allocate_pointerized_bmgr_arrays:  ; HEADER: AUTO
     bswap eax
     imul eax, [ebx+PointerizeData.laser_size]
     push eax
-    mov  eax, [ebx+PointerizeData.func_malloc]
+    mov  eax, [edi + corefuncs.malloc - corefuncs]
     call eax
     add  esp, 0x4  ; caller cleans stack
     mov  ecx, [ebx+PointerizeData.laser_array_ptr]
     mov  [ecx], eax
-    pop  ebx
-    ret
+    func_epilogue
+    func_ret
+    func_end
 
 allocate_pointerized_imgr_arrays:  ; HEADER: AUTO
-    push ebx
+    func_begin
+    func_prologue ebx, edi
     mov  ebx, pointerize_data  ; REWRITE: <codecave:AUTO>
+    mov  edi, corefuncs  ; REWRITE: <codecave:AUTO>
 
     mov  eax, [new_cancel_cap_bigendian]  ; REWRITE: <codecave:cancel-cap>
     bswap eax
@@ -982,7 +1030,7 @@ allocate_pointerized_imgr_arrays:  ; HEADER: AUTO
 
     imul eax, [ebx+PointerizeData.item_size]
     push eax
-    mov  eax, [ebx+PointerizeData.func_malloc]
+    mov  eax, [edi + corefuncs.malloc - corefuncs]
     call eax
     add  esp, 0x4  ; caller cleans stack
     mov  ecx, [ebx+PointerizeData.item_array_ptr]
@@ -991,8 +1039,9 @@ allocate_pointerized_imgr_arrays:  ; HEADER: AUTO
     ; Technically the original code also called constructors on the items, but there's
     ; no point because the game will memset the array before it ever gets used.
 
-    pop ebx
-    ret
+    func_epilogue
+    func_ret
+    func_end
 
 ; __stdcall void ClearPointerizedBulletMgr()
 clear_pointerized_bullet_mgr:  ; HEADER: AUTO

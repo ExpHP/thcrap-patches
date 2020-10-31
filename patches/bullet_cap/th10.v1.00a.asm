@@ -112,3 +112,6 @@ iat_funcs:  ; HEADER: AUTO
 .GetModuleHandleW: dd 0
 .GetProcAddress: dd 0x466158
 .MessageBoxA: dd 0x466234
+
+corefuncs:  ; HEADER: AUTO
+.malloc: dd 0x452493

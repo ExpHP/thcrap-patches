@@ -80,7 +80,6 @@ install_125:  ; HEADER: AUTO
     abs_jmp_hack 0x42971e  ; TH165
     abs_jmp_hack 0x431304  ; TH17
 
-
 ; ==========================================
 ; Patch for where games without cancel item freelists increment the next index.
 ;

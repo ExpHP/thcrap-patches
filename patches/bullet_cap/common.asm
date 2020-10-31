@@ -1,14 +1,14 @@
 ; IDs for global structs that can be affected by this mod.
-%define STRUCT_BULLET_MGR  1
-%define STRUCT_ITEM_MGR    2
-%define __STRUCT_TEST  0x20
+%define STRUCT_BULLET_MGR  0x100
+%define STRUCT_ITEM_MGR    0x101
+%define __STRUCT_TEST      0x200
 
 ; IDs for the modifiable caps.
-%define CAPID_BULLET 0x40
-%define CAPID_LASER  0x41
-%define CAPID_CANCEL 0x42
-%define __CAPID_TEST_1 0x80
-%define __CAPID_TEST_2 0x81
+%define CAPID_BULLET   0x300
+%define CAPID_LASER    0x301
+%define CAPID_CANCEL   0x302
+%define __CAPID_TEST_1 0x400
+%define __CAPID_TEST_2 0x401
 
 ; =============================
 ;        CAP CHANGES
@@ -62,7 +62,7 @@ endstruc
 ; Indicates an array that we resize starting at a given offset.
 %define REGION_ARRAY(start, capid, scale)               start, capid, 0, scale, scale
 ; Indicates an array that we move behind a pointer and resize, starting at a given offset.
-%define REGION_ARRAY_POINTERIZED(start, capid, scale)  start, capid, _REGION_FLAG_POINTERIZED, scale, 0
+%define REGION_ARRAY_POINTERIZED(start, capid, scale)   start, capid, _REGION_FLAG_POINTERIZED, scale, SCALE_FIXED(0)
 ; Marks the struct size as the final offset.
 %define REGION_END(end)                                 REGION_NORMAL(end), _REGION_TOKEN_END
 
@@ -171,7 +171,6 @@ struc PointerizeData
     .bullet_state_offset: resd 1
     .bullet_mgr_size: resd 1
     .item_mgr_size: resd 1
-    .func_malloc: resd 1
 endstruc
 
 struc PerfFixData

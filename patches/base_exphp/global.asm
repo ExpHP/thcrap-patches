@@ -1,17 +1,22 @@
 
 ; AUTO_PREFIX: base-exphp.
 
-; __stdcall Bullet* AdjustBulletArray(Bullet* original_array)
+; Bullet* __stdcall AdjustBulletArray(Bullet* original_array)
 adjust_bullet_array:  ; HEADER: AUTO
     mov  eax, [esp+0x4]
     ret
 
-; __stdcall Item* AdjustCancelArray(Item* original_array)
+; Item* __stdcall AdjustCancelArray(Item* original_array)
 adjust_cancel_array:  ; HEADER: AUTO
     mov  eax, [esp+0x4]
     ret
 
-; __stdcall Laser* AdjustLaserArray(Laser* original_array)
+; Laser* __stdcall AdjustLaserArray(Laser* original_array)
 adjust_laser_array:  ; HEADER: AUTO
     mov  eax, [esp+0x4]
+    ret
+
+; void* __stdcall AdjustFieldPtr(StructId what, void* field_ptr, void* struct_base)
+adjust_field_ptr: ; HEADER: AUTO
+    mov  eax, [esp+0x8]
     ret

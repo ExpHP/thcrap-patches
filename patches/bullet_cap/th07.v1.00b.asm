@@ -176,7 +176,6 @@ istruc PointerizeData
     at PointerizeData.bullet_state_offset, dd 0xbfc
     at PointerizeData.bullet_mgr_size, dd 0x37a164
     at PointerizeData.item_mgr_size, dd 0xae57c
-    at PointerizeData.func_malloc, dd 0x47d441
 iend
 
 iat_funcs:  ; HEADER: AUTO
@@ -185,3 +184,6 @@ iat_funcs:  ; HEADER: AUTO
 .GetModuleHandleW: dd 0
 .GetProcAddress: dd 0x48d05c
 .MessageBoxA: dd 0x48d1e4
+
+corefuncs:  ; HEADER: AUTO
+.malloc: dd 0x47d441

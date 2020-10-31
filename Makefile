@@ -180,6 +180,12 @@ POINTERIZE_YAMLS= \
 $(POINTERIZE_YAMLS) : $(DIR)/pointerize.th%.yaml: $(DIR)/pointerize.py
 	$(PYTHON) $< --game th$* >$@
 
+TH_ASM_YAMLS=$(patsubst %.asm,%.asm.yaml,$(wildcard $(DIR)/th*.asm))
+
+.INTERMEDIATE: $(TH_ASM_YAMLS)
+$(DIR)/global.asm.yaml: $(DIR)/layout-test.asm $(DIR)/common.asm
+$(TH_ASM_YAMLS): $(DIR)/common.asm
+
 .INTERMEDIATE: $(DIR)/global.asm.yaml
 $(DIR)/global.js: $(DIR)/global.asm.yaml
 	scripts/convert-yaml.py $^ >$@

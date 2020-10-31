@@ -3,6 +3,7 @@
     "codecaves": {
         "base-exphp.adjust-bullet-array": "8B442404 // C3",
         "base-exphp.adjust-cancel-array": "8B442404 // C3",
-        "base-exphp.adjust-laser-array": "8B442404 // C3"
+        "base-exphp.adjust-laser-array": "8B442404 // C3",
+        "base-exphp.adjust-field-ptr": "8B442408 // C3"
     }
 }
