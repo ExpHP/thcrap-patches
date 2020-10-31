@@ -46,7 +46,7 @@ push 0x100                 6800010000
 call adjust_field_ptr      e8[codecave:base-exphp.adjust-field-ptr]
 ```
 
-The last bullet in the bullet array is always a dummy entry, with a dummy value for its state field.  For instance, the instruction at `th08.exe+0x2f38a` sets such a field.  `bullet_cap` both resizes this array and moves this array behind a pointer, making it difficult to locate normally. However, because this field is on the last entry of the array, it is a valid argument for `field_ptr`:
+The last bullet in the bullet array is always a dummy entry, with a sentinel value for its state field.  For instance, the instruction at `th08.exe+0x2f38a` sets such a field.  `bullet_cap` both resizes this array and moves this array behind a pointer, making it difficult to locate normally. However, because this field is on the last entry of the array, it is a valid argument for `field_ptr`:
 
 ```
 Example: Setting the dummy bullet state in TH08.
