@@ -16,6 +16,8 @@ endstruc
 data:  ; HEADER: AUTO
     dd 0 ; replace with conditionals for things below
 
+; TH06 has no batching, making it the only game that doesn't require fixing.  Hooray!
+
 data_07:  ; HEADER: AUTO
 istruc Data  ; DELETE
     at Data.anm_manager_ptr, dd 0x4b9e44
@@ -32,6 +34,24 @@ istruc Data  ; DELETE
     at Data.flush_sprites, dd  0x462e40
     at Data.buffer_offset, dd 0x2524
     at Data.cursor_offset, dd 0x2a2524
+iend  ; DELETE
+
+data_09:  ; HEADER: AUTO
+istruc Data  ; DELETE
+    at Data.anm_manager_ptr, dd 0x4dc550
+    at Data.flush_sprites_abi, dd wrapper_thiscall  ; REWRITE: <codecave:AUTO>
+    at Data.flush_sprites, dd  0x4396a0
+    at Data.buffer_offset, dd 0x128e8
+    at Data.cursor_offset, dd 0x2b28e8
+iend  ; DELETE
+
+data_095:  ; HEADER: AUTO
+istruc Data  ; DELETE
+    at Data.anm_manager_ptr, dd 0x4ca1b8
+    at Data.flush_sprites_abi, dd wrapper_thiscall  ; REWRITE: <codecave:AUTO>
+    at Data.flush_sprites, dd  0x43f2f0
+    at Data.buffer_offset, dd 0x17c8
+    at Data.cursor_offset, dd 0x3817c8
 iend  ; DELETE
 
 data_10:  ; HEADER: AUTO
@@ -147,11 +167,23 @@ iend  ; DELETE
 
 ; TH07:  0x44f699  (8b75088b45fc)
 ; TH08:  0x462f19  (8b75088b45fc)
+; TH095: 0x43f3c9  (8b75088b45fc)
 binhack_08:  ; HEADER: AUTO
     call fix  ; REWRITE: [codecave:AUTO]
     ; original code
     mov  esi, dword [ebp+0x8]
     mov  eax, dword [ebp-0x4]
+    ret
+
+; y u gotta be special, PoFV?
+; TH09:  0x439733  (8b55088bc1)
+binhack_09:  ; HEADER: AUTO
+    push ecx  ; save
+    call fix  ; REWRITE: [codecave:AUTO]
+    pop  ecx  ; restore
+    ; original code
+    mov  edx, dword [ebp+0x8]
+    mov  eax, ecx
     ret
 
 ; In DDC and beyond, we replace the line with the `lea` that checks how far the

@@ -13,6 +13,7 @@
 %define POSITIONING_TD    2
 %define POSITIONING_DDC   3
 %define POSITIONING_IN    4
+%define POSITIONING_EOSD  5
 
 ; Quantity is unlimited.
 %define LIMIT_NONE             LIMIT_VALUE(0x7fffffff)

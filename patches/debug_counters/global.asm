@@ -26,6 +26,8 @@ show_debug_data:  ; HEADER: AUTO
 
     mov  eax, color_data  ; REWRITE: <codecave:AUTO>
     mov  eax, [eax + ColorData.positioning]
+    cmp  eax, POSITIONING_EOSD
+    je   .pos_eosd
     cmp  eax, POSITIONING_IN
     je   .pos_in
     cmp  eax, POSITIONING_MOF
@@ -36,6 +38,12 @@ show_debug_data:  ; HEADER: AUTO
     je   .pos_ddc
     int  3
 
+.pos_eosd:
+    mov  dword [%$pos_x], __float32__(442.0)
+    mov  dword [%$pos_y], __float32__(478.0)
+    mov  dword [%$pos_z], __float32__(0.0)
+    mov  dword [%$delta_y], __float32__(14.0)
+    jmp  .pos_done
 .pos_in:
     mov  dword [%$pos_x], __float32__(447.0)
     mov  dword [%$pos_y], __float32__(464.0)

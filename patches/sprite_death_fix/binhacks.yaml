@@ -1,15 +1,30 @@
 binhacks:
-  /fields-if(any(th07..th08)):
+  /fields-if(any(th07, th08, th095)):
     ExpHP.sprite-death-fix.hack:
       addr:
         /value-if(th07): "0x44f699"
         /value-if(th08): "0x462f19"
+        /value-if(th095): "0x43f3c9"
       expected: "8b75088b45fc"
       call-codecave:
         - "E8[codecave:ExpHP.sprite-death-fix.fix]" # call fix
         # original code
         - "8B7508            " # mov  esi, dword [ebp+0x8]
         - "8B45FC            " # mov  eax, dword [ebp-0x4]
+        - "C3                " # ret
+
+  # pofv is a special snowflake
+  /fields-if(th09):
+    ExpHP.sprite-death-fix.hack:
+      addr: "0x439733"
+      expected: "8b55088bc1"
+      call-codecave:
+        - "51                " # push ecx  ; save
+        - "E8[codecave:ExpHP.sprite-death-fix.fix]" # call fix
+        - "59                " # pop  ecx  ; restore
+        # original code
+        - "8B5508            " # mov  edx, dword [ebp+0x8]
+        - "89C8              " # mov  eax, ecx
         - "C3                " # ret
 
   # Bizarre ABI era games, for which we can miraculously write a single binhack.
@@ -76,6 +91,20 @@ codecaves:
       - "402E4600          " # at Data.flush_sprites, dd  0x462e40
       - "24250000          " # at Data.buffer_offset, dd 0x2524
       - "24252A00          " # at Data.cursor_offset, dd 0x2a2524
+
+    /value-if(th09):
+      - "50C54D00          " # at Data.anm_manager_ptr, dd 0x4dc550
+      - "<codecave:ExpHP.sprite-death-fix.wrapper-thiscall>" # at Data.flush_sprites_abi, dd wrapper_thiscall
+      - "A0964300          " # at Data.flush_sprites, dd  0x4396a0
+      - "E8280100          " # at Data.buffer_offset, dd 0x128e8
+      - "E8282B00          " # at Data.cursor_offset, dd 0x2b28e8
+
+    /value-if(th095):
+      - "B8A14C00          " # at Data.anm_manager_ptr, dd 0x4ca1b8
+      - "<codecave:ExpHP.sprite-death-fix.wrapper-thiscall>" # at Data.flush_sprites_abi, dd wrapper_thiscall
+      - "F0F24300          " # at Data.flush_sprites, dd  0x43f2f0
+      - "C8170000          " # at Data.buffer_offset, dd 0x17c8
+      - "C8173800          " # at Data.cursor_offset, dd 0x3817c8
 
     /value-if(th10):
       - "101C4900          " # at Data.anm_manager_ptr, dd 0x491c10

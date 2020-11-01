@@ -31,6 +31,8 @@ def main_binhack(game, thc, defs):
         '''),
     }
     thc.binhack('draw', {
+        # just find the first instruction after 
+        'th06': binhack(0x4240e4, original='mov  ecx, 0x47b900', jmp_dest=0x4240e9),
         'th07': binhack(0x439391, original="mov  eax, [0x62f648]", jmp_dest=0x439396),
         'th08': binhack(0x447225, original="mov  eax, [0x164d0b4]", jmp_dest=0x44722a),
         'th10': binhack(0x413653, original="mov  eax, [0x4776e0]", jmp_dest=0x413658),
@@ -50,13 +52,15 @@ def main_binhack(game, thc, defs):
 def aux_stuff(game, thc, defs):
     # Workaround for games where AsciiManager is static, so that ColorData can still
     # contain a pointer to a pointer to AsciiManager.
-    if 'th07' <= game <= 'th08':
+    if 'th06' <= game <= 'th08':
         thc.codecave('ascii-manager-ptr', thc.data({
+            'th06': 0x47b900,
             'th07': 0x134ce18,
             'th08': 0x4cce20,
         }[game]))
 
     thc.codecave('color-data', thc.data(lambda d: {
+        'th06': defs.ColorData(ascii_manager_ptr=d.abs_auto('ascii-manager-ptr'), color_offset=0x6224, positioning=defs.POSITIONING_EOSD),
         'th07': defs.ColorData(ascii_manager_ptr=d.abs_auto('ascii-manager-ptr'), color_offset=0x74c0, positioning=defs.POSITIONING_IN),
         'th08': defs.ColorData(ascii_manager_ptr=d.abs_auto('ascii-manager-ptr'), color_offset=0x8268, positioning=defs.POSITIONING_IN),
         'th10': defs.ColorData(ascii_manager_ptr=0x4776e0, color_offset=0x8974, positioning=defs.POSITIONING_MOF),
@@ -75,6 +79,7 @@ def aux_stuff(game, thc, defs):
 
     DRAWF_DEBUG = {
         # Early games: Any function that looks like it could be AsciiManager::drawf.
+        'th06': 0x401650,
         'th07': 0x402060,
         'th08': 0x402a30,
         # TH10+: The function used by the FpsCounter to drawf.
@@ -94,7 +99,7 @@ def aux_stuff(game, thc, defs):
 
     # Now wrap DRAWF_DEBUG to have the following ABI:
     # void __stdcall DrawfDebugInt(AsciiManager*, Float3*, char*, int current)
-    if 'th07' <= game <= 'th08' or 'th14' <= game <= 'th17' and game != 'th165':
+    if 'th06' <= game <= 'th08' or 'th14' <= game <= 'th17' and game != 'th165':
         # In these games drawf_debug WOULD be perfect except we that want callee-cleans-stack.
         drawf_debug_int = thc.asm(f'''
             enter 0x00, 0
@@ -210,7 +215,7 @@ def add_line_info(game, thc, defs):
         return thc.data(lambda d: defs.LineInfoEntry(data_ptr=d.abs_auto(datacave), fmt_string=label))
 
     counters = []
-    if 'th07' <= game <= 'th08':
+    if 'th06' <= game <= 'th08':
         counters.append(counter(b'%7d eff.I', 'effect-indexed-data'))
         counters.append(counter(b'%7d eff.G', 'effect-general-data'))
         counters.append(counter(b'%7d etama', 'bullet-data'))
@@ -252,6 +257,7 @@ def define_counters(game, thc, defs):
     list_spec = lambda *args, **kw: (defs.KIND_LIST, defs.ListSpec(*args, **kw))
     def embedded(inner_spec_func, struct_base, *args, **kw):
         replay_manager_ptr = {
+            'th06': 0x6d3f18,
             'th07': 0x4b9e48,
             'th08': 0x18b8a28,
         }[game]
@@ -268,6 +274,7 @@ def define_counters(game, thc, defs):
 
     thc.codecave('bullet-data', thc.data({
         # Early games track the count for their CAVE slowdown emulation feature.  Hooray!
+        'th06': lambda: embedded(field_spec, 0x5a5ff8, limit_addr(0x4135fa-4), count_offset=0xf5c04),
         'th07': lambda: embedded(field_spec, 0x62f958, limit_addr(0x423770-4), count_offset=0x37a128),
         'th08': lambda: embedded(field_spec, 0xf54e90, limit_addr(0x4312ae-4), count_offset=0x6ba538),
         # ...these games don't track it. Scan the array.
@@ -286,6 +293,7 @@ def define_counters(game, thc, defs):
     }[game]()))
 
     thc.codecave('normal-item-data', thc.data({
+        'th06': lambda: embedded(field_spec, 0x69e268, limit_addr(0x41f2ff-4), count_offset=0x28948),
         'th07': lambda: embedded(field_spec, 0x575c70, limit_addr(0x432750-4), count_offset=0xae2ec),
         'th08': lambda: embedded(field_spec, 0x1653648, limit_addr(0x440187-4), count_offset=0x17ada8),
         'th10': lambda: array_spec(0x477818, limit_value(150), array_offset=0x14, field_offset=0x3dc, stride=0x3f0),
@@ -303,6 +311,7 @@ def define_counters(game, thc, defs):
     }[game]()))
 
     thc.codecave('cancel-item-data', thc.data({
+        'th06': lambda: 0,  # unused
         'th07': lambda: 0,  # unused
         'th08': lambda: 0,  # unused
         'th10': lambda: array_spec(0x477818, limit_addr(0x41af16-4, -150), array_offset=0x24eb4, field_offset=0x3dc, stride=0x3f0),
@@ -320,6 +329,10 @@ def define_counters(game, thc, defs):
     }[game]()))
 
     thc.codecave('laser-data', thc.data({
+        'th06': lambda: embedded(
+            array_spec, 0x5a5ff8, limit_addr(0x4134e5-4), array_offset=0xec000, field_offset=0x258, stride=0x270,
+            adjust_array_func='<codecave:base-exphp.adjust-laser-array>'
+        ),
         'th07': lambda: embedded(
             array_spec, 0x62f958, limit_addr(0x4233b1-4), array_offset=0x366628, field_offset=0x4d4, stride=0x4ec,
             adjust_array_func='<codecave:base-exphp.adjust-laser-array>'
@@ -361,6 +374,7 @@ def define_counters(game, thc, defs):
         thc.codecave('spirit-data', thc.data(field_spec(0x4c22a4, limit_addr(0x438678-4), count_offset=0x8814)))
 
     thc.codecave('enemy-data', thc.data({
+        'th06': lambda: embedded(field_spec, 0x4b79c8, limit_none, count_offset=0xee5bc),
         'th07': lambda: embedded(field_spec, 0x9a9b00, limit_none, count_offset=0x9545bc),
         'th08': lambda: embedded(field_spec, 0x577f20, limit_none, count_offset=0x9dcdc4),
         'th10': lambda: list_spec(0x477704, limit_none, head_ptr_offset=0x58),
@@ -377,16 +391,19 @@ def define_counters(game, thc, defs):
         'th17': lambda: field_spec(0x4b76a0, limit_none, count_offset=0x18c),
     }[game]()))
 
-    if 'th07' <= game <= 'th08':
+    if 'th06' <= game <= 'th08':
         thc.codecave('effect-general-data', thc.data({
+            'th06': embedded(array_spec, 0x487fe0, limit_addr(0x40f136-4), array_offset=0x8, field_offset=0x178, stride=0x17c),
             'th07': embedded(array_spec, 0x12fe250, limit_addr(0x41c1f7-4), array_offset=0x1c, field_offset=0x2cc, stride=0x2d8),
             'th08': embedded(array_spec, 0x4ece60, limit_addr(0x425468-4), array_offset=0x1c, field_offset=0x350, stride=0x360),
         }[game]))
         thc.codecave('effect-familiar-data', thc.data({
+            'th06': 0,
             'th07': 0,
             'th08': embedded(array_spec, 0x4ece60, limit_addr(0x425ba9-4), array_offset=0x6c01c, field_offset=0x350, stride=0x360),
         }[game]))
         thc.codecave('effect-indexed-data', thc.data({
+            'th06': 0,
             'th07': embedded(array_spec, 0x12fe250, limit_value(0x9), array_offset=0x4719c, field_offset=0x2cc, stride=0x2d8),
             'th08': embedded(array_spec, 0x4ece60, limit_value(0xd), array_offset=0x8701c, field_offset=0x350, stride=0x360),
         }[game]))

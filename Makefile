@@ -205,6 +205,7 @@ DIR=$(REPO)/debug_counters
 .PHONY: debug-counters
 debug-counters: \
 	$(DIR)/global.js \
+	$(DIR)/$(TH06_VER).js \
 	$(DIR)/$(TH07_VER).js \
 	$(DIR)/$(TH08_VER).js \
 	$(DIR)/$(TH10_VER).js \
@@ -234,10 +235,13 @@ $(DIR)/th%.js: $(DIR)/counters.th%.yaml
 
 DIR=$(REPO)/sprite_death_fix
 
+# Note: TH06 doesn't need this.
 .PHONY: sprite-death-fix
 sprite-death-fix: \
 	$(DIR)/$(TH07_VER).js \
 	$(DIR)/$(TH08_VER).js \
+	$(DIR)/$(TH09_VER).js \
+	$(DIR)/$(TH095_VER).js \
 	$(DIR)/$(TH10_VER).js \
 	$(DIR)/$(TH11_VER).js \
 	$(DIR)/$(TH12_VER).js \
