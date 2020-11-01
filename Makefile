@@ -227,7 +227,7 @@ $(DIR)/global.js: $(DIR)/global.asm.yaml
 $(DIR)/counters.th%.yaml: $(DIR)/counters.py $(BINHACK_HELPER_PY) $(DIR)/common.asm
 	$(PYTHON) $< --game th$* >$@
 
-$(DIR)/th%.js: $(DIR)/counters.th%.yaml $(DIR)/binhacks.yaml
+$(DIR)/th%.js: $(DIR)/counters.th%.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
 
 #================================================

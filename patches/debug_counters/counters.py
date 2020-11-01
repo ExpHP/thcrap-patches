@@ -12,31 +12,42 @@ def main():
     thc = binhack_helper.ThcrapGen('ExpHP.debug-counters.')
     defs = binhack_helper.NasmDefs.from_file_rel('common.asm')
 
+    main_binhack(game, thc, defs)
     aux_stuff(game, thc, defs)
     define_counters(game, thc, defs)
+    add_line_info(game, thc, defs)
 
     thc.print()
 
-def aux_stuff(game, thc, defs):
-    DRAWF_DEBUG = {
-        # Early games: Any function that looks like it could be AsciiManager::drawf.
-        'th07': 0x402060,
-        'th08': 0x402a30,
-        # TH10+: The function used by the FpsCounter to drawf.
-        'th10': 0x401690,
-        'th12': 0x401720,
-        'th11': 0x401600,
-        'th13': 0x4040e0,
-        'th125': 0x401830,
-        'th143': 0x40ba50,
-        'th128': 0x401900,
-        'th16': 0x4084f0,
-        'th14': 0x40bdc0,
-        'th15': 0x40c800,
-        'th165': 0x408310,
-        'th17': 0x408530,
-    }[game]
+def main_binhack(game, thc, defs):
+    # Main binhack:  We put this immediately after the call to AsciiManager::drawf_debug in FpsCounter::on_draw.
+    binhack = lambda addr, original, jmp_dest: {
+        'addr': addr,
+        'expected': thc.asm(original),
+        'codecave': thc.asm(lambda c: f'''
+            call {c.rel_auto('show-debug-data')}
+            {original}
+            {c.jmp(jmp_dest)}
+        '''),
+    }
+    thc.binhack('draw', {
+        'th07': binhack(0x439391, original="mov  eax, [0x62f648]", jmp_dest=0x439396),
+        'th08': binhack(0x447225, original="mov  eax, [0x164d0b4]", jmp_dest=0x44722a),
+        'th10': binhack(0x413653, original="mov  eax, [0x4776e0]", jmp_dest=0x413658),
+        'th11': binhack(0x419f2b, original="mov  ecx, [0x4a8d58]", jmp_dest=0x419f31),
+        'th12': binhack(0x41cd20, original="mov  ecx, [0x4b43b8]", jmp_dest=0x41cd26),
+        'th125': binhack(0x41af25, original="mov  edx, [0x4b6770]", jmp_dest=0x41af2b),
+        'th128': binhack(0x41fb30, original="mov  edx, [0x4b8920]", jmp_dest=0x41fb36),
+        'th13': binhack(0x424b2c, original="mov  ecx, [0x4c2160]", jmp_dest=0x424b32),
+        'th14': binhack(0x42e653, original="mov  eax, [0x4db520]", jmp_dest=0x42e658),
+        'th143': binhack(0x42bf53, original="mov  eax, [0x4e69f8]", jmp_dest=0x42bf58),
+        'th15': binhack(0x433773, original="mov  eax, [0x4e9a58]", jmp_dest=0x433778),
+        'th16': binhack(0x426473, original="mov  eax, [0x4a6d98]", jmp_dest=0x426478),
+        'th165': binhack(0x424267, original="mov  eax, [0x4b54f8]", jmp_dest=0x42426c),
+        'th17': binhack(0x429fc3, original="mov  eax, [0x4b7678]", jmp_dest=0x429fc8),
+    }[game])
 
+def aux_stuff(game, thc, defs):
     # Workaround for games where AsciiManager is static, so that ColorData can still
     # contain a pointer to a pointer to AsciiManager.
     if 'th07' <= game <= 'th08':
@@ -61,6 +72,25 @@ def aux_stuff(game, thc, defs):
         'th143': defs.ColorData(ascii_manager_ptr=0x4e69f8, color_offset=0x191b0, positioning=defs.POSITIONING_DDC),
         'th165': defs.ColorData(ascii_manager_ptr=0x4b54f8, color_offset=0x1c90c, positioning=defs.POSITIONING_DDC),
     }[game]))
+
+    DRAWF_DEBUG = {
+        # Early games: Any function that looks like it could be AsciiManager::drawf.
+        'th07': 0x402060,
+        'th08': 0x402a30,
+        # TH10+: The function used by the FpsCounter to drawf.
+        'th10': 0x401690,
+        'th12': 0x401720,
+        'th11': 0x401600,
+        'th13': 0x4040e0,
+        'th125': 0x401830,
+        'th143': 0x40ba50,
+        'th128': 0x401900,
+        'th16': 0x4084f0,
+        'th14': 0x40bdc0,
+        'th15': 0x40c800,
+        'th165': 0x408310,
+        'th17': 0x408530,
+    }[game]
 
     # Now wrap DRAWF_DEBUG to have the following ABI:
     # void __stdcall DrawfDebugInt(AsciiManager*, Float3*, char*, int current)
@@ -171,6 +201,37 @@ def aux_stuff(game, thc, defs):
         assert False, game
 
     thc.codecave('drawf-debug-int', drawf_debug_int)
+
+def add_line_info(game, thc, defs):
+    def counter(label, datacave):
+        assert isinstance(label, bytes)
+        assert len(label) < 12
+        label += b'\0' * (12 - len(label))
+        return thc.data(lambda d: defs.LineInfoEntry(data_ptr=d.abs_auto(datacave), fmt_string=label))
+
+    counters = []
+    if 'th07' <= game <= 'th08':
+        counters.append(counter(b'%7d eff.I', 'effect-indexed-data'))
+        counters.append(counter(b'%7d eff.G', 'effect-general-data'))
+        counters.append(counter(b'%7d etama', 'bullet-data'))
+        counters.append(counter(b'%7d laser', 'laser-data'))
+        counters.append(counter(b'%7d item ', 'normal-item-data'))
+        counters.append(counter(b'%7d enemy', 'enemy-data'))
+    elif 'th10' <= game <= 'th17':
+        counters.append(counter(b'%7d anmid', 'anmid-data'))
+        if 'th15' <= game <= 'th17':
+            counters.append(counter(b'%7d eff  ', 'effect-data'))
+        counters.append(counter(b'%7d etama', 'bullet-data'))
+        counters.append(counter(b'%7d laser', 'laser-data'))
+        counters.append(counter(b'%7d itemN', 'normal-item-data'))
+        counters.append(counter(b'%7d itemC', 'cancel-item-data'))
+        if game == 'th13':
+            counters.append(counter(b'%7d lgods', 'spirit-data'))
+        counters.append(counter(b'%7d enemy', 'enemy-data'))
+    else: assert False, game
+
+    counters.append(0)  # indicator of list end
+    thc.codecave('line-info', thc.data(counters))
 
 def with_defaults(kw, **defaults):
     for k in defaults:
