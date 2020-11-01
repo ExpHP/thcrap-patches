@@ -3,9 +3,9 @@
     "codecaves": {
         "ExpHP.debug-counters.color-data": "70674b00f4c7010002000000",
         "ExpHP.debug-counters.drawf-debug-int": "c800000053565783ec0489e7ff7514ff7510ff750c8b7508b830184000ffd083c40c83c4045f5e5bc9c21000",
-        "ExpHP.debug-counters.bullet-data": "010000007c674b0081874000000000006400000012050000340a0000",
+        "ExpHP.debug-counters.bullet-data": "010000007c674b0081874000000000006400000012050000340a000000000000",
         "ExpHP.debug-counters.normal-item-data": "04000000a0684b00",
-        "ExpHP.debug-counters.cancel-item-data": "01000000a0684b001cf341000000000014000000f0040000f4040000",
+        "ExpHP.debug-counters.cancel-item-data": "01000000a0684b001cf341000000000014000000f0040000f404000000000000",
         "ExpHP.debug-counters.laser-data": "03000000a4684b000d0442000000000068040000",
         "ExpHP.debug-counters.anmid-data": "02000000b40c4d000000000000100000c0d68800c8d68800",
         "ExpHP.debug-counters.enemy-data": "030000008c674b0000000000ffffff7fa8000000",

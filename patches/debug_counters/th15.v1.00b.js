@@ -3,13 +3,13 @@
     "codecaves": {
         "ExpHP.debug-counters.color-data": "589a4e002492010003000000",
         "ExpHP.debug-counters.drawf-debug-int": "c8000000ff7514ff7510ff750cff7508b800c84000ffd083c410c9c21000",
-        "ExpHP.debug-counters.bullet-data": "010000006c9a4e00958c4100ffffffff980000008a0c000094140000",
-        "ExpHP.debug-counters.normal-item-data": "010000009c9a4e00000000005802000010000000640c0000880c0000",
-        "ExpHP.debug-counters.cancel-item-data": "010000009c9a4e0054f44300a8fdffffd05e1d00640c0000880c0000",
+        "ExpHP.debug-counters.bullet-data": "010000006c9a4e00958c4100ffffffff980000008a0c00009414000000000000",
+        "ExpHP.debug-counters.normal-item-data": "010000009c9a4e00000000005802000010000000640c0000880c000000000000",
+        "ExpHP.debug-counters.cancel-item-data": "010000009c9a4e0054f44300a8fdffffd05e1d00640c0000880c000000000000",
         "ExpHP.debug-counters.laser-data": "03000000a09b4e00e119440000000000e4050000",
         "ExpHP.debug-counters.anmid-data": "02000000183c500000000000ff1f0000dc000000e4000000",
         "ExpHP.debug-counters.enemy-data": "03000000809a4e0000000000ffffff7f8c010000",
-        "ExpHP.debug-counters.effect-data": "01000000789a4e00cd284200000000001c000000bdffffff04000000",
+        "ExpHP.debug-counters.effect-data": "01000000789a4e00cd284200000000001c000000bdffffff0400000000000000",
         "ExpHP.debug-counters.line-info": "<codecave:ExpHP.debug-counters.anmid-data> // 25376420616E6D6964000000 // <codecave:ExpHP.debug-counters.effect-data> // 253764206566662020000000 // <codecave:ExpHP.debug-counters.bullet-data> // 253764206574616D61000000 // <codecave:ExpHP.debug-counters.laser-data> // 253764206C61736572000000 // <codecave:ExpHP.debug-counters.normal-item-data> // 253764206974656D4E000000 // <codecave:ExpHP.debug-counters.cancel-item-data> // 253764206974656D43000000 // <codecave:ExpHP.debug-counters.enemy-data> // 25376420656E656D79000000 // 00000000",
         "of(ExpHP.debug-counters.draw)": "E8[codecave:ExpHP.debug-counters.show-debug-data] // A1589A4E00 // E800000000C70424 78374300 C3"
     },

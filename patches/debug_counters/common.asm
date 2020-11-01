@@ -8,7 +8,6 @@
 %define KIND_FIELD        3
 %define KIND_ZERO         4
 %define KIND_EMBEDDED     5
-%define KIND_ARRAY_V2     6
 %define KIND_LIST         7
 %define POSITIONING_MOF   1
 %define POSITIONING_TD    2
@@ -49,11 +48,6 @@ struc ArraySpec  ; DELETE
     .array_offset: resd 1  ; offset of array in struct  ; DELETE
     .field_offset: resd 1  ; offset of a byte in an array item that is nonzero if and only if the item is in use  ; DELETE
     .stride: resd 1  ; size of each item in the array  ; DELETE
-endstruc  ; DELETE
-
-; Extended version of ArraySpec so that we don't need to add these fields to all of the existing ones and have to test all of those games.
-struc ArraySpecV2  ; DELETE
-    .v1: resb ArraySpec_size  ; DELETE
     .adjust_array_func: resd 1  ; func from `base_exphp` that may dereference a pointerified array (0 if none)  ; DELETE
 endstruc  ; DELETE
 

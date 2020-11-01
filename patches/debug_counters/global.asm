@@ -108,9 +108,6 @@ drawf_spec:  ; HEADER: AUTO
     cmp  eax, KIND_ARRAY
     jz near drawf_array_spec  ; REWRITE: [codecave:AUTO]
 
-    cmp  eax, KIND_ARRAY_V2
-    jz near drawf_array_v2_spec  ; REWRITE: [codecave:AUTO]
-
     cmp  eax, KIND_ANMID
     jz near drawf_anmid_spec  ; REWRITE: [codecave:AUTO]
 
@@ -130,38 +127,6 @@ drawf_spec:  ; HEADER: AUTO
 
 ; __stdcall void DrawfArraySpec(Float3*, ArraySpec*, char* fmt)
 drawf_array_spec:  ; HEADER: AUTO
-    %push
-    %define %$pos_ptr  ebp+0x08
-    %define %$spec_ptr ebp+0x0c
-    %define %$fmt      ebp+0x10
-
-    ; delegate to V2
-    enter ArraySpecV2_size, 0
-    %define %$spec_v2  ebp - ArraySpecV2_size
-
-    push esi ; save
-    push edi ; save
-    mov  ecx, ArraySpec_size
-    mov  esi, [%$spec_ptr]
-    lea  edi, [%$spec_v2]
-    rep movsb  ; copy v1 fields
-    pop  edi ; restore
-    pop  esi ; restore
-    mov  dword [%$spec_v2 + ArraySpecV2.adjust_array_func], 0
-
-    push dword [%$fmt]
-    lea  eax, [%$spec_v2]
-    push eax
-    push dword [%$pos_ptr]
-    call drawf_array_v2_spec  ; REWRITE: [codecave:AUTO]
-
-.nostruct:
-    leave
-    ret 0xc
-    %pop
-
-; __stdcall void DrawfArraySpec(Float3*, ArraySpecV2*, char* fmt)
-drawf_array_v2_spec:  ; HEADER: AUTO
     %push
     %define %$pos_ptr  ebp+0x08
     %define %$spec_ptr ebp+0x0c
@@ -420,7 +385,7 @@ get_array_from_spec:  ; HEADER: AUTO
 
     ; If bullet_cap is installed, it might have moved the array behind a pointer.
     ; Support both games with and without bullet_cap by calling a func from base_exphp.
-    mov  ecx, [esi + ArraySpecV2.adjust_array_func]
+    mov  ecx, [esi + ArraySpec.adjust_array_func]
     test ecx, ecx
     jz   .nofunc  ; was one provided in spec?
     push eax

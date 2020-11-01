@@ -17,11 +17,6 @@ def main():
 
     thc.print()
 
-def limit_value(value): return 0, value
-def limit_addr(addr): return limit_addr_corrected(addr, 0)
-def limit_addr_corrected(addr, adjust): return addr, adjust
-limit_none = limit_value(0x7fff_ffff)
-
 def aux_stuff(game, thc, defs):
     DRAWF_DEBUG = {
         # Early games: Any function that looks like it could be AsciiManager::drawf.
@@ -177,9 +172,19 @@ def aux_stuff(game, thc, defs):
 
     thc.codecave('drawf-debug-int', drawf_debug_int)
 
+def with_defaults(kw, **defaults):
+    for k in defaults:
+        if k not in kw:
+            kw[k] = defaults[k]
+    return kw
+
 def define_counters(game, thc, defs):
+    def limit_value(value): return 0, value
+    def limit_addr(addr, correction=0): return addr, correction
+    limit_none = limit_value(0x7fff_ffff)
+
     # Wrappers around the spec types that automatically emit the tag constant.
-    array_spec = lambda *args, **kw: (defs.KIND_ARRAY, defs.ArraySpec(*args, **kw))
+    array_spec = lambda *args, **kw: (defs.KIND_ARRAY, defs.ArraySpec(*args, **with_defaults(kw, adjust_array_func=0)))
     zero_spec = lambda *args, **kw: (defs.KIND_ZERO, defs.ZeroSpec(*args, **kw))
     field_spec = lambda *args, **kw: (defs.KIND_FIELD, defs.FieldSpec(*args, **kw))
     anmid_spec = lambda *args, **kw: (defs.KIND_ANMID, defs.AnmidSpec(*args, **kw))
@@ -197,8 +202,8 @@ def define_counters(game, thc, defs):
             show_when_nonzero=replay_manager_ptr, struct_base=struct_base,
             spec_kind=inner_kind, spec_size=inner_size, spec=inner,
         )
-    def array_spec_v2(*args, adjust_array_func, **kw):
-        return defs.KIND_ARRAY_V2, defs.ArraySpecV2(v1=defs.ArraySpec(*args, **kw), adjust_array_func=adjust_array_func)
+    def dword_array(addr, limit, array_offset):
+        return array_spec(addr, limit, array_offset=array_offset, field_offset=defs.FIELD_IS_DWORD, stride=0x4)
 
     thc.codecave('bullet-data', thc.data({
         # Early games track the count for their CAVE slowdown emulation feature.  Hooray!
@@ -210,13 +215,13 @@ def define_counters(game, thc, defs):
         'th12': lambda: array_spec(0x4b43c8, limit_addr(0x40a061), array_offset=0x64, field_offset=0x532, stride=0x9f8),
         'th125': lambda: array_spec(0x4b677c, limit_addr(0x408785-4), array_offset=0x64, field_offset=0x512, stride=0xa34),
         'th128': lambda: array_spec(0x4b8930, limit_addr(0x408d95-4), array_offset=0x64, field_offset=0xa2a, stride=0x11b8),
-        'th13': lambda: array_spec(0x4c2174, limit_addr_corrected(0x40d970-4, -1), array_offset=0x90, field_offset=0xbbe, stride=0x135c),
-        'th14': lambda: array_spec(0x4db530, limit_addr_corrected(0x416560-4, -1), array_offset=0x8c, field_offset=0xc0e, stride=0x13f4),
-        'th143': lambda: array_spec(0x4e6a08, limit_addr_corrected(0x4128d0-4, -1), array_offset=0x8c, field_offset=0xc0e, stride=0x13f4),
-        'th15': lambda: array_spec(0x4e9a6c, limit_addr_corrected(0x418c99-4, -1), array_offset=0x98, field_offset=0xc8a, stride=0x1494),
-        'th16': lambda: array_spec(0x4a6dac, limit_addr_corrected(0x4118b9-4, -1), array_offset=0x9c, field_offset=0xc72, stride=0x1478),
-        'th165': lambda: array_spec(0x4b550c, limit_addr_corrected(0x40ebc7-4, -1), array_offset=0x9c, field_offset=0xe54, stride=0xe8c),
-        'th17': lambda: array_spec(0x4b768c, limit_addr_corrected(0x414807-4, -1), array_offset=0xec, field_offset=0xe50, stride=0xe88),
+        'th13': lambda: array_spec(0x4c2174, limit_addr(0x40d970-4, -1), array_offset=0x90, field_offset=0xbbe, stride=0x135c),
+        'th14': lambda: array_spec(0x4db530, limit_addr(0x416560-4, -1), array_offset=0x8c, field_offset=0xc0e, stride=0x13f4),
+        'th143': lambda: array_spec(0x4e6a08, limit_addr(0x4128d0-4, -1), array_offset=0x8c, field_offset=0xc0e, stride=0x13f4),
+        'th15': lambda: array_spec(0x4e9a6c, limit_addr(0x418c99-4, -1), array_offset=0x98, field_offset=0xc8a, stride=0x1494),
+        'th16': lambda: array_spec(0x4a6dac, limit_addr(0x4118b9-4, -1), array_offset=0x9c, field_offset=0xc72, stride=0x1478),
+        'th165': lambda: array_spec(0x4b550c, limit_addr(0x40ebc7-4, -1), array_offset=0x9c, field_offset=0xe54, stride=0xe8c),
+        'th17': lambda: array_spec(0x4b768c, limit_addr(0x414807-4, -1), array_offset=0xec, field_offset=0xe50, stride=0xe88),
     }[game]()))
 
     thc.codecave('normal-item-data', thc.data({
@@ -239,27 +244,27 @@ def define_counters(game, thc, defs):
     thc.codecave('cancel-item-data', thc.data({
         'th07': lambda: 0,  # unused
         'th08': lambda: 0,  # unused
-        'th10': lambda: array_spec(0x477818, limit_addr_corrected(0x41af16-4, -150), array_offset=0x24eb4, field_offset=0x3dc, stride=0x3f0),
-        'th11': lambda: array_spec(0x4a8e90, limit_addr_corrected(0x423490-4, -150), array_offset=0x29e64, field_offset=0x464, stride=0x478),
-        'th12': lambda: array_spec(0x4b44f0, limit_addr_corrected(0x425b60-4, -600-16), array_offset=0x17afd4, field_offset=0x9b0, stride=0x9d8),
-        'th125': lambda: array_spec(0x4b68a0, limit_addr_corrected(0x41f320-4, 0), array_offset=0x14, field_offset=0x4f0, stride=0x4f4),
-        'th128': lambda: array_spec(0x4b8a5c, limit_addr_corrected(0x428550-4, -600-16), array_offset=0x18aa14, field_offset=0xa18, stride=0xa40),
-        'th13': lambda: array_spec(0x4c229c, limit_addr_corrected(0x42e2c0-4, -600), array_offset=0x1b9cd4, field_offset=0xba0, stride=0xbc8),
-        'th14': lambda: array_spec(0x4db660, limit_addr_corrected(0x438481-4, -600), array_offset=0x1c5854, field_offset=0xbf0, stride=0xc18),
-        'th143': lambda: array_spec(0x4e6b64, limit_addr_corrected(0x435011-4, -600), array_offset=0x1c61b4, field_offset=0xbf4, stride=0xc1c),
-        'th15': lambda: array_spec(0x4e9a9c, limit_addr_corrected(0x43f458-4, -600), array_offset=0x1d5ed0, field_offset=0xc64, stride=0xc88),
-        'th16': lambda: array_spec(0x4a6ddc, limit_addr_corrected(0x42f0ea-4, -600), array_offset=0x1d3954, field_offset=0xc50, stride=0xc78),
-        'th165': lambda: array_spec(0x4b5634, limit_addr_corrected(0x42bb46-4, 0), array_offset=0x10, field_offset=0x630, stride=0x634),
-        'th17': lambda: array_spec(0x4b76b8, limit_addr_corrected(0x4331f8-4, -600), array_offset=0x1d3954, field_offset=0xc58, stride=0xc78),
+        'th10': lambda: array_spec(0x477818, limit_addr(0x41af16-4, -150), array_offset=0x24eb4, field_offset=0x3dc, stride=0x3f0),
+        'th11': lambda: array_spec(0x4a8e90, limit_addr(0x423490-4, -150), array_offset=0x29e64, field_offset=0x464, stride=0x478),
+        'th12': lambda: array_spec(0x4b44f0, limit_addr(0x425b60-4, -600-16), array_offset=0x17afd4, field_offset=0x9b0, stride=0x9d8),
+        'th125': lambda: array_spec(0x4b68a0, limit_addr(0x41f320-4, -0), array_offset=0x14, field_offset=0x4f0, stride=0x4f4),
+        'th128': lambda: array_spec(0x4b8a5c, limit_addr(0x428550-4, -600-16), array_offset=0x18aa14, field_offset=0xa18, stride=0xa40),
+        'th13': lambda: array_spec(0x4c229c, limit_addr(0x42e2c0-4, -600), array_offset=0x1b9cd4, field_offset=0xba0, stride=0xbc8),
+        'th14': lambda: array_spec(0x4db660, limit_addr(0x438481-4, -600), array_offset=0x1c5854, field_offset=0xbf0, stride=0xc18),
+        'th143': lambda: array_spec(0x4e6b64, limit_addr(0x435011-4, -600), array_offset=0x1c61b4, field_offset=0xbf4, stride=0xc1c),
+        'th15': lambda: array_spec(0x4e9a9c, limit_addr(0x43f458-4, -600), array_offset=0x1d5ed0, field_offset=0xc64, stride=0xc88),
+        'th16': lambda: array_spec(0x4a6ddc, limit_addr(0x42f0ea-4, -600), array_offset=0x1d3954, field_offset=0xc50, stride=0xc78),
+        'th165': lambda: array_spec(0x4b5634, limit_addr(0x42bb46-4, -0), array_offset=0x10, field_offset=0x630, stride=0x634),
+        'th17': lambda: array_spec(0x4b76b8, limit_addr(0x4331f8-4, -600), array_offset=0x1d3954, field_offset=0xc58, stride=0xc78),
     }[game]()))
 
     thc.codecave('laser-data', thc.data({
         'th07': lambda: embedded(
-            array_spec_v2, 0x62f958, limit_addr(0x4233b1-4), array_offset=0x366628, field_offset=0x4d4, stride=0x4ec,
+            array_spec, 0x62f958, limit_addr(0x4233b1-4), array_offset=0x366628, field_offset=0x4d4, stride=0x4ec,
             adjust_array_func='<codecave:base-exphp.adjust-laser-array>'
         ),
         'th08': lambda: embedded(
-            array_spec_v2, 0xf54e90, limit_addr(0x42f464-4), array_offset=0x660938, field_offset=0x584, stride=0x59c,
+            array_spec, 0xf54e90, limit_addr(0x42f464-4), array_offset=0x660938, field_offset=0x584, stride=0x59c,
             adjust_array_func='<codecave:base-exphp.adjust-laser-array>'
         ),
         'th10': lambda: field_spec(0x47781c, limit_addr(0x41c51a-4), count_offset=0x438),
@@ -310,9 +315,6 @@ def define_counters(game, thc, defs):
         'th165': lambda: field_spec(0x4b551c, limit_none, count_offset=0x1b4),
         'th17': lambda: field_spec(0x4b76a0, limit_none, count_offset=0x18c),
     }[game]()))
-
-    def dword_array(addr, limit, array_offset):
-        return array_spec(addr, limit, array_offset=array_offset, field_offset=defs.FIELD_IS_DWORD, stride=0x4)
 
     if 'th07' <= game <= 'th08':
         thc.codecave('effect-general-data', thc.data({
