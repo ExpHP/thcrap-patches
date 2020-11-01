@@ -203,13 +203,27 @@ DIR=$(REPO)/debug_counters
 .PHONY: debug-counters
 debug-counters: \
 	$(DIR)/global.js \
-	$(call glob-th-js-from-asm,$(DIR)) \
+	$(DIR)/$(TH10_VER).js \
+	$(DIR)/$(TH11_VER).js \
+	$(DIR)/$(TH12_VER).js \
+	$(DIR)/$(TH125_VER).js \
+	$(DIR)/$(TH128_VER).js \
+	$(DIR)/$(TH13_VER).js \
+	$(DIR)/$(TH14_VER).js \
+	$(DIR)/$(TH143_VER).js \
+	$(DIR)/$(TH15_VER).js \
+	$(DIR)/$(TH16_VER).js \
+	$(DIR)/$(TH165_VER).js \
+	$(DIR)/$(TH17_VER).js \
 
 .INTERMEDIATE: $(DIR)/global.asm.yaml
 $(DIR)/global.js: $(DIR)/global.asm.yaml
 	scripts/convert-yaml.py $^ >$@
 
-$(DIR)/th%.js: $(DIR)/th%.asm.yaml $(DIR)/binhacks.yaml
+$(DIR)/counters.th%.yaml: $(DIR)/counters.py
+	$(PYTHON) $< --game th$* >$@
+
+$(DIR)/th%.js: $(DIR)/counters.th%.yaml $(DIR)/binhacks.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
 
 #================================================

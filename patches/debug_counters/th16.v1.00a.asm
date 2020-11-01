@@ -8,11 +8,7 @@
 %define DRAWF_DEBUG       0x4084f0
 
 color_data:  ; HEADER: AUTO
-istruc ColorData
-    at ColorData.ascii_manager_ptr, dd 0x4a6d98
-    at ColorData.color_offset, dd 0x1920c
-    at ColorData.positioning, dd POSITIONING_DDC
-iend
+ColorData(ascii_manager_ptr=0x4a6d98, color_offset=0x1920c, positioning=POSITIONING_DDC)
 
 ; __stdcall void DrawfDebugInt(AsciiManager*, Float3*, char*, int current)
 drawf_debug_int:  ; HEADER: AUTO
@@ -27,67 +23,3 @@ drawf_debug_int:  ; HEADER: AUTO
     epilogue_sd
     ret 0x10
 
-bullet_data:  ; HEADER: AUTO
-    dd KIND_ARRAY
-istruc ArraySpec
-    at ArraySpec.struct_ptr, dd 0x4a6dac
-    at ArraySpec.limit, dd LIMIT_ADDR_CORRECTED(0x4118b9-4, -1)
-    at ArraySpec.array_offset, dd 0x9c
-    at ArraySpec.field_offset, dd 0xc72
-    at ArraySpec.stride, dd 0x1478
-iend
-
-normal_item_data:  ; HEADER: AUTO
-    dd KIND_ARRAY
-istruc ArraySpec
-    at ArraySpec.struct_ptr, dd 0x4a6ddc
-    at ArraySpec.limit, dd LIMIT_VALUE(600)
-    at ArraySpec.array_offset, dd 0x14
-    at ArraySpec.field_offset, dd 0xc50
-    at ArraySpec.stride, dd 0xc78
-iend
-
-cancel_item_data:  ; HEADER: AUTO
-    dd KIND_ARRAY
-istruc ArraySpec
-    at ArraySpec.struct_ptr, dd 0x4a6ddc
-    at ArraySpec.limit, dd LIMIT_ADDR_CORRECTED(0x42f0ea-4, -600)
-    at ArraySpec.array_offset, dd 0x1d3954
-    at ArraySpec.field_offset, dd 0xc50
-    at ArraySpec.stride, dd 0xc78
-iend
-
-laser_data:  ; HEADER: AUTO
-    dd KIND_FIELD
-istruc FieldSpec
-    at FieldSpec.struct_ptr, dd 0x4a6ee0
-    at FieldSpec.limit, dd LIMIT_ADDR(0x431775-4)
-    at FieldSpec.count_offset, dd 0x5e4
-iend
-
-anmid_data:  ; HEADER: AUTO
-    dd KIND_ANMID
-istruc AnmidSpec
-    at AnmidSpec.struct_ptr, dd 0x4c0f48
-    at AnmidSpec.limit, dd LIMIT_VALUE(0x1fff)
-    at AnmidSpec.world_head_ptr_offset, dd 0xdc
-    at AnmidSpec.ui_head_ptr_offset, dd 0xe4
-iend
-
-enemy_data:  ; HEADER: AUTO
-    dd KIND_FIELD
-istruc FieldSpec
-    at FieldSpec.struct_ptr, dd 0x4a6dc0
-    at FieldSpec.limit, dd LIMIT_NONE
-    at FieldSpec.count_offset, dd 0x18c
-iend
-
-effect_data:  ; HEADER: AUTO
-    dd KIND_ARRAY
-istruc ArraySpec
-    at ArraySpec.struct_ptr, dd 0x4a6db8
-    at ArraySpec.limit, dd LIMIT_ADDR(0x418ac1-4)
-    at ArraySpec.array_offset, dd 0x1c
-    at ArraySpec.field_offset, dd FIELD_IS_DWORD
-    at ArraySpec.stride, dd 0x4
-iend

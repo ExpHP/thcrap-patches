@@ -94,12 +94,3 @@ struc ListSpec  ; DELETE
     .limit: resd 2  ; DELETE
     .head_ptr_offset: resd 1  ; DELETE
 endstruc  ; DELETE
-
-; An array of dwords that are ignored if zero.
-struc DwordArraySpec  ; DELETE
-    .struct_ptr: resd 1 ; address of (possibly null) pointer to struct that holds the array  ; DELETE
-    .limit: resd 2  ; for coloring ; DELETE
-    .array_offset: resd 1  ; offset of array in struct  ; DELETE
-    .field_offset: resd 1  ; offset of a byte in an array item that is nonzero if and only if the item is in use  ; DELETE
-    .stride: resd 1  ; size of each item in the array  ; DELETE
-endstruc  ; DELETE

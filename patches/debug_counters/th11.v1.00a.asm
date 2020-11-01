@@ -8,11 +8,6 @@
 %define DRAWF_DEBUG       0x401600
 
 color_data:  ; HEADER: AUTO
-istruc ColorData
-    at ColorData.ascii_manager_ptr, dd 0x4a8d58
-    at ColorData.color_offset, dd 0x18480
-    at ColorData.positioning, dd POSITIONING_TD
-iend
 
 ; __stdcall void DrawfDebugInt(AsciiManager*, Float3*, char*, int current)
 drawf_debug_int:  ; HEADER: AUTO
@@ -30,57 +25,5 @@ drawf_debug_int:  ; HEADER: AUTO
     epilogue_sd
     ret 0x10
 
-bullet_data:  ; HEADER: AUTO
-    dd KIND_ARRAY
-istruc ArraySpec
-    at ArraySpec.struct_ptr, dd 0x4a8d68
-    at ArraySpec.limit, dd LIMIT_ADDR(0x408d40-4)
-    at ArraySpec.array_offset, dd 0x64
-    at ArraySpec.field_offset, dd 0x4b2
-    at ArraySpec.stride, dd 0x910
-iend
+# TH11
 
-normal_item_data:  ; HEADER: AUTO
-    dd KIND_ARRAY
-istruc ArraySpec
-    at ArraySpec.struct_ptr, dd 0x4a8e90
-    at ArraySpec.limit, dd LIMIT_VALUE(150)
-    at ArraySpec.array_offset, dd 0x14
-    at ArraySpec.field_offset, dd 0x464
-    at ArraySpec.stride, dd 0x478
-iend
-
-cancel_item_data:  ; HEADER: AUTO
-    dd KIND_ARRAY
-istruc ArraySpec
-    at ArraySpec.struct_ptr, dd 0x4a8e90
-    at ArraySpec.limit, dd LIMIT_ADDR_CORRECTED(0x423490-4, -150)  ; true cancel item cap never appears in code
-    at ArraySpec.array_offset, dd 0x29e64
-    at ArraySpec.field_offset, dd 0x464
-    at ArraySpec.stride, dd 0x478
-iend
-
-laser_data:  ; HEADER: AUTO
-    dd KIND_FIELD
-istruc FieldSpec
-    at FieldSpec.struct_ptr, dd 0x4a8e94
-    at FieldSpec.limit, dd LIMIT_ADDR(0x424e01-4)
-    at FieldSpec.count_offset, dd 0x454
-iend
-
-anmid_data:  ; HEADER: AUTO
-    dd KIND_ANMID
-istruc AnmidSpec
-    at AnmidSpec.struct_ptr, dd 0x4c3268
-    at AnmidSpec.limit, dd LIMIT_VALUE(0x1000)
-    at AnmidSpec.world_head_ptr_offset, dd 0x7b562c
-    at AnmidSpec.ui_head_ptr_offset, dd 0x7b5634
-iend
-
-enemy_data:  ; HEADER: AUTO
-    dd KIND_FIELD
-istruc FieldSpec
-    at FieldSpec.struct_ptr, dd 0x4a8d7c
-    at FieldSpec.limit, dd LIMIT_NONE
-    at FieldSpec.count_offset, dd 0x70
-iend

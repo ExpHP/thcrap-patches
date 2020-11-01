@@ -10,6 +10,8 @@ import inspect
 import random
 import sys
 import re
+import struct
+import os.path
 
 class LocatableSymbolResolver:
     """
@@ -95,38 +97,38 @@ class LocatableSymbolResolver:
         else:
             return False
 
-class AsmContext:
-    """ A helper object for writing assembly strings, which can be obtained
-    by giving a 1-argument closure instead of a string to ``ThcrapGen.asm``.
+class CodeHelper:
+    """ A helper object for writing assembly strings.
 
     The methods on this type can be used to generate some common patterns in binhacks
     (like an absolute jump), and can be used to produce things like '[codecave:blah]'
     in the output string.
+
+    **You are not intended to construct this type on your own.** Rather, you should
+    give a 1-arg closure as an argument to ``ThcrapGen.asm``.  This is so that the
+    insertion of the '[codecave:...]' strings may be done as a post-processing step.
     """
     def __init__(self, auto_prefix=''):
         self.auto_prefix = auto_prefix
         self.resolver = LocatableSymbolResolver()
         self.replacements = {}
 
-    def get_auto_name(self, name):
-        return self.auto_prefix + name
-
     def rel_auto(self, name):
-        """ Generate a single-use symbol that will be replaced with ``[codecave:...]``
-        (thcrap relative ref syntax) in the final output, adding the ``auto_prefix``. """
-        return self._gen_codecave_ref(self.get_auto_name(name), kind='rel')
+        """ Generate a single-use symbol that will become ``"[codecave:...]"`` (with the ``auto_prefix``)
+        in the final output of ``ThcrapGen.asm``. """
+        return self._gen_symbol(_thcrap_codecave_ref(self.auto_prefix + name, kind='rel'))
     def abs_auto(self, name):
-        """ Generate a single-use symbol that will be replaced with ``<codecave:...>``
-        (thcrap absolute ref syntax) in the final output, adding the ``auto_prefix``. """
-        return self._gen_codecave_ref(self.get_auto_name(name), kind='abs')
+        """ Generate a single-use symbol that will become ``"<codecave:...>"`` (with the ``auto_prefix``)
+        in the final output of ``ThcrapGen.asm``. """
+        return self._gen_symbol(_thcrap_codecave_ref(self.auto_prefix + name, kind='abs'))
     def rel_global(self, name):
-        """ Generate a single-use symbol that will be replaced with ``[codecave:...]``
-        (thcrap relative ref syntax) in the final output, WITHOUT adding the ``auto_prefix``. """
-        return self._gen_codecave_ref(name, kind='rel')
+        """ Generate a single-use symbol that will become ``"[codecave:...]"`` (WITHOUT the ``auto_prefix``)
+        in the final output of ``ThcrapGen.asm``. """
+        return self._gen_symbol(_thcrap_codecave_ref(name, kind='rel'))
     def abs_global(self, name):
-        """ Generate a single-use symbol that will be replaced with ``<codecave:...>``
-        (thcrap absolute ref syntax) in the final output, WITHOUT adding the ``auto_prefix``. """
-        return self._gen_codecave_ref(name, kind='abs')
+        """ Generate a single-use symbol that will become ``"<codecave:...>"`` (WITHOUT the ``auto_prefix``)
+        in the final output of ``ThcrapGen.asm``. """
+        return self._gen_symbol(_thcrap_codecave_ref(name, kind='abs'))
     def jmp(self, addr):
         """ Generate asm text for an unconditional jump to an absolute address, without any side-effects. """
         symbol = _random_symbol()
@@ -136,21 +138,19 @@ class AsmContext:
             mov dword ptr [esp], {addr:#x}
             ret
         '''
+    def multipush(self, *exprs):
+        """ Generate asm text for pushes of multiple dword-sized things. """
+        return '; '.join(f'push {e}' for e in exprs)
+    def multipop(self, *exprs):
+        """ Generate asm text for pops of multiple dword-sized things, in reverse order. """
+        return '; '.join(f'pop {e}' for e in exprs[::-1])
 
-    def _gen_codecave_ref(self, name, kind):
+    def _gen_symbol(self, replacement):
+        """ Generate a symbol whose affected bytes will be substituted with the given,
+        arbitrary text in the final output of ``ThcrapGen.asm``. """
         symbol = self.resolver.gen_symbol()
-        if kind == 'abs':
-            self.replacements[symbol] = f'<codecave:{name}>'
-        elif kind == 'rel':
-            self.replacements[symbol] = f'[codecave:{name}]'
-        else:
-            raise ValueError(f'bad kind: {repr(kind)}')
-
+        self.replacements[self.resolver.gen_symbol()] = replacement
         return symbol
-
-    @staticmethod
-    def _check_for_footguns(asm):
-        pass
 
     def _asm_to_thcrap_hex(self, asm):
         _check_asm_for_footguns(asm)
@@ -205,6 +205,53 @@ def _check_asm_for_footguns(asm):
         if m:
             raise ValueError(f"detected decimal integer: {m.group(0)}  (see keystone issue #481)")
 
+class DataHelper:
+    """ A helper object for writing read-only datacaves.
+    
+    Similar to ``AsmContext``, you can get one of these by providing a 1-argument
+    closure to ``ThcrapGen.data``.  You can also just create one of your own.
+    """
+    def __init__(self, auto_prefix=''):
+        self.auto_prefix = auto_prefix
+
+    def i64(self, x): return Int64(x)
+    def i32(self, x): return Int32(x)
+    def i16(self, x): return Int16(x)
+    def i8(self, x): return Int8(x)
+    def f64(self, x): return Float64(x)
+    def f32(self, x): return Float32(x)
+    i64.__doc__ = "Create an Int64. Provided for convenience."
+    i32.__doc__ = "Create an Int32. Provided for convenience."
+    i16.__doc__ = "Create an Int16. Provided for convenience."
+    i8.__doc__ = "Create an Int8. Provided for convenience."
+    f64.__doc__ = "Create a Float64. Provided for convenience."
+    f32.__doc__ = "Create a Float32. Provided for convenience."
+
+    def rel_auto(self, name):
+        """ Generate the string ``"[codecave:...]"`` (with the ``auto_prefix``), which
+        will be preserved in the final output of ``ThcrapGen.data``. """
+        return _thcrap_codecave_ref(self.auto_prefix + name, kind='rel')
+    def abs_auto(self, name):
+        """ Generate the string ``"<codecave:...>"`` (with the ``auto_prefix``), which
+        will be preserved in the final output of ``ThcrapGen.data``. """
+        return _thcrap_codecave_ref(self.auto_prefix + name, kind='abs')
+    def rel_global(self, name):
+        """ Generate the string ``"[codecave:...]"`` (WITHOUT the ``auto_prefix``), which
+        will be preserved in the final output of ``ThcrapGen.data``. """
+        return _thcrap_codecave_ref(name, kind='rel')
+    def abs_global(self, name):
+        """ Generate the string ``"<codecave:...>"`` (WITHOUT the ``auto_prefix``), which
+        will be preserved in the final output of ``ThcrapGen.data``. """
+        return _thcrap_codecave_ref(name, kind='abs')
+
+def _thcrap_codecave_ref(name, kind):
+    if kind == 'abs':
+        return f'<codecave:{name}>'
+    elif kind == 'rel':
+        return f'[codecave:{name}]'
+    else:
+        raise ValueError(f'bad kind: {repr(kind)}')
+
 class Binhack(dict):
     """ dict for the yaml of a single binhack, with convenience methods. """
     def at(self, addr):
@@ -251,6 +298,7 @@ class ThcrapGen:
         self.auto_prefix = auto_prefix
         self.binhack_collections = {}
         self.single_binhacks = {}
+        self.codecaves = {}
 
     def binhack_collection(self, name, callback):
         """
@@ -265,11 +313,25 @@ class ThcrapGen:
         return self.binhack_collections[name]
 
     def binhack(self, name, binhack):
+        """
+        Define a single binhack, with corresponding yaml.
+
+        Returns the new copy stored on self, wrapped with the ``Binhack`` subclass.
+        """
         name = (self.auto_prefix or '') + name
         if name in self.single_binhacks:
             raise KeyError(f'binhack {repr(name)} already exists')
         self.single_binhacks[name] = Binhack(binhack)
         return self.single_binhacks[name]
+
+    def codecave(self, name, hex):
+        """
+        Define a codecave, with its corresponding hex string.
+        """
+        name = (self.auto_prefix or '') + name
+        if name in self.codecaves:
+            raise KeyError(f'codecave {repr(name)} already exists')
+        self.codecaves[name] = hex
 
     def asm(self, asm):
         """
@@ -284,7 +346,7 @@ class ThcrapGen:
 
         If you need to do something that requires special thcrap syntax like calling a
         codecave, supply a function instead of a string.  The function will be given a
-        single argument of type ``AsmContext``, which has methods that will allow you to
+        single argument of type ``CodeHelper``, which has methods that will allow you to
         insert these symbols.
 
         >>> thc = ThcrapGen('my-namespace.')
@@ -293,14 +355,57 @@ class ThcrapGen:
         ... ''')
         'e8[codecave:my-namespace.cool-cave]'
         """
-        ctx = AsmContext(auto_prefix=self.auto_prefix)
+        ctx = CodeHelper(auto_prefix=self.auto_prefix)
         if callable(asm):
             asm = asm(ctx)
         return ctx._asm_to_thcrap_hex(asm)
 
+    def data(self, data):
+        """
+        Compile a stream of data into hexadecimal for thcrap.
+
+        * ``int`` will be encoded as a dword.
+        * ``float`` will be encoded as a single-precision float.
+        * ``bytes`` will be encoded as a stream of bytes.
+        * ``Int16``, ``Float64`` etc. will be encoded as the appropriate size.
+        * ``str`` will be left as-is.  This is meant for e.g. ``[codecave:...]`` refs.
+        * A single-arg closure will be called with a ``DataHelper``, and then the
+          result will be processed as the new input.
+        * Any iterable types not listed above will have each item recursively encoded,
+          and the outputs concatenated. This is particularly meant for namedtuples, such
+          as those generated from ``struc`` defs by ``NasmDefs``.
+        """
+        # we can't just straight up delegate to data_bytes because we need to add
+        # support for strings, even when recursively contained.
+        if callable(data):
+            data = data(DataHelper(auto_prefix=self.auto_prefix))
+        if isinstance(data, str):
+            return data
+        if isinstance(data, bytes):
+            return bytes_to_hex(data)
+        if isinstance(data, collections.Iterable):
+            return ''.join(map(self.data, data))
+        return bytes_to_hex(self.data_bytes(data))
+
+    def data_bytes(self, data):
+        """ Like ``data`` but produces bytes instead of hex. Doesn't accept strings. """
+        if callable(data):
+            data = data(DataHelper(auto_prefix=self.auto_prefix))
+        if isinstance(data, int):
+            return Int32(data).to_bytes()
+        if isinstance(data, float):
+            return Float32(data).to_bytes()
+        if isinstance(data, bytes):
+            return data
+        if hasattr(data, 'to_bytes'): # Int32, Int64, etc.
+            return data.to_bytes()
+        if isinstance(data, str):
+            raise TypeError('data_bytes cannot be used on plain strings')
+        return b''.join(map(self.data_bytes, data))
+
     def cereal(self):
         """ Get the output JSON/YAML object. """
-        cereal = {'binhacks': {}}
+        cereal = {'binhacks': {}, 'codecaves': {}}
         for key, binhack in self.single_binhacks.items():
             cereal['binhacks'][key] = dict(binhack)
         for collection in self.binhack_collections.values():
@@ -317,13 +422,18 @@ class ThcrapGen:
             binhack['addr'] = hexify_if_int(binhack['addr'])
             if isinstance(binhack['addr'], list):
                 binhack['addr'] = [hexify_if_int(x) for x in binhack['addr']]
+
+        cereal['codecaves'].update(self.codecaves)
+
+        # remove empty dicts
+        if not cereal['binhacks']: del cereal['binhacks']
+        if not cereal['codecaves']: del cereal['codecaves']
         return cereal
 
     def print(self, file=sys.stdout):
         from ruamel.yaml import YAML
-        yaml = YAML(typ='safe')
+        yaml = YAML(typ='rt')
         yaml.dump(self.cereal(), file)
-
 
 def default_arg_parser(require_game=False):
     import argparse
@@ -363,3 +473,104 @@ class Game:
     def __le__(self, other): return self.ordered_string.__le__(Game(other).ordered_string)
     def __gt__(self, other): return self.ordered_string.__gt__(Game(other).ordered_string)
     def __ge__(self, other): return self.ordered_string.__ge__(Game(other).ordered_string)
+
+def auto_radix_int(s):
+    radix = 10
+    if s[:2] in ['0x', '0X']:
+        radix = 16
+        s = s[2:]
+    elif s[:2] in ['0b', '0B']:
+        radix = 2
+        s = s[2:]
+    elif s[:2] in ['0d', '0D']:
+        s = s[2:]
+    return int(s, radix)
+
+def _get_script_dir():
+    """ Get the directory of the currently executing script. """
+    import __main__
+    if not hasattr(__main__, '__file__'):
+        raise RuntimeError('This function cannot be used from the REPL!')
+    return os.path.dirname(__main__.__file__)
+
+RE_DEFINE_CONSTANT = re.compile('^ *%define +([_a-zA-Z0-9]+) +([^\n\r]+)$')
+STRUC_BEGIN_RE = re.compile('^ *struc +([_a-zA-Z0-9]+) *')
+STRUC_FIELD_RE = re.compile('^ *\.([_a-zA-Z0-9]+):')
+STRUC_END_RE = re.compile('^ *endstruc')
+class NasmDefs:
+    """ Provides extremely basic parsing of nasm files for constants and type definitions.
+
+    ``struc`` data structures will have corresponding ``collections.namedtuple``s created.
+    ``%define``d constants will be attempted to be parsed as simple integers.
+
+    All things will be generated as attributes on self.  I.e. use ``defs.MyType``, not
+    ``defs['MyType']``.
+    """
+    def __init__(self, attrs):
+        for k, v in attrs.items():
+            setattr(self, k, v)
+
+    @classmethod
+    def from_file_rel(cls, relpath):
+        """ Read a path relative to the path of the currently running script. """
+        dir = _get_script_dir()
+        with open(os.path.join(dir, relpath)) as f:
+            return cls.from_lines(list(f))
+
+    @classmethod
+    def from_lines(cls, lines):
+        struct_name = None
+        attrs = {}
+        for line in lines:
+            # for each %define that defines a plain integer, add such a field to the object
+            m = RE_DEFINE_CONSTANT.match(line)
+            if m:
+                try:
+                    value = auto_radix_int(m.group(2))
+                except ValueError:
+                    continue
+                attrs[m.group(1)] = value
+
+            # for each struc, define a namedtuple
+            m = STRUC_BEGIN_RE.match(line)
+            if m:
+                struct_name = m.group(1)
+                struct_fields = []
+                continue
+            if struct_name:
+                m = STRUC_FIELD_RE.match(line)
+                if m:
+                    struct_fields.append(m.group(1))
+                    continue
+                if STRUC_END_RE.match(line):
+                    attrs[struct_name] = collections.namedtuple(struct_name, struct_fields)
+                    struct_name = None
+                    del struct_fields
+                    continue
+        return cls(attrs)
+
+# Helpers for defining tables.
+class Int64(int):
+    """ Int wrapper that becomes an eight-byte integer (sign-agnostic) in ``ThcrapGen.data``. """
+    def to_bytes(self):
+        return struct.pack('<Q', self % 0x1_0000_0000_0000_0000)
+class Int32(int):
+    """ Int wrapper that becomes a four-byte integer (sign-agnostic) in ``ThcrapGen.data``. """
+    def to_bytes(self):
+        return struct.pack('<I', self % 0x1_0000_0000)
+class Int16(int):
+    """ Int wrapper that becomes a two-byte integer (sign-agnostic) in ``ThcrapGen.data``. """
+    def to_bytes(self):
+        return struct.pack('<H', self % 0x10000)
+class Int8(int):
+    """ Int wrapper that becomes a single byte (sign-agnostic) in ``ThcrapGen.data``. """
+    def to_bytes(self):
+        return struct.pack('<B', self % 0x100)
+class Float64(float):
+    """ Float wrapper that becomes an eight-byte float in ``ThcrapGen.data``. """
+    def to_bytes(self):
+        return struct.pack('<d', self)
+class Float32(float):
+    """ Float wrapper that becomes a four-byte float in ``ThcrapGen.data``. """
+    def to_bytes(self):
+        return struct.pack('<f', self)

@@ -8,11 +8,6 @@
 %define DRAWF_DEBUG       0x4040e0
 
 color_data:  ; HEADER: AUTO
-istruc ColorData
-    at ColorData.ascii_manager_ptr, dd 0x4c2160
-    at ColorData.color_offset, dd 0x19160
-    at ColorData.positioning, dd POSITIONING_TD
-iend
 
 ; __stdcall void DrawfDebugInt(AsciiManager*, Float3*, char*, int current)
 drawf_debug_int:  ; HEADER: AUTO
@@ -33,65 +28,4 @@ drawf_debug_int:  ; HEADER: AUTO
     epilogue_sd
     ret 0x10
 
-bullet_data:  ; HEADER: AUTO
-    dd KIND_ARRAY
-istruc ArraySpec
-    at ArraySpec.struct_ptr, dd 0x4c2174
-    at ArraySpec.limit, dd LIMIT_ADDR_CORRECTED(0x40d970-4, -1)
-    at ArraySpec.array_offset, dd 0x90
-    at ArraySpec.field_offset, dd 0xbbe
-    at ArraySpec.stride, dd 0x135c
-iend
-
-normal_item_data:  ; HEADER: AUTO
-    dd KIND_ARRAY
-istruc ArraySpec
-    at ArraySpec.struct_ptr, dd 0x4c229c
-    at ArraySpec.limit, dd LIMIT_VALUE(600)
-    at ArraySpec.array_offset, dd 0x14
-    at ArraySpec.field_offset, dd 0xba0
-    at ArraySpec.stride, dd 0xbc8
-iend
-
-cancel_item_data:  ; HEADER: AUTO
-    dd KIND_ARRAY
-istruc ArraySpec
-    at ArraySpec.struct_ptr, dd 0x4c229c
-    at ArraySpec.limit, dd LIMIT_ADDR_CORRECTED(0x42e2c0-4, -600)
-    at ArraySpec.array_offset, dd 0x1b9cd4
-    at ArraySpec.field_offset, dd 0xba0
-    at ArraySpec.stride, dd 0xbc8
-iend
-
-laser_data:  ; HEADER: AUTO
-    dd KIND_FIELD
-istruc FieldSpec
-    at FieldSpec.struct_ptr, dd 0x4c22a0
-    at FieldSpec.limit, dd LIMIT_ADDR(0x42fee1-4)
-    at FieldSpec.count_offset, dd 0x5d4
-iend
-
-anmid_data:  ; HEADER: AUTO
-    dd KIND_ANMID
-istruc AnmidSpec
-    at AnmidSpec.struct_ptr, dd 0x4dc688
-    at AnmidSpec.limit, dd LIMIT_VALUE(0x1fff)
-    at AnmidSpec.world_head_ptr_offset, dd 0xf48208
-    at AnmidSpec.ui_head_ptr_offset, dd 0xf48210
-iend
-
-spirit_data:  ; HEADER: AUTO
-    dd KIND_FIELD
-istruc FieldSpec
-    at FieldSpec.struct_ptr, dd 0x4c22a4
-    at FieldSpec.limit, dd LIMIT_ADDR(0x438678-4)
-    at FieldSpec.count_offset, dd 0x8814
-iend
-
-enemy_data:  ; HEADER: AUTO
-    dd KIND_FIELD
-istruc FieldSpec
-    at FieldSpec.struct_ptr, dd 0x4c2188
-    at FieldSpec.limit, dd LIMIT_NONE
-    at FieldSpec.count_offset, dd 0xb8
-iend
+# TH13

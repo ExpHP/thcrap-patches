@@ -8,11 +8,6 @@
 %define DRAWF_DEBUG       0x401690
 
 color_data:  ; HEADER: AUTO
-istruc ColorData
-    at ColorData.ascii_manager_ptr, dd 0x4776e0
-    at ColorData.color_offset, dd 0x8974
-    at ColorData.positioning, dd POSITIONING_MOF
-iend
 
 ; __stdcall void DrawfDebugInt(AsciiManager*, Float3*, char*, int current)
 drawf_debug_int:  ; HEADER: AUTO
@@ -26,61 +21,9 @@ drawf_debug_int:  ; HEADER: AUTO
     mov  eax, DRAWF_DEBUG
     call eax
     add  esp, 0x8  ; caller cleans stack for varargs
-    pop ebx
+    pop  ebx
     epilogue_sd
     ret 0x10
 
-bullet_data:  ; HEADER: AUTO
-    dd KIND_ARRAY
-istruc ArraySpec
-    at ArraySpec.struct_ptr, dd 0x4776f0
-    at ArraySpec.limit, dd LIMIT_ADDR(0x425856-4)
-    at ArraySpec.array_offset, dd 0x60
-    at ArraySpec.field_offset, dd 0x446
-    at ArraySpec.stride, dd 0x7f0
-iend
+# TH10
 
-normal_item_data:  ; HEADER: AUTO
-    dd KIND_ARRAY
-istruc ArraySpec
-    at ArraySpec.struct_ptr, dd 0x477818
-    at ArraySpec.limit, dd LIMIT_VALUE(150)
-    at ArraySpec.array_offset, dd 0x14
-    at ArraySpec.field_offset, dd 0x3dc
-    at ArraySpec.stride, dd 0x3f0
-iend
-
-cancel_item_data:  ; HEADER: AUTO
-    dd KIND_ARRAY
-istruc ArraySpec
-    at ArraySpec.struct_ptr, dd 0x477818
-    at ArraySpec.limit, dd LIMIT_ADDR_CORRECTED(0x41af16-4, -150)  ; true cancel item cap never appears in code
-    at ArraySpec.array_offset, dd 0x24eb4
-    at ArraySpec.field_offset, dd 0x3dc
-    at ArraySpec.stride, dd 0x3f0
-iend
-
-laser_data:  ; HEADER: AUTO
-    dd KIND_FIELD
-istruc FieldSpec
-    at FieldSpec.struct_ptr, dd 0x47781c
-    at FieldSpec.limit, dd LIMIT_ADDR(0x41c51a-4)
-    at FieldSpec.count_offset, dd 0x438
-iend
-
-anmid_data:  ; HEADER: AUTO
-    dd KIND_ANMID
-istruc AnmidSpec
-    at AnmidSpec.struct_ptr, dd 0x491c10
-    at AnmidSpec.limit, dd LIMIT_VALUE(0x1000)
-    at AnmidSpec.world_head_ptr_offset, dd 0x72dad4
-    at AnmidSpec.ui_head_ptr_offset, dd 0x72dadc
-iend
-
-enemy_data:  ; HEADER: AUTO
-    dd KIND_LIST
-istruc ListSpec
-    at ListSpec.struct_ptr, dd 0x477704
-    at ListSpec.limit, dd LIMIT_NONE
-    at ListSpec.head_ptr_offset, dd 0x58
-iend
