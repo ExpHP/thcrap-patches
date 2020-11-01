@@ -35,6 +35,8 @@ update:
 
 PYTHON=PYTHONPATH=scripts python3
 
+BINHACK_HELPER_PY=scripts/binhack_helper.py
+
 %.asm.yaml: %.asm
 	@echo "# this yaml file is auto-generated" >$@
 	@echo "codecaves:" >>$@
@@ -177,7 +179,7 @@ POINTERIZE_YAMLS= \
 	$(DIR)/pointerize.${TH08_VER}.yaml \
 
 .INTERMEDIATE: $(POINTERIZE_YAMLS)
-$(POINTERIZE_YAMLS) : $(DIR)/pointerize.th%.yaml: $(DIR)/pointerize.py
+$(POINTERIZE_YAMLS) : $(DIR)/pointerize.th%.yaml: $(DIR)/pointerize.py $(BINHACK_HELPER_PY)
 	$(PYTHON) $< --game th$* >$@
 
 TH_ASM_YAMLS=$(patsubst %.asm,%.asm.yaml,$(wildcard $(DIR)/th*.asm))
@@ -203,6 +205,8 @@ DIR=$(REPO)/debug_counters
 .PHONY: debug-counters
 debug-counters: \
 	$(DIR)/global.js \
+	$(DIR)/$(TH07_VER).js \
+	$(DIR)/$(TH08_VER).js \
 	$(DIR)/$(TH10_VER).js \
 	$(DIR)/$(TH11_VER).js \
 	$(DIR)/$(TH12_VER).js \
@@ -220,7 +224,7 @@ debug-counters: \
 $(DIR)/global.js: $(DIR)/global.asm.yaml
 	scripts/convert-yaml.py $^ >$@
 
-$(DIR)/counters.th%.yaml: $(DIR)/counters.py
+$(DIR)/counters.th%.yaml: $(DIR)/counters.py $(BINHACK_HELPER_PY) $(DIR)/common.asm
 	$(PYTHON) $< --game th$* >$@
 
 $(DIR)/th%.js: $(DIR)/counters.th%.yaml $(DIR)/binhacks.yaml
@@ -264,7 +268,7 @@ ultra: \
 	$(DIR)/$(TH165_VER).js \
 	$(DIR)/$(TH17_VER).js \
 
-$(DIR)/binhacks.th%.yaml: $(DIR)/binhacks.py
+$(DIR)/binhacks.th%.yaml: $(DIR)/binhacks.py $(BINHACK_HELPER_PY)
 	$(PYTHON) $< --game th$* >$@
 
 $(DIR)/th%.js: $(DIR)/binhacks.th%.yaml

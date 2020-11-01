@@ -12,12 +12,8 @@ def main():
     thc = binhack_helper.ThcrapGen('ExpHP.debug-counters.')
     defs = binhack_helper.NasmDefs.from_file_rel('common.asm')
 
-    print()
-
     aux_stuff(game, thc, defs)
     define_counters(game, thc, defs)
-    #add_main_binhacks(game, thc)
-    #add_access_binhacks(game, thc)
 
     thc.print()
 
@@ -188,101 +184,149 @@ def define_counters(game, thc, defs):
     field_spec = lambda *args, **kw: (defs.KIND_FIELD, defs.FieldSpec(*args, **kw))
     anmid_spec = lambda *args, **kw: (defs.KIND_ANMID, defs.AnmidSpec(*args, **kw))
     list_spec = lambda *args, **kw: (defs.KIND_LIST, defs.ListSpec(*args, **kw))
+    def embedded(inner_spec_func, struct_base, *args, **kw):
+        replay_manager_ptr = {
+            'th07': 0x4b9e48,
+            'th08': 0x18b8a28,
+        }[game]
+        # get dwords, but pull out tag because that will go into the EmbeddedSpec header
+        inner_kind, *inner_spec = inner_spec_func(0xdeadbeef, *args, **kw)
+        inner = thc.data(inner_spec)
+        inner_size = binhack_helper.hex_code_len(inner)
+        return defs.KIND_EMBEDDED, defs.EmbeddedSpec(
+            show_when_nonzero=replay_manager_ptr, struct_base=struct_base,
+            spec_kind=inner_kind, spec_size=inner_size, spec=inner,
+        )
+    def array_spec_v2(*args, adjust_array_func, **kw):
+        return defs.KIND_ARRAY_V2, defs.ArraySpecV2(v1=defs.ArraySpec(*args, **kw), adjust_array_func=adjust_array_func)
 
     thc.codecave('bullet-data', thc.data({
-        'th10': array_spec(0x4776f0, limit_addr(0x425856-4), array_offset=0x60, field_offset=0x446, stride=0x7f0),
-        'th11': array_spec(0x4a8d68, limit_addr(0x408d40-4), array_offset=0x64, field_offset=0x4b2, stride=0x910),
-        'th12': array_spec(0x4b43c8, limit_addr(0x40a061), array_offset=0x64, field_offset=0x532, stride=0x9f8),
-        'th125': array_spec(0x4b677c, limit_addr(0x408785-4), array_offset=0x64, field_offset=0x512, stride=0xa34),
-        'th128': array_spec(0x4b8930, limit_addr(0x408d95-4), array_offset=0x64, field_offset=0xa2a, stride=0x11b8),
-        'th13': array_spec(0x4c2174, limit_addr_corrected(0x40d970-4, -1), array_offset=0x90, field_offset=0xbbe, stride=0x135c),
-        'th14': array_spec(0x4db530, limit_addr_corrected(0x416560-4, -1), array_offset=0x8c, field_offset=0xc0e, stride=0x13f4),
-        'th143': array_spec(0x4e6a08, limit_addr_corrected(0x4128d0-4, -1), array_offset=0x8c, field_offset=0xc0e, stride=0x13f4),
-        'th15': array_spec(0x4e9a6c, limit_addr_corrected(0x418c99-4, -1), array_offset=0x98, field_offset=0xc8a, stride=0x1494),
-        'th16': array_spec(0x4a6dac, limit_addr_corrected(0x4118b9-4, -1), array_offset=0x9c, field_offset=0xc72, stride=0x1478),
-        'th165': array_spec(0x4b550c, limit_addr_corrected(0x40ebc7-4, -1), array_offset=0x9c, field_offset=0xe54, stride=0xe8c),
-        'th17': array_spec(0x4b768c, limit_addr_corrected(0x414807-4, -1), array_offset=0xec, field_offset=0xe50, stride=0xe88),
-    }[game]))
+        # Early games track the count for their CAVE slowdown emulation feature.  Hooray!
+        'th07': lambda: embedded(field_spec, 0x62f958, limit_addr(0x423770-4), count_offset=0x37a128),
+        'th08': lambda: embedded(field_spec, 0xf54e90, limit_addr(0x4312ae-4), count_offset=0x6ba538),
+        # ...these games don't track it. Scan the array.
+        'th10': lambda: array_spec(0x4776f0, limit_addr(0x425856-4), array_offset=0x60, field_offset=0x446, stride=0x7f0),
+        'th11': lambda: array_spec(0x4a8d68, limit_addr(0x408d40-4), array_offset=0x64, field_offset=0x4b2, stride=0x910),
+        'th12': lambda: array_spec(0x4b43c8, limit_addr(0x40a061), array_offset=0x64, field_offset=0x532, stride=0x9f8),
+        'th125': lambda: array_spec(0x4b677c, limit_addr(0x408785-4), array_offset=0x64, field_offset=0x512, stride=0xa34),
+        'th128': lambda: array_spec(0x4b8930, limit_addr(0x408d95-4), array_offset=0x64, field_offset=0xa2a, stride=0x11b8),
+        'th13': lambda: array_spec(0x4c2174, limit_addr_corrected(0x40d970-4, -1), array_offset=0x90, field_offset=0xbbe, stride=0x135c),
+        'th14': lambda: array_spec(0x4db530, limit_addr_corrected(0x416560-4, -1), array_offset=0x8c, field_offset=0xc0e, stride=0x13f4),
+        'th143': lambda: array_spec(0x4e6a08, limit_addr_corrected(0x4128d0-4, -1), array_offset=0x8c, field_offset=0xc0e, stride=0x13f4),
+        'th15': lambda: array_spec(0x4e9a6c, limit_addr_corrected(0x418c99-4, -1), array_offset=0x98, field_offset=0xc8a, stride=0x1494),
+        'th16': lambda: array_spec(0x4a6dac, limit_addr_corrected(0x4118b9-4, -1), array_offset=0x9c, field_offset=0xc72, stride=0x1478),
+        'th165': lambda: array_spec(0x4b550c, limit_addr_corrected(0x40ebc7-4, -1), array_offset=0x9c, field_offset=0xe54, stride=0xe8c),
+        'th17': lambda: array_spec(0x4b768c, limit_addr_corrected(0x414807-4, -1), array_offset=0xec, field_offset=0xe50, stride=0xe88),
+    }[game]()))
 
     thc.codecave('normal-item-data', thc.data({
-        'th10': array_spec(0x477818, limit_value(150), array_offset=0x14, field_offset=0x3dc, stride=0x3f0),
-        'th11': array_spec(0x4a8e90, limit_value(150), array_offset=0x14, field_offset=0x464, stride=0x478),
-        'th12': array_spec(0x4b44f0, limit_value(600), array_offset=0x14, field_offset=0x9b0, stride=0x9d8),
-        'th125': zero_spec(0x4b68a0),
-        'th128': array_spec(0x4b8a5c, limit_value(600), array_offset=0x14, field_offset=0xa18, stride=0xa40),
-        'th13': array_spec(0x4c229c, limit_value(600), array_offset=0x14, field_offset=0xba0, stride=0xbc8),
-        'th14': array_spec(0x4db660, limit_value(600), array_offset=0x14, field_offset=0xbf0, stride=0xc18),
-        'th143': array_spec(0x4e6b64, limit_value(600), array_offset=0x14, field_offset=0xbf4, stride=0xc1c),
-        'th15': array_spec(0x4e9a9c, limit_value(600), array_offset=0x10, field_offset=0xc64, stride=0xc88),
-        'th16': array_spec(0x4a6ddc, limit_value(600), array_offset=0x14, field_offset=0xc50, stride=0xc78),
-        'th165': zero_spec(0x4b5634),
-        'th17': array_spec(0x4b76b8, limit_value(600), array_offset=0x14, field_offset=0xc58, stride=0xc78),
-    }[game]))
+        'th07': lambda: embedded(field_spec, 0x575c70, limit_addr(0x432750-4), count_offset=0xae2ec),
+        'th08': lambda: embedded(field_spec, 0x1653648, limit_addr(0x440187-4), count_offset=0x17ada8),
+        'th10': lambda: array_spec(0x477818, limit_value(150), array_offset=0x14, field_offset=0x3dc, stride=0x3f0),
+        'th11': lambda: array_spec(0x4a8e90, limit_value(150), array_offset=0x14, field_offset=0x464, stride=0x478),
+        'th12': lambda: array_spec(0x4b44f0, limit_value(600), array_offset=0x14, field_offset=0x9b0, stride=0x9d8),
+        'th125': lambda: zero_spec(0x4b68a0),
+        'th128': lambda: array_spec(0x4b8a5c, limit_value(600), array_offset=0x14, field_offset=0xa18, stride=0xa40),
+        'th13': lambda: array_spec(0x4c229c, limit_value(600), array_offset=0x14, field_offset=0xba0, stride=0xbc8),
+        'th14': lambda: array_spec(0x4db660, limit_value(600), array_offset=0x14, field_offset=0xbf0, stride=0xc18),
+        'th143': lambda: array_spec(0x4e6b64, limit_value(600), array_offset=0x14, field_offset=0xbf4, stride=0xc1c),
+        'th15': lambda: array_spec(0x4e9a9c, limit_value(600), array_offset=0x10, field_offset=0xc64, stride=0xc88),
+        'th16': lambda: array_spec(0x4a6ddc, limit_value(600), array_offset=0x14, field_offset=0xc50, stride=0xc78),
+        'th165': lambda: zero_spec(0x4b5634),
+        'th17': lambda: array_spec(0x4b76b8, limit_value(600), array_offset=0x14, field_offset=0xc58, stride=0xc78),
+    }[game]()))
 
     thc.codecave('cancel-item-data', thc.data({
-        'th10': array_spec(0x477818, limit_addr_corrected(0x41af16-4, -150), array_offset=0x24eb4, field_offset=0x3dc, stride=0x3f0),
-        'th11': array_spec(0x4a8e90, limit_addr_corrected(0x423490-4, -150), array_offset=0x29e64, field_offset=0x464, stride=0x478),
-        'th12': array_spec(0x4b44f0, limit_addr_corrected(0x425b60-4, -600-16), array_offset=0x17afd4, field_offset=0x9b0, stride=0x9d8),
-        'th125': array_spec(0x4b68a0, limit_addr_corrected(0x41f320-4, 0), array_offset=0x14, field_offset=0x4f0, stride=0x4f4),
-        'th128': array_spec(0x4b8a5c, limit_addr_corrected(0x428550-4, -600-16), array_offset=0x18aa14, field_offset=0xa18, stride=0xa40),
-        'th13': array_spec(0x4c229c, limit_addr_corrected(0x42e2c0-4, -600), array_offset=0x1b9cd4, field_offset=0xba0, stride=0xbc8),
-        'th14': array_spec(0x4db660, limit_addr_corrected(0x438481-4, -600), array_offset=0x1c5854, field_offset=0xbf0, stride=0xc18),
-        'th143': array_spec(0x4e6b64, limit_addr_corrected(0x435011-4, -600), array_offset=0x1c61b4, field_offset=0xbf4, stride=0xc1c),
-        'th15': array_spec(0x4e9a9c, limit_addr_corrected(0x43f458-4, -600), array_offset=0x1d5ed0, field_offset=0xc64, stride=0xc88),
-        'th16': array_spec(0x4a6ddc, limit_addr_corrected(0x42f0ea-4, -600), array_offset=0x1d3954, field_offset=0xc50, stride=0xc78),
-        'th165': array_spec(0x4b5634, limit_addr_corrected(0x42bb46-4, 0), array_offset=0x10, field_offset=0x630, stride=0x634),
-        'th17': array_spec(0x4b76b8, limit_addr_corrected(0x4331f8-4, -600), array_offset=0x1d3954, field_offset=0xc58, stride=0xc78),
-    }[game]))
+        'th07': lambda: 0,  # unused
+        'th08': lambda: 0,  # unused
+        'th10': lambda: array_spec(0x477818, limit_addr_corrected(0x41af16-4, -150), array_offset=0x24eb4, field_offset=0x3dc, stride=0x3f0),
+        'th11': lambda: array_spec(0x4a8e90, limit_addr_corrected(0x423490-4, -150), array_offset=0x29e64, field_offset=0x464, stride=0x478),
+        'th12': lambda: array_spec(0x4b44f0, limit_addr_corrected(0x425b60-4, -600-16), array_offset=0x17afd4, field_offset=0x9b0, stride=0x9d8),
+        'th125': lambda: array_spec(0x4b68a0, limit_addr_corrected(0x41f320-4, 0), array_offset=0x14, field_offset=0x4f0, stride=0x4f4),
+        'th128': lambda: array_spec(0x4b8a5c, limit_addr_corrected(0x428550-4, -600-16), array_offset=0x18aa14, field_offset=0xa18, stride=0xa40),
+        'th13': lambda: array_spec(0x4c229c, limit_addr_corrected(0x42e2c0-4, -600), array_offset=0x1b9cd4, field_offset=0xba0, stride=0xbc8),
+        'th14': lambda: array_spec(0x4db660, limit_addr_corrected(0x438481-4, -600), array_offset=0x1c5854, field_offset=0xbf0, stride=0xc18),
+        'th143': lambda: array_spec(0x4e6b64, limit_addr_corrected(0x435011-4, -600), array_offset=0x1c61b4, field_offset=0xbf4, stride=0xc1c),
+        'th15': lambda: array_spec(0x4e9a9c, limit_addr_corrected(0x43f458-4, -600), array_offset=0x1d5ed0, field_offset=0xc64, stride=0xc88),
+        'th16': lambda: array_spec(0x4a6ddc, limit_addr_corrected(0x42f0ea-4, -600), array_offset=0x1d3954, field_offset=0xc50, stride=0xc78),
+        'th165': lambda: array_spec(0x4b5634, limit_addr_corrected(0x42bb46-4, 0), array_offset=0x10, field_offset=0x630, stride=0x634),
+        'th17': lambda: array_spec(0x4b76b8, limit_addr_corrected(0x4331f8-4, -600), array_offset=0x1d3954, field_offset=0xc58, stride=0xc78),
+    }[game]()))
 
     thc.codecave('laser-data', thc.data({
-        'th10': field_spec(0x47781c, limit_addr(0x41c51a-4), count_offset=0x438),
-        'th11': field_spec(0x4a8e94, limit_addr(0x424e01-4), count_offset=0x454),
-        'th12': field_spec(0x4b44f4, limit_addr(0x42845d), count_offset=0x468),
-        'th125': field_spec(0x4b68a4, limit_addr(0x420411-4), count_offset=0x468),
-        'th128': field_spec(0x4b8a60, limit_addr(0x42a411-4), count_offset=0x5d4),
-        'th13': field_spec(0x4c22a0, limit_addr(0x42fee1-4), count_offset=0x5d4),
-        'th14': field_spec(0x4db664, limit_addr(0x43a765-4), count_offset=0x5d4),
-        'th143': field_spec(0x4e6b6c, limit_addr(0x439075-4), count_offset=0x5d4),
-        'th15': field_spec(0x4e9ba0, limit_addr(0x4419e5-4), count_offset=0x5e4),
-        'th16': field_spec(0x4a6ee0, limit_addr(0x431775-4), count_offset=0x5e4),
-        'th165': field_spec(0x4b5638, limit_addr(0x42cb65-4), count_offset=0x5e4),
-        'th17': field_spec(0x4b76bc, limit_addr(0x4355d5-4), count_offset=0x5e4),
-    }[game]))
+        'th07': lambda: embedded(
+            array_spec_v2, 0x62f958, limit_addr(0x4233b1-4), array_offset=0x366628, field_offset=0x4d4, stride=0x4ec,
+            adjust_array_func='<codecave:base-exphp.adjust-laser-array>'
+        ),
+        'th08': lambda: embedded(
+            array_spec_v2, 0xf54e90, limit_addr(0x42f464-4), array_offset=0x660938, field_offset=0x584, stride=0x59c,
+            adjust_array_func='<codecave:base-exphp.adjust-laser-array>'
+        ),
+        'th10': lambda: field_spec(0x47781c, limit_addr(0x41c51a-4), count_offset=0x438),
+        'th11': lambda: field_spec(0x4a8e94, limit_addr(0x424e01-4), count_offset=0x454),
+        'th12': lambda: field_spec(0x4b44f4, limit_addr(0x42845d), count_offset=0x468),
+        'th125': lambda: field_spec(0x4b68a4, limit_addr(0x420411-4), count_offset=0x468),
+        'th128': lambda: field_spec(0x4b8a60, limit_addr(0x42a411-4), count_offset=0x5d4),
+        'th13': lambda: field_spec(0x4c22a0, limit_addr(0x42fee1-4), count_offset=0x5d4),
+        'th14': lambda: field_spec(0x4db664, limit_addr(0x43a765-4), count_offset=0x5d4),
+        'th143': lambda: field_spec(0x4e6b6c, limit_addr(0x439075-4), count_offset=0x5d4),
+        'th15': lambda: field_spec(0x4e9ba0, limit_addr(0x4419e5-4), count_offset=0x5e4),
+        'th16': lambda: field_spec(0x4a6ee0, limit_addr(0x431775-4), count_offset=0x5e4),
+        'th165': lambda: field_spec(0x4b5638, limit_addr(0x42cb65-4), count_offset=0x5e4),
+        'th17': lambda: field_spec(0x4b76bc, limit_addr(0x4355d5-4), count_offset=0x5e4),
+    }[game]()))
 
-    thc.codecave('anmid-data', thc.data({
-        'th10': anmid_spec(0x491c10, limit_value(0x1000), world_head_ptr_offset=0x72dad4, ui_head_ptr_offset=0x72dadc),
-        'th11': anmid_spec(0x4c3268, limit_value(0x1000), world_head_ptr_offset=0x7b562c, ui_head_ptr_offset=0x7b5634),
-        'th12': anmid_spec(0x4ce8cc, limit_value(0x1000), world_head_ptr_offset=0x8856b8, ui_head_ptr_offset=0x8856c0),
-        'th125': anmid_spec(0x4d0cb4, limit_value(0x1000), world_head_ptr_offset=0x88d6c0, ui_head_ptr_offset=0x88d6c8),
-        'th128': anmid_spec(0x4d2e50, limit_value(0x1000), world_head_ptr_offset=0x8b9704, ui_head_ptr_offset=0x8b9708),
-        'th13': anmid_spec(0x4dc688, limit_value(0x1fff), world_head_ptr_offset=0xf48208, ui_head_ptr_offset=0xf48210),
-        'th14': anmid_spec(0x4f56cc, limit_value(0x1fff), world_head_ptr_offset=0xfe8208, ui_head_ptr_offset=0xfe8210),
-        'th143': anmid_spec(0x538de8, limit_value(0x1fff), world_head_ptr_offset=0xfe8218, ui_head_ptr_offset=0xfe8220),
-        'th15': anmid_spec(0x503c18, limit_value(0x1fff), world_head_ptr_offset=0xdc, ui_head_ptr_offset=0xe4),
-        'th16': anmid_spec(0x4c0f48, limit_value(0x1fff), world_head_ptr_offset=0xdc, ui_head_ptr_offset=0xe4),
-        'th165': anmid_spec(0x4ed88c, limit_value(0x1fff), world_head_ptr_offset=0xdc, ui_head_ptr_offset=0xe4),
-        'th17': anmid_spec(0x509a20, limit_value(0x3fff), world_head_ptr_offset=0x6dc, ui_head_ptr_offset=0x6e4),
-    }[game]))
+    if 'th10' <= game:
+        thc.codecave('anmid-data', thc.data({
+            'th10': lambda: anmid_spec(0x491c10, limit_value(0x1000), world_head_ptr_offset=0x72dad4, ui_head_ptr_offset=0x72dadc),
+            'th11': lambda: anmid_spec(0x4c3268, limit_value(0x1000), world_head_ptr_offset=0x7b562c, ui_head_ptr_offset=0x7b5634),
+            'th12': lambda: anmid_spec(0x4ce8cc, limit_value(0x1000), world_head_ptr_offset=0x8856b8, ui_head_ptr_offset=0x8856c0),
+            'th125': lambda: anmid_spec(0x4d0cb4, limit_value(0x1000), world_head_ptr_offset=0x88d6c0, ui_head_ptr_offset=0x88d6c8),
+            'th128': lambda: anmid_spec(0x4d2e50, limit_value(0x1000), world_head_ptr_offset=0x8b9704, ui_head_ptr_offset=0x8b9708),
+            'th13': lambda: anmid_spec(0x4dc688, limit_value(0x1fff), world_head_ptr_offset=0xf48208, ui_head_ptr_offset=0xf48210),
+            'th14': lambda: anmid_spec(0x4f56cc, limit_value(0x1fff), world_head_ptr_offset=0xfe8208, ui_head_ptr_offset=0xfe8210),
+            'th143': lambda: anmid_spec(0x538de8, limit_value(0x1fff), world_head_ptr_offset=0xfe8218, ui_head_ptr_offset=0xfe8220),
+            'th15': lambda: anmid_spec(0x503c18, limit_value(0x1fff), world_head_ptr_offset=0xdc, ui_head_ptr_offset=0xe4),
+            'th16': lambda: anmid_spec(0x4c0f48, limit_value(0x1fff), world_head_ptr_offset=0xdc, ui_head_ptr_offset=0xe4),
+            'th165': lambda: anmid_spec(0x4ed88c, limit_value(0x1fff), world_head_ptr_offset=0xdc, ui_head_ptr_offset=0xe4),
+            'th17': lambda: anmid_spec(0x509a20, limit_value(0x3fff), world_head_ptr_offset=0x6dc, ui_head_ptr_offset=0x6e4),
+        }[game]()))
     if game == 'th13':
         thc.codecave('spirit-data', thc.data(field_spec(0x4c22a4, limit_addr(0x438678-4), count_offset=0x8814)))
 
     thc.codecave('enemy-data', thc.data({
-        'th10': list_spec(0x477704, limit_none, head_ptr_offset=0x58),
-        'th11': field_spec(0x4a8d7c, limit_none, count_offset=0x70),
-        'th12': field_spec(0x4b43dc, limit_none, count_offset=0x70),
-        'th125': field_spec(0x4b678c, limit_none, count_offset=0xa8),
-        'th128': field_spec(0x4b8948, limit_none, count_offset=0xc0),
-        'th13': field_spec(0x4c2188, limit_none, count_offset=0xb8),
-        'th14': field_spec(0x4db544, limit_none, count_offset=0xd8),
-        'th143': field_spec(0x4e6a48, limit_none, count_offset=0xd8),
-        'th15': field_spec(0x4e9a80, limit_none, count_offset=0x18c),
-        'th16': field_spec(0x4a6dc0, limit_none, count_offset=0x18c),
-        'th165': field_spec(0x4b551c, limit_none, count_offset=0x1b4),
-        'th17': field_spec(0x4b76a0, limit_none, count_offset=0x18c),
-    }[game]))
+        'th07': lambda: embedded(field_spec, 0x9a9b00, limit_none, count_offset=0x9545bc),
+        'th08': lambda: embedded(field_spec, 0x577f20, limit_none, count_offset=0x9dcdc4),
+        'th10': lambda: list_spec(0x477704, limit_none, head_ptr_offset=0x58),
+        'th11': lambda: field_spec(0x4a8d7c, limit_none, count_offset=0x70),
+        'th12': lambda: field_spec(0x4b43dc, limit_none, count_offset=0x70),
+        'th125': lambda: field_spec(0x4b678c, limit_none, count_offset=0xa8),
+        'th128': lambda: field_spec(0x4b8948, limit_none, count_offset=0xc0),
+        'th13': lambda: field_spec(0x4c2188, limit_none, count_offset=0xb8),
+        'th14': lambda: field_spec(0x4db544, limit_none, count_offset=0xd8),
+        'th143': lambda: field_spec(0x4e6a48, limit_none, count_offset=0xd8),
+        'th15': lambda: field_spec(0x4e9a80, limit_none, count_offset=0x18c),
+        'th16': lambda: field_spec(0x4a6dc0, limit_none, count_offset=0x18c),
+        'th165': lambda: field_spec(0x4b551c, limit_none, count_offset=0x1b4),
+        'th17': lambda: field_spec(0x4b76a0, limit_none, count_offset=0x18c),
+    }[game]()))
 
     def dword_array(addr, limit, array_offset):
         return array_spec(addr, limit, array_offset=array_offset, field_offset=defs.FIELD_IS_DWORD, stride=0x4)
+
+    if 'th07' <= game <= 'th08':
+        thc.codecave('effect-general-data', thc.data({
+            'th07': embedded(array_spec, 0x12fe250, limit_addr(0x41c1f7-4), array_offset=0x1c, field_offset=0x2cc, stride=0x2d8),
+            'th08': embedded(array_spec, 0x4ece60, limit_addr(0x425468-4), array_offset=0x1c, field_offset=0x350, stride=0x360),
+        }[game]))
+        thc.codecave('effect-familiar-data', thc.data({
+            'th07': 0,
+            'th08': embedded(array_spec, 0x4ece60, limit_addr(0x425ba9-4), array_offset=0x6c01c, field_offset=0x350, stride=0x360),
+        }[game]))
+        thc.codecave('effect-indexed-data', thc.data({
+            'th07': embedded(array_spec, 0x12fe250, limit_value(0x9), array_offset=0x4719c, field_offset=0x2cc, stride=0x2d8),
+            'th08': embedded(array_spec, 0x4ece60, limit_value(0xd), array_offset=0x8701c, field_offset=0x350, stride=0x360),
+        }[game]))
 
     if 'th15' <= game <= 'th17':
         thc.codecave('effect-data', thc.data({

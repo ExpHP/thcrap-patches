@@ -13,6 +13,13 @@ import re
 import struct
 import os.path
 
+# Debug flag. Set this to True to make the hex strings more similar to what they were
+# prior to the introduction of python scripts.  This can assist in the use of
+# 'git diff --word-diff-regex=.' to debug problems introduced in the python code.
+#
+# This should always be false in VCS.
+MINIMIZE_HEX_DIFF = False
+
 class LocatableSymbolResolver:
     """
     An ``OPT_SYM_RESOLVER`` for keystone designed to help identify the byte offset into the
@@ -149,7 +156,7 @@ class CodeHelper:
         """ Generate a symbol whose affected bytes will be substituted with the given,
         arbitrary text in the final output of ``ThcrapGen.asm``. """
         symbol = self.resolver.gen_symbol()
-        self.replacements[self.resolver.gen_symbol()] = replacement
+        self.replacements[symbol] = replacement
         return symbol
 
     def _asm_to_thcrap_hex(self, asm):
@@ -180,7 +187,20 @@ def _random_symbol():
 
 def bytes_to_hex(bits):
     """ Convert bytes to a hex string. """
-    return ''.join(f'{x:02x}' for x in bits)
+    if MINIMIZE_HEX_DIFF:
+        return ''.join(f'{x:02X}' for x in bits)
+    else:
+        return ''.join(f'{x:02x}' for x in bits)
+
+def hex_code_len(code):
+    """ Get number of bytes in thcrap hex code. """
+    if "<option:" in code:
+        raise ValueError(f'cannot determine byte length of options')
+    code = re.sub(r'\[[^\]]+\]', '00000000', code)
+    code = re.sub(r'<[^>]+>', '00000000', code)
+    code = ''.join([c for c in code if c in '0123456789abcdefABCDEF'])
+    assert len(code) % 2 == 0
+    return len(code) // 2
 
 # Keystone fails in an unusual way ("successfully" returning None) without the ptr keyword.
 # (Ironically, checking github, I've only found an issue reporting the OPPOSITE effect, where
@@ -375,33 +395,24 @@ class ThcrapGen:
           and the outputs concatenated. This is particularly meant for namedtuples, such
           as those generated from ``struc`` defs by ``NasmDefs``.
         """
-        # we can't just straight up delegate to data_bytes because we need to add
-        # support for strings, even when recursively contained.
         if callable(data):
             data = data(DataHelper(auto_prefix=self.auto_prefix))
+        if hasattr(data, 'to_hex'): # Int32, Int64, etc.
+            return data.to_hex()
+        if isinstance(data, int):
+            return Int32(data).to_hex()
+        if isinstance(data, float):
+            return Float32(data).to_hex()
         if isinstance(data, str):
             return data
         if isinstance(data, bytes):
             return bytes_to_hex(data)
         if isinstance(data, collections.Iterable):
-            return ''.join(map(self.data, data))
-        return bytes_to_hex(self.data_bytes(data))
-
-    def data_bytes(self, data):
-        """ Like ``data`` but produces bytes instead of hex. Doesn't accept strings. """
-        if callable(data):
-            data = data(DataHelper(auto_prefix=self.auto_prefix))
-        if isinstance(data, int):
-            return Int32(data).to_bytes()
-        if isinstance(data, float):
-            return Float32(data).to_bytes()
-        if isinstance(data, bytes):
-            return data
-        if hasattr(data, 'to_bytes'): # Int32, Int64, etc.
-            return data.to_bytes()
-        if isinstance(data, str):
-            raise TypeError('data_bytes cannot be used on plain strings')
-        return b''.join(map(self.data_bytes, data))
+            if MINIMIZE_HEX_DIFF:
+                return ' // '.join(map(self.data, data))
+            else:
+                return ''.join(map(self.data, data))
+        raise TypeError(f'cannot hexify value of type {type(data)}')
 
     def cereal(self):
         """ Get the output JSON/YAML object. """
@@ -552,25 +563,25 @@ class NasmDefs:
 # Helpers for defining tables.
 class Int64(int):
     """ Int wrapper that becomes an eight-byte integer (sign-agnostic) in ``ThcrapGen.data``. """
-    def to_bytes(self):
-        return struct.pack('<Q', self % 0x1_0000_0000_0000_0000)
+    def to_hex(self):
+        return bytes_to_hex(struct.pack('<Q', self % 0x1_0000_0000_0000_0000))
 class Int32(int):
     """ Int wrapper that becomes a four-byte integer (sign-agnostic) in ``ThcrapGen.data``. """
-    def to_bytes(self):
-        return struct.pack('<I', self % 0x1_0000_0000)
+    def to_hex(self):
+        return bytes_to_hex(struct.pack('<I', self % 0x1_0000_0000))
 class Int16(int):
     """ Int wrapper that becomes a two-byte integer (sign-agnostic) in ``ThcrapGen.data``. """
-    def to_bytes(self):
-        return struct.pack('<H', self % 0x10000)
+    def to_hex(self):
+        return bytes_to_hex(struct.pack('<H', self % 0x10000))
 class Int8(int):
     """ Int wrapper that becomes a single byte (sign-agnostic) in ``ThcrapGen.data``. """
-    def to_bytes(self):
-        return struct.pack('<B', self % 0x100)
+    def to_hex(self):
+        return bytes_to_hex(struct.pack('<B', self % 0x100))
 class Float64(float):
     """ Float wrapper that becomes an eight-byte float in ``ThcrapGen.data``. """
-    def to_bytes(self):
-        return struct.pack('<d', self)
+    def to_hex(self):
+        return bytes_to_hex(struct.pack('<d', self))
 class Float32(float):
     """ Float wrapper that becomes a four-byte float in ``ThcrapGen.data``. """
-    def to_bytes(self):
-        return struct.pack('<f', self)
+    def to_hex(self):
+        return bytes_to_hex(struct.pack('<f', self))
