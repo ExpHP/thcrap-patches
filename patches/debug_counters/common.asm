@@ -9,36 +9,36 @@
 %define KIND_ZERO         4
 %define KIND_EMBEDDED     5
 %define KIND_LIST         7
-%define POSITIONING_MOF   1
-%define POSITIONING_TD    2
-%define POSITIONING_DDC   3
-%define POSITIONING_IN    4
-%define POSITIONING_EOSD  5
-
-; Quantity is unlimited.
-%define LIMIT_NONE             LIMIT_VALUE(0x7fffffff)
-; Limit is as given.
-%define LIMIT_VALUE(a)         0, a
-; Limit can be found at this address.
-%define LIMIT_ADDR(a)          LIMIT_ADDR_CORRECTED(a, 0)
-; Limit can be found by reading this address and then adding some adjustment.
-%define LIMIT_ADDR_CORRECTED(a, adjust)  a, adjust
 
 ; funcs from base-exphp
 adjust_bullet_array:  ; DELETE
 adjust_laser_array:  ; DELETE
 adjust_cancel_array:  ; DELETE
 
-struc ColorData  ; DELETE
-    .ascii_manager_ptr: resd 1  ; DELETE
-    .color_offset: resd 1  ; DELETE
-    .positioning: resd 1  ; DELETE
-endstruc  ; DELETE
+struc ColorData
+    .ascii_manager_ptr: resd 1
+    .color_offset: resd 1
+endstruc
 
-struc LineInfoEntry  ; DELETE
-    .data_ptr: resd 1  ; DELETE
-    .fmt_string: resd 3  ; DELETE
-endstruc  ; DELETE
+; ================================================
+; Stuff for line info
+
+%define LINE_INFO_DONE        0x501
+%define LINE_INFO_POSITIONING 0x502
+%define LINE_INFO_ENTRY       0x503
+
+struc LineInfoPositioning
+    .pos: resd 3       ; Float3 position of first line
+    .delta_y: resd 1   ; delta y between lines
+endstruc
+
+struc LineInfoEntry
+    .data_ptr: resd 1  ; pointer to a counter spec
+    .fmt_string: resb 12  ; sprintf string for counter
+endstruc
+
+; ================================================
+; Stuff for counter definitions
 
 ; Special value for ArraySpec .field_offset which means to simply read a dword-sized field at zero offset.
 %define FIELD_IS_DWORD -67

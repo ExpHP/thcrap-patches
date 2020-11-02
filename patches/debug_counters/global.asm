@@ -23,65 +23,33 @@ show_debug_data:  ; HEADER: AUTO
     %define %$delta_y ebp-0x10
     %define %$limit   ebp-0x14
     push edi
-
-    mov  eax, color_data  ; REWRITE: <codecave:AUTO>
-    mov  eax, [eax + ColorData.positioning]
-    cmp  eax, POSITIONING_EOSD
-    je   .pos_eosd
-    cmp  eax, POSITIONING_IN
-    je   .pos_in
-    cmp  eax, POSITIONING_MOF
-    je   .pos_mof
-    cmp  eax, POSITIONING_TD
-    je   .pos_td
-    cmp  eax, POSITIONING_DDC
-    je   .pos_ddc
-    int  3
-
-.pos_eosd:
-    mov  dword [%$pos_x], __float32__(442.0)
-    mov  dword [%$pos_y], __float32__(478.0)
-    mov  dword [%$pos_z], __float32__(0.0)
-    mov  dword [%$delta_y], __float32__(14.0)
-    jmp  .pos_done
-.pos_in:
-    mov  dword [%$pos_x], __float32__(447.0)
-    mov  dword [%$pos_y], __float32__(464.0)
-    mov  dword [%$pos_z], __float32__(0.0)
-    mov  dword [%$delta_y], __float32__(14.0)
-    jmp  .pos_done
-.pos_mof:
-    mov  dword [%$pos_x], __float32__(548.0)
-    mov  dword [%$pos_y], __float32__(470.0)
-    mov  dword [%$pos_z], __float32__(0.0)
-    mov  dword [%$delta_y], __float32__(10.0)
-    jmp  .pos_done
-.pos_td:
-    mov  dword [%$pos_x], __float32__(546.0)
-    mov  dword [%$pos_y], __float32__(470.0)
-    mov  dword [%$pos_z], __float32__(0.0)
-    mov  dword [%$delta_y], __float32__(10.0)
-    jmp  .pos_done
-.pos_ddc:
-    mov  dword [%$pos_x], __float32__(552.0)
-    mov  dword [%$pos_y], __float32__(470.0)
-    mov  dword [%$pos_z], __float32__(0.0)
-    mov  dword [%$delta_y], __float32__(10.0)
-
-.pos_done:
-
     mov  edi, line_info  ; REWRITE: <codecave:AUTO>
 
 .iter:
-    mov  eax, [edi + LineInfoEntry.data_ptr]
-    test eax, eax
-    jz   .end
+    mov  eax, [edi]  ; read discriminant
+    add  edi, 0x4  ; advance to data
+    cmp  eax, LINE_INFO_DONE
+    je   .end
+    cmp  eax, LINE_INFO_POSITIONING
+    je   .positioning
+    cmp  eax, LINE_INFO_ENTRY
+    je   .entry
+    die  ; bad discriminant
 
-    ; move up to next display position
-    movss xmm0, [%$pos_y]
-    subss xmm0, [%$delta_y]
-    movss [%$pos_y], xmm0
+.positioning:
+    mov  eax, [edi+LineInfoPositioning.pos+0x00]
+    mov  [%$pos_x], eax
+    mov  eax, [edi+LineInfoPositioning.pos+0x04]
+    mov  [%$pos_y], eax
+    mov  eax, [edi+LineInfoPositioning.pos+0x08]
+    mov  [%$pos_z], eax
+    mov  eax, [edi+LineInfoPositioning.pos+0x0c]
+    mov  [%$delta_y], eax
 
+    add  edi, LineInfoPositioning_size
+    jmp .iter
+
+.entry:
     lea  eax, [edi + LineInfoEntry.fmt_string]
     push eax
     push dword [edi + LineInfoEntry.data_ptr]
@@ -89,10 +57,15 @@ show_debug_data:  ; HEADER: AUTO
     push eax
     call drawf_spec  ; REWRITE: [codecave:AUTO]
 
+    ; move up to next display position
+    movss xmm0, [%$pos_y]
+    addss xmm0, [%$delta_y]
+    movss [%$pos_y], xmm0
+
     add  edi, LineInfoEntry_size
     jmp .iter
-.end:
 
+.end:
     pop  edi
     leave
     ret

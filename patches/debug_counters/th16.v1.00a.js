@@ -8,7 +8,7 @@
         }
     },
     "codecaves": {
-        "ExpHP.debug-counters.color-data": "986d4a000c92010003000000",
+        "ExpHP.debug-counters.color-data": "986d4a000c920100",
         "ExpHP.debug-counters.drawf-debug-int": "c8000000ff7514ff7510ff750cff7508b8f0844000ffd083c410c9c21000",
         "ExpHP.debug-counters.bullet-data": "01000000ac6d4a00b5184100ffffffff9c000000720c00007814000000000000",
         "ExpHP.debug-counters.normal-item-data": "01000000dc6d4a00000000005802000014000000500c0000780c000000000000",
@@ -17,7 +17,7 @@
         "ExpHP.debug-counters.anmid-data": "02000000480f4c0000000000ff1f0000dc000000e4000000",
         "ExpHP.debug-counters.enemy-data": "03000000c06d4a0000000000ffffff7f8c010000",
         "ExpHP.debug-counters.effect-data": "01000000b86d4a00bd8a4100000000001c000000bdffffff0400000000000000",
-        "ExpHP.debug-counters.line-info": "<codecave:ExpHP.debug-counters.anmid-data>25376420616e6d6964000000<codecave:ExpHP.debug-counters.effect-data>253764206566662020000000<codecave:ExpHP.debug-counters.bullet-data>253764206574616d61000000<codecave:ExpHP.debug-counters.laser-data>253764206c61736572000000<codecave:ExpHP.debug-counters.normal-item-data>253764206974656d4e000000<codecave:ExpHP.debug-counters.cancel-item-data>253764206974656d43000000<codecave:ExpHP.debug-counters.enemy-data>25376420656e656d7900000000000000",
+        "ExpHP.debug-counters.line-info": "0205000000000a440000e64300000000000020c103050000<codecave:ExpHP.debug-counters.anmid-data>25376420616e6d696400000003050000<codecave:ExpHP.debug-counters.effect-data>25376420656666202000000003050000<codecave:ExpHP.debug-counters.bullet-data>253764206574616d6100000003050000<codecave:ExpHP.debug-counters.laser-data>253764206c6173657200000003050000<codecave:ExpHP.debug-counters.normal-item-data>253764206974656d4e00000003050000<codecave:ExpHP.debug-counters.cancel-item-data>253764206974656d4300000003050000<codecave:ExpHP.debug-counters.enemy-data>25376420656e656d7900000001050000",
         "of(ExpHP.debug-counters.draw)": "e8[codecave:ExpHP.debug-counters.show-debug-data]a1986d4a00e800000000c7042478644200c3"
     }
 }

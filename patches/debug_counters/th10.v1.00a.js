@@ -8,7 +8,7 @@
         }
     },
     "codecaves": {
-        "ExpHP.debug-counters.color-data": "e07647007489000001000000",
+        "ExpHP.debug-counters.color-data": "e076470074890000",
         "ExpHP.debug-counters.drawf-debug-int": "c8000000535657ff7514ff75108b5d0c8b7508b890164000ffd083c4085f5e5bc9c21000",
         "ExpHP.debug-counters.bullet-data": "01000000f076470052584200000000006000000046040000f007000000000000",
         "ExpHP.debug-counters.normal-item-data": "0100000018784700000000009600000014000000dc030000f003000000000000",
@@ -16,7 +16,7 @@
         "ExpHP.debug-counters.laser-data": "030000001c78470016c541000000000038040000",
         "ExpHP.debug-counters.anmid-data": "02000000101c49000000000000100000d4da7200dcda7200",
         "ExpHP.debug-counters.enemy-data": "070000000477470000000000ffffff7f58000000",
-        "ExpHP.debug-counters.line-info": "<codecave:ExpHP.debug-counters.anmid-data>25376420616e6d6964000000<codecave:ExpHP.debug-counters.bullet-data>253764206574616d61000000<codecave:ExpHP.debug-counters.laser-data>253764206c61736572000000<codecave:ExpHP.debug-counters.normal-item-data>253764206974656d4e000000<codecave:ExpHP.debug-counters.cancel-item-data>253764206974656d43000000<codecave:ExpHP.debug-counters.enemy-data>25376420656e656d7900000000000000",
+        "ExpHP.debug-counters.line-info": "02050000000009440000e64300000000000020c103050000<codecave:ExpHP.debug-counters.anmid-data>25376420616e6d696400000003050000<codecave:ExpHP.debug-counters.bullet-data>253764206574616d6100000003050000<codecave:ExpHP.debug-counters.laser-data>253764206c6173657200000003050000<codecave:ExpHP.debug-counters.normal-item-data>253764206974656d4e00000003050000<codecave:ExpHP.debug-counters.cancel-item-data>253764206974656d4300000003050000<codecave:ExpHP.debug-counters.enemy-data>25376420656e656d7900000001050000",
         "of(ExpHP.debug-counters.draw)": "e8[codecave:ExpHP.debug-counters.show-debug-data]a1e0764700e800000000c7042458364100c3"
     }
 }

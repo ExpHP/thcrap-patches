@@ -208,6 +208,7 @@ debug-counters: \
 	$(DIR)/$(TH06_VER).js \
 	$(DIR)/$(TH07_VER).js \
 	$(DIR)/$(TH08_VER).js \
+	$(DIR)/$(TH09_VER).js \
 	$(DIR)/$(TH10_VER).js \
 	$(DIR)/$(TH11_VER).js \
 	$(DIR)/$(TH12_VER).js \
