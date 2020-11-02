@@ -15,7 +15,7 @@
         "ExpHP.debug-counters.normal-item-data": "05000000489e4b00705c57000300000010000000efbeadde4c27430000000000ece20a00",
         "ExpHP.debug-counters.cancel-item-data": "00000000",
         "ExpHP.debug-counters.laser-data": "05000000489e4b0058f96200010000001c000000efbeaddead3342000000000028663600d4040000ec040000<codecave:base-exphp.adjust-laser-array>",
-        "ExpHP.debug-counters.enemy-data": "05000000489e4b00009b9a000300000010000000efbeadde00000000ffffff7fbc459500",
+        "ExpHP.debug-counters.enemy-data": "05000000489e4b00009b9a000300000010000000efbeaddee807420000000000bc459500",
         "ExpHP.debug-counters.effect-general-data": "05000000489e4b0050e22f01010000001c000000efbeaddef3c14100000000001c000000cc020000d802000000000000",
         "ExpHP.debug-counters.effect-familiar-data": "00000000",
         "ExpHP.debug-counters.effect-indexed-data": "05000000489e4b0050e22f01010000001c000000efbeadde00000000090000009c710400cc020000d802000000000000",

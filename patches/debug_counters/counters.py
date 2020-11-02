@@ -41,9 +41,10 @@ def main_binhack(game, thc, defs):
         # EoSD and PoFV: There's nothing after the call so put it before the call.
         'th06': binhack(0x4240e4, original='mov  ecx, 0x47b900', jmp_dest=0x4240e9),
         'th09': binhack(0x431918, original='mov  ecx, 0x4ce458', jmp_dest=0x43191d),
-        # Most games: find the first instruction after the call that's at least 5 bytes large.
+        # Most games: find any easily replacable instruction after the call that's at least 5 bytes large.
         'th07': binhack(0x439391, original="mov  eax, [0x62f648]", jmp_dest=0x439396),
         'th08': binhack(0x447225, original="mov  eax, [0x164d0b4]", jmp_dest=0x44722a),
+        'th095': binhack(0x423831, original="mov  eax, 0x1", jmp_dest=0x423836),
         'th10': binhack(0x413653, original="mov  eax, [0x4776e0]", jmp_dest=0x413658),
         'th11': binhack(0x419f2b, original="mov  ecx, [0x4a8d58]", jmp_dest=0x419f31),
         'th12': binhack(0x41cd20, original="mov  ecx, [0x4b43b8]", jmp_dest=0x41cd26),
@@ -61,12 +62,13 @@ def main_binhack(game, thc, defs):
 def aux_stuff(game, thc, defs):
     # Workaround for games where AsciiManager is static, so that ColorData can still
     # contain a pointer to a pointer to AsciiManager.
-    if 'th06' <= game <= 'th09':
+    if 'th06' <= game <= 'th095':
         thc.codecave('ascii-manager-ptr', thc.data({
             'th06': 0x47b900,
             'th07': 0x134ce18,
             'th08': 0x4cce20,
             'th09': 0x4ce458,
+            'th095': 0x4a9f80,
         }[game]))
 
     thc.codecave('color-data', thc.data(lambda d: {
@@ -74,27 +76,29 @@ def aux_stuff(game, thc, defs):
         'th07': defs.ColorData(ascii_manager_ptr=d.abs_auto('ascii-manager-ptr'), color_offset=0x74c0),
         'th08': defs.ColorData(ascii_manager_ptr=d.abs_auto('ascii-manager-ptr'), color_offset=0x8268),
         'th09': defs.ColorData(ascii_manager_ptr=d.abs_auto('ascii-manager-ptr'), color_offset=0x8268),
+        'th095': defs.ColorData(ascii_manager_ptr=d.abs_auto('ascii-manager-ptr'), color_offset=0x806c),
         'th10': defs.ColorData(ascii_manager_ptr=0x4776e0, color_offset=0x8974),
         'th11': defs.ColorData(ascii_manager_ptr=0x4a8d58, color_offset=0x18480),
         'th12': defs.ColorData(ascii_manager_ptr=0x4b43b8, color_offset=0x18f80),
-        'th13': defs.ColorData(ascii_manager_ptr=0x4c2160, color_offset=0x19160),
-        'th14': defs.ColorData(ascii_manager_ptr=0x4db520, color_offset=0x191b0),
-        'th15': defs.ColorData(ascii_manager_ptr=0x4e9a58, color_offset=0x19224),
-        'th16': defs.ColorData(ascii_manager_ptr=0x4a6d98, color_offset=0x1920c),
-        'th17': defs.ColorData(ascii_manager_ptr=0x4b7678, color_offset=0x19214),
         'th125': defs.ColorData(ascii_manager_ptr=0x4b6770, color_offset=0x1c7f4),
         'th128': defs.ColorData(ascii_manager_ptr=0x4b8920, color_offset=0x1c84c),
+        'th13': defs.ColorData(ascii_manager_ptr=0x4c2160, color_offset=0x19160),
+        'th14': defs.ColorData(ascii_manager_ptr=0x4db520, color_offset=0x191b0),
         'th143': defs.ColorData(ascii_manager_ptr=0x4e69f8, color_offset=0x191b0),
+        'th15': defs.ColorData(ascii_manager_ptr=0x4e9a58, color_offset=0x19224),
+        'th16': defs.ColorData(ascii_manager_ptr=0x4a6d98, color_offset=0x1920c),
         'th165': defs.ColorData(ascii_manager_ptr=0x4b54f8, color_offset=0x1c90c),
+        'th17': defs.ColorData(ascii_manager_ptr=0x4b7678, color_offset=0x19214),
     }[game]))
 
     DRAWF_DEBUG = {
-        # Early games: Any function that looks like it could be AsciiManager::drawf.
+        # Games where fps uses sprintf+draw instead of drawf:  Find whatever looks like AsciiManager::drawf.
         'th06': 0x401650,
         'th07': 0x402060,
         'th08': 0x402a30,
         'th09': 0x434330,
-        # TH10+: The function used by the FpsCounter to drawf.
+        # TH095+: The drawf function used by the FPS counter.
+        'th095': 0x401610,
         'th10': 0x401690,
         'th12': 0x401720,
         'th11': 0x401600,
@@ -111,7 +115,7 @@ def aux_stuff(game, thc, defs):
 
     # Now wrap DRAWF_DEBUG to have the following ABI:
     # void __stdcall DrawfDebugInt(AsciiManager*, Float3*, char*, int current)
-    if 'th06' <= game <= 'th09' or 'th14' <= game <= 'th17' and game != 'th165':
+    if 'th06' <= game <= 'th095' or 'th14' <= game <= 'th17' and game != 'th165':
         # In these games drawf_debug WOULD be perfect except we that want callee-cleans-stack.
         drawf_debug_int = thc.asm(f'''
             enter 0x00, 0
@@ -256,6 +260,11 @@ def add_line_info(game, thc, defs):
         info.positioning(pos=(442.0, 464.0, 0.0), delta_y=-14.0)
     elif 'th07' <= game <= 'th08':
         info.positioning(pos=(447.0, 450.0, 0.0), delta_y=-14.0)
+    elif 'th095' == game:
+        # StB FPS counter is at top center.
+        # Just try to get the anmid text above the copyright on the title screen,
+        # and let the rest work itself out from there.
+        info.positioning(pos=(516.0, 450.0, 0.0), delta_y=-12.0)
     elif 'th10' == game:
         info.positioning(pos=(548.0, 460.0, 0.0), delta_y=-10.0)
     elif 'th11' <= game <= 'th13':
@@ -272,14 +281,17 @@ def add_line_info(game, thc, defs):
         info.counter(b'%7d laser', 'laser-data')
         info.counter(b'%7d item ', 'normal-item-data')
         info.counter(b'%7d enemy', 'enemy-data')
-    elif 'th10' <= game <= 'th17':
+    elif 'th095' <= game <= 'th17':
         info.counter(b'%7d anmid', 'anmid-data')
         if 'th15' <= game <= 'th17':
             info.counter(b'%7d eff  ', 'effect-data')
         info.counter(b'%7d etama', 'bullet-data')
         info.counter(b'%7d laser', 'laser-data')
-        info.counter(b'%7d itemN', 'normal-item-data')
-        info.counter(b'%7d itemC', 'cancel-item-data')
+        if game in ['th095', 'th125', 'th165']:
+            info.counter(b'%7d item ', 'cancel-item-data')
+        else:
+            info.counter(b'%7d itemN', 'normal-item-data')
+            info.counter(b'%7d itemC', 'cancel-item-data')
         if game == 'th13':
             info.counter(b'%7d lgods', 'spirit-data')
         info.counter(b'%7d enemy', 'enemy-data')
@@ -358,6 +370,7 @@ def define_counters(game, thc, defs):
         'th06': lambda: specs.embedded(specs.field, 0x5a5ff8, limit_addr(0x4135fa-4), count_offset=0xf5c04),
         'th07': lambda: specs.embedded(specs.field, 0x62f958, limit_addr(0x423770-4), count_offset=0x37a128),
         'th08': lambda: specs.embedded(specs.field, 0xf54e90, limit_addr(0x4312ae-4), count_offset=0x6ba538),
+        'th095': lambda: specs.field(0x4bdd98, limit_addr(0x40520b-4), count_offset=0x27c5b4),
         # ...these games don't track it. Scan the array.
         'th10': lambda: specs.array(0x4776f0, limit_addr(0x425856-4), array_offset=0x60, field_offset=0x446, stride=0x7f0),
         'th11': lambda: specs.array(0x4a8d68, limit_addr(0x408d40-4), array_offset=0x64, field_offset=0x4b2, stride=0x910),
@@ -377,6 +390,7 @@ def define_counters(game, thc, defs):
         'th06': lambda: specs.embedded(specs.field, 0x69e268, limit_addr(0x41f2ff-4), count_offset=0x28948),
         'th07': lambda: specs.embedded(specs.field, 0x575c70, limit_addr(0x432750-4), count_offset=0xae2ec),
         'th08': lambda: specs.embedded(specs.field, 0x1653648, limit_addr(0x440187-4), count_offset=0x17ada8),
+        'th095': lambda: specs.zero(0x4c45dc),
         'th10': lambda: specs.array(0x477818, limit_value(150), array_offset=0x14, field_offset=0x3dc, stride=0x3f0),
         'th11': lambda: specs.array(0x4a8e90, limit_value(150), array_offset=0x14, field_offset=0x464, stride=0x478),
         'th12': lambda: specs.array(0x4b44f0, limit_value(600), array_offset=0x14, field_offset=0x9b0, stride=0x9d8),
@@ -395,6 +409,7 @@ def define_counters(game, thc, defs):
         'th06': lambda: 0,  # unused
         'th07': lambda: 0,  # unused
         'th08': lambda: 0,  # unused
+        'th095': lambda: specs.array(0x4c45dc, limit_addr(0x41cb4c-4, -0), array_offset=0x4, field_offset=0x2f4, stride=0x2f8),
         'th10': lambda: specs.array(0x477818, limit_addr(0x41af16-4, -150), array_offset=0x24eb4, field_offset=0x3dc, stride=0x3f0),
         'th11': lambda: specs.array(0x4a8e90, limit_addr(0x423490-4, -150), array_offset=0x29e64, field_offset=0x464, stride=0x478),
         'th12': lambda: specs.array(0x4b44f0, limit_addr(0x425b60-4, -600-16), array_offset=0x17afd4, field_offset=0x9b0, stride=0x9d8),
@@ -422,6 +437,7 @@ def define_counters(game, thc, defs):
             specs.array, 0xf54e90, limit_addr(0x42f464-4), array_offset=0x660938, field_offset=0x584, stride=0x59c,
             adjust_array_func='<codecave:base-exphp.adjust-laser-array>'
         ),
+        'th095': lambda: specs.field(0x4c45e0, limit_addr(0x41dbf8-4), count_offset=0x54),
         'th10': lambda: specs.field(0x47781c, limit_addr(0x41c51a-4), count_offset=0x438),
         'th11': lambda: specs.field(0x4a8e94, limit_addr(0x424e01-4), count_offset=0x454),
         'th12': lambda: specs.field(0x4b44f4, limit_addr(0x42845d), count_offset=0x468),
@@ -436,8 +452,15 @@ def define_counters(game, thc, defs):
         'th17': lambda: specs.field(0x4b76bc, limit_addr(0x4355d5-4), count_offset=0x5e4),
     }[game]()))
 
-    if 'th10' <= game:
+    if 'th095' <= game:
         thc.codecave('anmid-data', thc.data({
+            # TH095: This has a non-standard linked list (next ptr at offset 0 on a VM) and we
+            #        don't currently have any spec that can iterate over it.
+            #        Thankfully, the game tracks a counter in a field.
+            'th095': lambda: specs.field(0x4ca1b8, limit_none, count_offset=0x28),
+            # TH10+: There are now two lists, and no reliable total count stored anywhere.
+            #        (The count from TH095 still exists, but it only counts VMs ticked this frame,
+            #         so it leaves out game VMs while the game is paused. Worse, it's totally bugged in TH17...)
             'th10': lambda: specs.anmid(0x491c10, limit_value(0x1000), world_head_ptr_offset=0x72dad4, ui_head_ptr_offset=0x72dadc),
             'th11': lambda: specs.anmid(0x4c3268, limit_value(0x1000), world_head_ptr_offset=0x7b562c, ui_head_ptr_offset=0x7b5634),
             'th12': lambda: specs.anmid(0x4ce8cc, limit_value(0x1000), world_head_ptr_offset=0x8856b8, ui_head_ptr_offset=0x8856c0),
@@ -455,9 +478,10 @@ def define_counters(game, thc, defs):
         thc.codecave('spirit-data', thc.data(specs.field(0x4c22a4, limit_addr(0x438678-4), count_offset=0x8814)))
 
     thc.codecave('enemy-data', thc.data({
-        'th06': lambda: specs.embedded(specs.field, 0x4b79c8, limit_none, count_offset=0xee5bc),
-        'th07': lambda: specs.embedded(specs.field, 0x9a9b00, limit_none, count_offset=0x9545bc),
-        'th08': lambda: specs.embedded(specs.field, 0x577f20, limit_none, count_offset=0x9dcdc4),
+        'th06': lambda: specs.embedded(specs.field, 0x4b79c8, limit_addr(0x412431-4), count_offset=0xee5bc),
+        'th07': lambda: specs.embedded(specs.field, 0x9a9b00, limit_addr(0x4207ec-4), count_offset=0x9545bc),
+        'th08': lambda: specs.embedded(specs.field, 0x577f20, limit_addr(0x42c879-4), count_offset=0x9dcdc4),
+        'th095': lambda: specs.field(0x4bddc0, limit_addr(0x415aa1-4), count_offset=0x26ae2c),
         'th10': lambda: specs.list(0x477704, limit_none, head_ptr_offset=0x58),
         'th11': lambda: specs.field(0x4a8d7c, limit_none, count_offset=0x70),
         'th12': lambda: specs.field(0x4b43dc, limit_none, count_offset=0x70),
@@ -474,7 +498,7 @@ def define_counters(game, thc, defs):
 
     if 'th06' <= game <= 'th08':
         thc.codecave('effect-general-data', thc.data({
-            'th06': specs.embedded(specs.array, 0x487fe0, limit_addr(0x40f136-4), array_offset=0x8, field_offset=0x178, stride=0x17c),
+            'th06': specs.embedded(specs.array, 0x487fe0, limit_addr(0x40ef87-4), array_offset=0x8, field_offset=0x178, stride=0x17c),
             'th07': specs.embedded(specs.array, 0x12fe250, limit_addr(0x41c1f7-4), array_offset=0x1c, field_offset=0x2cc, stride=0x2d8),
             'th08': specs.embedded(specs.array, 0x4ece60, limit_addr(0x425468-4), array_offset=0x1c, field_offset=0x350, stride=0x360),
         }[game]))
@@ -510,8 +534,9 @@ def define_counters_pofv(game, thc, defs):
             specs.array(bmgr_ptr, limit_addr(0x413c15-4, -1), array_offset=0x24d424, field_offset=0x584, stride=0x59c),
         ))
 
-        read_emgr_field = partial(specs.field, side_base + 0x10, limit=limit_none)
+        read_emgr_field = partial(specs.field, side_base + 0x10, limit=limit_addr(0x411639-4))
         thc.codecave(f'{pn}-enemy-data', thc.data(read_emgr_field(count_offset=0x2ac3ac)))
+        # three subtotals
         thc.codecave(f'{pn}-enemy-fairy-data', thc.data(read_emgr_field(count_offset=0x2ac3b0)))
         thc.codecave(f'{pn}-enemy-boss-data', thc.data(read_emgr_field(count_offset=0x2ac3b4)))
         thc.codecave(f'{pn}-enemy-charge-data', thc.data(read_emgr_field(count_offset=0x2ac3b8)))

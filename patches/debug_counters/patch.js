@@ -7,5 +7,5 @@
 	"servers": [
 		"https://raw.githubusercontent.com/ExpHP/thcrap-patches/master/patches/debug_counters/"
 	],
-	"title": "(07-08, 10-17 STGs) Show sprite, bullet, laser, and item counts."
+	"title": "(06-17 STGs) Show sprite, bullet, laser, enemy, and item counts."
 }
