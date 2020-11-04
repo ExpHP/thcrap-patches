@@ -175,6 +175,7 @@ bullet-cap: \
 	$(call glob-th-js-from-asm,$(DIR)) \
 
 POINTERIZE_YAMLS= \
+	$(DIR)/pointerize.${TH06_VER}.yaml \
 	$(DIR)/pointerize.${TH07_VER}.yaml \
 	$(DIR)/pointerize.${TH08_VER}.yaml \
 

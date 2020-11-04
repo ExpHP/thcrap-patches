@@ -35,20 +35,24 @@ binhacks:
   #   code: "EBFE"
 
   ExpHP.bullet-cap.install:
-    /fields-if(any(th07..th08)):
+    /fields-if(any(th06..th08)):
       addr:
+        /value-if(th06): "0x41c05a"
         /value-if(th07): "0x42f0db"
         /value-if(th08): "0x43b414"
       expected:
+        /value-if(th06): "e89188ffff"
         /value-if(th07): "e8c085ffff"
         /value-if(th08): "e8875dffff"
       codecave:
         - "E8[codecave:ExpHP.bullet-cap.initialize]" # call initialize
 
         # original code
+        - /item-if(th06): "B8F0484100        " # mov   eax, 0x4148f0
         - /item-if(th07): "B8A0764200        " # mov   eax, 0x4276a0
         - /item-if(th08): "B8A0114300        " # mov   eax, 0x4311a0
         - "FFD0              " # call  eax
+        - /item-if(th06): "E800000000C704245FC04100C3" # abs_jmp_hack 0x41c05f
         - /item-if(th07): "E800000000C70424E0F04200C3" # abs_jmp_hack 0x42f0e0
         - /item-if(th08): "E800000000C7042419B44300C3" # abs_jmp_hack 0x43b419
 

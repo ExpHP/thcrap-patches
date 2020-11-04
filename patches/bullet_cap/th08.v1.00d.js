@@ -159,7 +159,7 @@
             "code": "E8 [codecave:of(ExpHP.bullet-cap.pointerize-lasers-reg(ecx))] // 90"
         },
         "ExpHP.bullet-cap.pointerize-items-spawn(12)": {
-            "expected": "8b55f403d1",
+            "expected": "8b55f4 // 03d1",
             "addr": [
                 "0x4400b8"
             ],

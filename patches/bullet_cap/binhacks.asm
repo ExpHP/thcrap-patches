@@ -11,8 +11,10 @@
 
 ; AUTO_PREFIX: ExpHP.bullet-cap.
 
+[list -]
 %include "util.asm"
 %include "common.asm"
+[list +]
 
 ; ==========================================
 ; There aren't many places that are guaranteed to run exactly once,
@@ -22,15 +24,19 @@
 
 ; Early games:  Do it right before the call to BulletManager::initialize.
 
+; TH06:  0x41c05a  (e89188ffff)
 ; TH07:  0x42f0db  (e8c085ffff)
 ; TH08:  0x43b414  (e8875dffff)
 install_08:  ; HEADER: AUTO
     call initialize  ; REWRITE: [codecave:AUTO]
 
     ; original code
+    mov   eax, 0x4148f0  ; TH06
     mov   eax, 0x4276a0  ; TH07
     mov   eax, 0x4311a0  ; TH08
     call  eax
+    ; couldn't use call-codecave because the function had a stack arg
+    abs_jmp_hack 0x41c05f  ; TH06
     abs_jmp_hack 0x42f0e0  ; TH07
     abs_jmp_hack 0x43b419  ; TH08
 

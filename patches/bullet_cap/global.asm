@@ -1087,6 +1087,8 @@ clear_pointerized_bullet_mgr:  ; HEADER: AUTO
     rep stosb
 
     ; set the sentinel state on the dummy bullet (our other binhacks aren't enough to make this happen).
+    cmp  dword [ebx+PointerizeData.bullet_state_offset], 0
+    jl   .nodummy  ; TH06 has no dummy bullet
     mov  edi, [ebx+PointerizeData.bullet_array_ptr]
     mov  edi, [edi]  ; pointer to array
     add  edi, [%$bullet_array_size]  ; pointer to AFTER dummy bullet
@@ -1094,6 +1096,7 @@ clear_pointerized_bullet_mgr:  ; HEADER: AUTO
     add  edi, [ebx+PointerizeData.bullet_state_offset]  ; pointer to dummy's state field
     mov  ax, word [ebx+PointerizeData.bullet_state_dummy_value]
     mov  word [edi], ax
+.nodummy:
 
     func_epilogue
     func_ret
