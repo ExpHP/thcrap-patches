@@ -11,9 +11,17 @@
 %define __CAPID_TEST_2 0x401
 
 ; =============================
-;        CAP CHANGES
+;        CAP SPECS
 ; =============================
-; Each cap changed by the patch includes a list of values to change.
+%define NOT_APPLICABLE  -0x50506060
+
+struc GlobalCapEntry
+    .capid: resd 1  ; The capid for this cap
+    .game_data_cave: resd 1  ; Pointer to cave containing ListHeader
+    .game_data_offset: resd 1  ; Offset to ListHeader within cave
+    .new_cap_bigendian_codecave: resd 1  ; Pointer to
+    .new_cap_test_value: resd 1
+endstruc
 
 struc ListHeader
     ; "old cap" should be whatever the maximum amount is of something in the vanilla game,
@@ -23,6 +31,12 @@ struc ListHeader
     .elem_size: resd 1  ; size in bytes of each array item.  If they don't live in an array this will never be needed and you can put 0.
     .list:  ; list of replacements
 endstruc
+
+; =============================
+;        CAP CHANGES
+; =============================
+; Each cap changed by the patch includes a list of values to change.
+
 
 ; Each entry in the list of replacements contains:
 ; - A value to change.

@@ -40,6 +40,8 @@ address_range:  ; DELETE
 
 game_data:  ; DELETE
 bullet_replacements:  ; DELETE
+fairy_bullet_replacements:  ; DELETE
+rival_bullet_replacements:  ; DELETE
 cancel_replacements:  ; DELETE
 laser_replacements:  ; DELETE
 bullet_mgr_layout:  ; DELETE
@@ -62,6 +64,44 @@ strings:
 .VirtualProtect: db "VirtualProtect", 0
 .error_title: db "bullet_cap mod error", 0
 .divisibility_error: db "Sorry, due to technical limitations, the bullet cap in Ten Desires must be divisible by 5, and the cancel cap must be divisible by 4.", 0
+
+cap_definitions:  ; HEADER: AUTO
+istruc GlobalCapEntry
+    at GlobalCapEntry.capid, dd CAPID_BULLET
+    at GlobalCapEntry.game_data_cave, dd bullet_replacements  ; REWRITE: <codecave:AUTO>
+    at GlobalCapEntry.game_data_offset, dd 0
+    at GlobalCapEntry.new_cap_bigendian_codecave, dd 0  ; REWRITE: <codecave:bullet-cap>
+    at GlobalCapEntry.new_cap_test_value, dd NOT_APPLICABLE
+iend
+istruc GlobalCapEntry
+    at GlobalCapEntry.capid, dd CAPID_LASER
+    at GlobalCapEntry.game_data_cave, dd laser_replacements  ; REWRITE: <codecave:AUTO>
+    at GlobalCapEntry.game_data_offset, dd 0
+    at GlobalCapEntry.new_cap_bigendian_codecave, dd 0  ; REWRITE: <codecave:laser-cap>
+    at GlobalCapEntry.new_cap_test_value, dd NOT_APPLICABLE
+iend
+istruc GlobalCapEntry
+    at GlobalCapEntry.capid, dd CAPID_CANCEL
+    at GlobalCapEntry.game_data_cave, dd cancel_replacements  ; REWRITE: <codecave:AUTO>
+    at GlobalCapEntry.game_data_offset, dd 0
+    at GlobalCapEntry.new_cap_bigendian_codecave, dd 0  ; REWRITE: <codecave:cancel-cap>
+    at GlobalCapEntry.new_cap_test_value, dd NOT_APPLICABLE
+iend
+istruc GlobalCapEntry
+    at GlobalCapEntry.capid, dd __CAPID_TEST_1
+    at GlobalCapEntry.game_data_cave, dd the_worlds_saddest_unit_test  ; REWRITE: <codecave:AUTO>
+    at GlobalCapEntry.game_data_offset, dd the_worlds_saddest_unit_test.capdata_1 - the_worlds_saddest_unit_test
+    at GlobalCapEntry.new_cap_bigendian_codecave, dd NOT_APPLICABLE
+    at GlobalCapEntry.new_cap_test_value, dd TEST_NEW_CAP_1
+iend
+istruc GlobalCapEntry
+    at GlobalCapEntry.capid, dd __CAPID_TEST_2
+    at GlobalCapEntry.game_data_cave, dd the_worlds_saddest_unit_test  ; REWRITE: <codecave:AUTO>
+    at GlobalCapEntry.game_data_offset, dd the_worlds_saddest_unit_test.capdata_2 - the_worlds_saddest_unit_test
+    at GlobalCapEntry.new_cap_bigendian_codecave, dd NOT_APPLICABLE
+    at GlobalCapEntry.new_cap_test_value, dd TEST_NEW_CAP_2
+iend
+    dd LIST_END
 
 ; Used as a datacave to avoid running multiple times
 runonce:  ; HEADER: AUTO
@@ -287,80 +327,64 @@ get_struct_data:  ; HEADER: AUTO
     epilogue_sd
     ret 0x4
 
-; __stdcall ListHeader* GetCapData(arrayid)
-get_cap_data:  ; HEADER: AUTO
-    prologue_sd
-    cmp  dword [ebp+0x8], CAPID_BULLET
-    je   .bullet
-    cmp  dword [ebp+0x8], CAPID_CANCEL
-    je   .cancel
-    cmp  dword [ebp+0x8], CAPID_LASER
-    je   .laser
-    cmp  dword [ebp+0x8], __CAPID_TEST_1
-    je   .test1
-    cmp  dword [ebp+0x8], __CAPID_TEST_2
-    je   .test2
-    die  ; probably read type from wrong address
-.bullet:
-    mov  eax, bullet_replacements  ; REWRITE: <codecave:AUTO>
-    jmp  .done
-.cancel:
-    mov  eax, cancel_replacements  ; REWRITE: <codecave:AUTO>
-    jmp  .done
-.laser:
-    mov  eax, laser_replacements  ; REWRITE: <codecave:AUTO>
-    jmp  .done
-.test1:
-    mov  eax, the_worlds_saddest_unit_test  ; REWRITE: <codecave:AUTO>
-    add  eax, the_worlds_saddest_unit_test.capdata_1 - the_worlds_saddest_unit_test
-    jmp  .done
-.test2:
-    mov  eax, the_worlds_saddest_unit_test  ; REWRITE: <codecave:AUTO>
-    add  eax, the_worlds_saddest_unit_test.capdata_2 - the_worlds_saddest_unit_test
-    jmp  .done
-.done:
-    epilogue_sd
-    ret 0x4
+; __stdcall GlobalCapEntry* GetGlobalCapData(capid)
+get_global_cap_data:  ; HEADER: AUTO
+    func_begin
+    func_arg %$capid
+    func_prologue
+    mov  ecx, cap_definitions  ; REWRITE: <codecave:AUTO>
+.iter:
+    cmp  dword [ecx], LIST_END
+    je   .fail
+    mov  eax, [ecx+GlobalCapEntry.capid]
+    cmp  eax, [%$capid]
+    je   .found
+    add  ecx, GlobalCapEntry_size
+    jmp  .iter
+.fail:
+    die  ; no cap exists with the given ID
+.found:
+    mov  eax, ecx
+    func_epilogue
+    func_ret
+    func_end
 
-; __stdcall ListHeader* GetNewCap(arrayid)
+; __stdcall ListHeader* GetCapData(capid)
+get_cap_data:  ; HEADER: AUTO
+    func_begin
+    func_arg  %$capid
+    func_prologue
+    push dword [%$capid]
+    call get_global_cap_data  ; REWRITE: [codecave:AUTO]
+    mov  ecx, eax
+    mov  eax, [ecx+GlobalCapEntry.game_data_cave]
+    add  eax, [ecx+GlobalCapEntry.game_data_offset]
+    func_epilogue
+    func_ret
+    func_end
+
+; __stdcall ListHeader* GetNewCap(capid)
 get_new_cap:  ; HEADER: AUTO
-    prologue_sd
-    cmp  dword [ebp+0x8], CAPID_BULLET
-    je   .bullet
-    cmp  dword [ebp+0x8], CAPID_CANCEL
-    je   .cancel
-    cmp  dword [ebp+0x8], CAPID_LASER
-    je   .laser
-    cmp  dword [ebp+0x8], __CAPID_TEST_1
-    je   .test1
-    cmp  dword [ebp+0x8], __CAPID_TEST_2
-    je   .test2
-    die  ; probably read type from wrong address
-.bullet:
-    mov  eax, 0  ; REWRITE: <codecave:bullet-cap>
-    jmp  .read_codecave_cap
-.cancel:
-    mov  eax, 0  ; REWRITE: <codecave:cancel-cap>
-    jmp  .read_codecave_cap
-.laser:
-    mov  eax, 0  ; REWRITE: <codecave:laser-cap>
-    jmp  .read_codecave_cap
-.test1:
-    mov  eax, the_worlds_saddest_unit_test  ; REWRITE: <codecave:AUTO>
-    add  eax, the_worlds_saddest_unit_test.capdata_1 - the_worlds_saddest_unit_test
-    mov  eax, [eax+ListHeader_size]  ; new cap is after standard capdata
-    jmp  .done
-.test2:
-    mov  eax, the_worlds_saddest_unit_test  ; REWRITE: <codecave:AUTO>
-    add  eax, the_worlds_saddest_unit_test.capdata_2 - the_worlds_saddest_unit_test
-    mov  eax, [eax+ListHeader_size]  ; new cap is after standard capdata
-    jmp  .done
-.read_codecave_cap:
-    mov  eax, [eax]  ; read codecave
-    bswap eax  ; big endian to little endian
+    func_begin
+    func_arg  %$capid
+    func_prologue
+    push dword [%$capid]
+    call get_global_cap_data  ; REWRITE: [codecave:AUTO]
+    mov  ecx, eax
+    mov  eax, [ecx+GlobalCapEntry.new_cap_bigendian_codecave]
+    cmp  eax, NOT_APPLICABLE
+    jne  .codecave
+    mov  eax, [ecx+GlobalCapEntry.new_cap_test_value]
+    cmp  eax, NOT_APPLICABLE
+    jne  .done
+    die  ; invalid GlobalCapEntry
+.codecave:
+    mov  eax, [eax]
+    bswap eax
 .done:
-    epilogue_sd
-    ret 0x4
+    func_epilogue
+    func_ret
+    func_end
 
 ;=========================================
 ; Transforming values
