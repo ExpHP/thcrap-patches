@@ -74,6 +74,10 @@ def main():
     lines = list(join_long_lines(sys.stdin))
     if any('codecave:auto' in line for line in lines):
         print('!! Warning: codecave:auto (lower) is probably a typo!', file=sys.stderr)
+    rept_lines = [line for line in lines if '<rept>' in line]
+    if rept_lines:
+        print('!! Warning: found <rept>, probably left behind by incomplete istruc', file=sys.stderr)
+        print(f'!! Line: {repr(line)}', file=sys.stderr)
     auto_prefix = find_auto_prefix(lines)
     lines = list(handle_rewrites(lines, auto_prefix))
     lines = list(handle_headers(lines, auto_prefix))

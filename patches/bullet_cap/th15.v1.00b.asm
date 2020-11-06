@@ -136,7 +136,6 @@ iend
 
 bullet_mgr_layout:  ; HEADER: AUTO
 istruc LayoutHeader
-    at LayoutHeader.location, dd LOCATION_PTR(0x4e9a6c)
     at LayoutHeader.offset_to_replacements, dd bullet_mgr_layout.replacements - bullet_mgr_layout
 iend
     dd REGION_NORMAL(0)
@@ -216,7 +215,6 @@ iend
 
 item_mgr_layout:  ; HEADER: AUTO
 istruc LayoutHeader
-    at LayoutHeader.location, dd LOCATION_PTR(0x4e9a9c)
     at LayoutHeader.offset_to_replacements, dd item_mgr_layout.replacements - item_mgr_layout
 iend
     %push

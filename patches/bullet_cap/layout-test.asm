@@ -42,7 +42,6 @@ the_worlds_saddest_unit_test:  ; HEADER: AUTO
 ; Returned by get_struct_data for structid = __STRUCT_TEST
 .layout:
 istruc LayoutHeader
-    at LayoutHeader.location, dd LOCATION_STATIC(0)  ; unused
     at LayoutHeader.offset_to_replacements, dd 0  ; unused
 iend
     dd REGION_NORMAL(OldStruct.start)

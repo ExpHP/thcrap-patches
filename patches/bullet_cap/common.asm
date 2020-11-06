@@ -19,8 +19,8 @@ struc GlobalCapEntry
     .capid: resd 1  ; The capid for this cap
     .game_data_cave: resd 1  ; Pointer to cave containing ListHeader
     .game_data_offset: resd 1  ; Offset to ListHeader within cave
-    .new_cap_bigendian_codecave: resd 1  ; Pointer to
-    .new_cap_test_value: resd 1
+    .new_cap_bigendian_codecave: resd 1  ; Pointer to old, bigendian config cave, or NOT_APPLICABLE
+    .new_cap_test_value: resd 1  ; A fixed value for a test cap, or NOT_APPLICABLE
 endstruc
 
 struc ListHeader
@@ -50,16 +50,9 @@ endstruc
 ; This layout uses the following types:
 
 struc LayoutHeader
-    .location: resd 1  ; A LOCATION_ constant.
-    .is_pointer: resd 1
     .offset_to_replacements: resd 1
     .regions: resd 0  ; Array of RegionEntries, followed by _REGION_TOKEN_END.
 endstruc
-
-; Used if struct is located behind a pointer in static memory.
-%define LOCATION_PTR(addr)             addr, 1
-; Used if struct is directly embedded in static memory.
-%define LOCATION_STATIC(addr)          addr, 0
 
 struc RegionData
     .start: resd 1  ; starting offset of this region.
