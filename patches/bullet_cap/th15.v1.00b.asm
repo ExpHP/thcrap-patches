@@ -146,13 +146,13 @@ iend
     dd REGION_NORMAL(0x141f0c8)
     dd REGION_END(0x141f0dc)
 .replacements:
-    dd 0xa0d162  ; offset of dummy bullet state
+    dd REP_OFFSET(0xa0d162)  ; offset of dummy bullet state
     dd WHITELIST_BEGIN
     dd 0x418e48  ; BulletManager::initialize
     dd 0x418f81  ; BulletManager::destroy_all
     dd WHITELIST_END
 
-    dd 0xa0d96c  ; LoLK snapshot bullet array
+    dd REP_OFFSET(0xa0d96c)  ; LoLK snapshot bullet array
     dd WHITELIST_BEGIN
     dd 0x4128ba  ; BulletManager::write_autosave_data
     dd 0x412aa2  ; BulletManager::read_autosave_data
@@ -162,7 +162,7 @@ iend
     dd 0x43b88b  ; BulletManager::restore_snapshot
     dd WHITELIST_END
 
-    dd 0x141b240  ; anm id array
+    dd REP_OFFSET(0x141b240)  ; anm id array
     dd WHITELIST_BEGIN
     dd 0x418cd5  ; BulletManager::constructor
     dd 0x418f87  ; BulletManager::destroy_all
@@ -171,7 +171,7 @@ iend
     dd 0x43b99a  ; BulletManager::restore_snapshot
     dd WHITELIST_END
 
-    dd 0x141d184  ; snapshot anm id array
+    dd REP_OFFSET(0x141d184)  ; snapshot anm id array
     dd WHITELIST_BEGIN
     dd 0x4129c5  ; BulletManager::write_autosave_data
     dd 0x412c9b  ; BulletManager::read_autosave_data
@@ -179,7 +179,7 @@ iend
     dd 0x43b817  ; BulletManager::store_snapshot
     dd WHITELIST_END
 
-    dd 0x141f0c8  ; Something related to cancels
+    dd REP_OFFSET(0x141f0c8)  ; Something related to cancels
     dd WHITELIST_BEGIN
     dd 0x419058  ; BulletManager::destroy_all
     dd 0x41e524  ; gen_items_from_cancel
@@ -188,7 +188,7 @@ iend
     dd 0x43b8bf  ; BulletManager::restore_snapshot
     dd WHITELIST_END
 
-    dd 0x141f0cc  ; Something related to cancels - snapshot copy
+    dd REP_OFFSET(0x141f0cc)  ; Something related to cancels - snapshot copy
     dd WHITELIST_BEGIN
     dd 0x4129b6  ; BulletManager::write_autosave_data
     dd 0x412caa  ; BulletManager::read_autosave_data
@@ -196,16 +196,16 @@ iend
     dd 0x43b8b9  ; BulletManager::restore_snapshot
     dd WHITELIST_END
 
-    dd 0x141f0d0  ; "current" pointer for iteration
+    dd REP_OFFSET(0x141f0d0)  ; "current" pointer for iteration
     dd REPLACE_ALL  ; 27 usages
 
-    dd 0x141f0d4  ; "next" pointer for iteration
+    dd REP_OFFSET(0x141f0d4)  ; "next" pointer for iteration
     dd REPLACE_ALL  ; 27 usages
 
-    dd 0x141f0d8  ; bullet.anm
+    dd REP_OFFSET(0x141f0d8)  ; bullet.anm
     dd REPLACE_ALL  ; 43 usages
 
-    dd 0x141f0dc  ; size of BulletManager
+    dd REP_OFFSET(0x141f0dc)  ; size of BulletManager
     dd WHITELIST_BEGIN
     dd 0x418ce1   ; BulletManager::constructor
     dd 0x4191f5   ; BulletManager::operator
@@ -231,7 +231,7 @@ iend
     dd REGION_NORMAL(%$SECOND_INNER + %$INNER_CANCEL_END)
     dd REGION_END(%$SIZE)
 .replacements:
-    dd %$SECOND_INNER  ; snapshot normal item array (or full item array)
+    dd REP_OFFSET(%$SECOND_INNER)  ; snapshot normal item array (or full item array)
     dd WHITELIST_BEGIN
     dd 0x412e91  ; ItemManager::write_autosave_data
     dd 0x413026  ; ItemManager::read_autosave_data
@@ -242,7 +242,7 @@ iend
     dd 0x43f6ea  ; ItemManager::destructor
     dd WHITELIST_END
 
-    dd %$SECOND_INNER + %$INNER_CANCEL_BEGIN  ; snapshot cancel item array
+    dd REP_OFFSET(%$SECOND_INNER + %$INNER_CANCEL_BEGIN)  ; snapshot cancel item array
     dd WHITELIST_BEGIN
     dd 0x412fb7  ; ItemManager::write_autosave_data
     dd 0x4131db  ; ItemManager::read_autosave_data
@@ -250,7 +250,7 @@ iend
 
     ; Freelist head nodes, lolk slowdown factor.
     ; Also size of ItemManagerInner (happens to equal offset of cancel freelist next ptr)
-    dd DWORD_RANGE(%$FIRST_INNER + %$INNER_CANCEL_END, %$FIRST_INNER + %$INNER_SIZE)
+    dd REP_OFFSET_RANGE(%$FIRST_INNER + %$INNER_CANCEL_END, %$FIRST_INNER + %$INNER_SIZE)
     dd WHITELIST_BEGIN
     dd 0x42125b  ; ItemManager::destroy_all
     dd 0x43bac4  ; ItemManager::restore_snapshot
@@ -278,7 +278,7 @@ iend
     ; the snapshot copy of the item slowdown is handled by a memcpy of ItemManagerInner.
 
     ; fields at end of struct, and struct size
-    dd DWORD_RANGE(0x1cbbdd8, %$SIZE)
+    dd REP_OFFSET_RANGE(0x1cbbdd8, %$SIZE)
     dd WHITELIST_BEGIN
     dd 0x43f87c  ; ItemManager::on_tick__body
     dd 0x440126  ; ItemManager::on_tick__body
@@ -293,7 +293,7 @@ iend
     dd 0x440a75  ; ItemManager::spawn_item
     dd WHITELIST_END
 
-    dd %$SIZE  ; struct size
+    dd REP_OFFSET(%$SIZE)  ; struct size
     dd WHITELIST_BEGIN
     dd 0x43f48e  ; ItemManager::constructor
     dd 0x43f766  ; ItemManager::operator new

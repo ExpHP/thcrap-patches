@@ -73,10 +73,10 @@ iend
     dd REGION_NORMAL(0x4debdc)
     dd REGION_END(0x4debe0)
 .replacements:
-    dd 0x4de716, REPLACE_ALL  ; offset of dummy bullet state
-    dd 0x4debdc, REPLACE_ALL  ; offset of bullet.anm
-    dd 0x4deb78, REPLACE_ALL  ; size of bullet array
-    dd 0x4debe0, REPLACE_ALL  ; size
+    dd REP_OFFSET(0x4de716), REPLACE_ALL  ; offset of dummy bullet state
+    dd REP_OFFSET(0x4debdc), REPLACE_ALL  ; offset of bullet.anm
+    dd REP_OFFSET(0x4deb78), REPLACE_ALL  ; size of bullet array
+    dd REP_OFFSET(0x4debe0), REPLACE_ALL  ; size
     dd LIST_END
 
 item_mgr_layout:  ; HEADER: AUTO
@@ -88,11 +88,11 @@ iend
     dd REGION_NORMAL(0x666fd4)
     dd REGION_END(0x666fe4)
 .replacements:
-    dd 0x666fd4, REPLACE_ALL  ; num items alive
-    dd 0x666fd8, REPLACE_ALL  ; next cancel item index
-    dd 0x666fdc, REPLACE_ALL  ; num cancel items spawned this frame
-    dd 0x666fe0, REPLACE_ALL  ; num ufos spawned during this stage
-    dd 0x666fe4, REPLACE_ALL  ; size
+    dd REP_OFFSET(0x666fd4), REPLACE_ALL  ; num items alive
+    dd REP_OFFSET(0x666fd8), REPLACE_ALL  ; next cancel item index
+    dd REP_OFFSET(0x666fdc), REPLACE_ALL  ; num cancel items spawned this frame
+    dd REP_OFFSET(0x666fe0), REPLACE_ALL  ; num ufos spawned during this stage
+    dd REP_OFFSET(0x666fe4), REPLACE_ALL  ; size
     dd LIST_END
 
 perf_fix_data:  ; HEADER: AUTO

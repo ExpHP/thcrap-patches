@@ -92,11 +92,11 @@ iend
     dd REGION_NORMAL(0x9752ac)
     dd REGION_END(0x9752b8)
 .replacements:
-    dd 0x974b0e, REPLACE_ALL  ; offset of dummy bullet state
-    dd 0x9752ac, REPLACE_ALL  ; offset of current ptr for iteration
-    dd 0x9752b0, REPLACE_ALL  ; offset of next ptr for iteration
-    dd 0x9752b4, REPLACE_ALL  ; offset of bullet.anm
-    dd 0x9752b8, REPLACE_ALL  ; size of bullet manager
+    dd REP_OFFSET(0x974b0e), REPLACE_ALL  ; offset of dummy bullet state
+    dd REP_OFFSET(0x9752ac), REPLACE_ALL  ; offset of current ptr for iteration
+    dd REP_OFFSET(0x9752b0), REPLACE_ALL  ; offset of next ptr for iteration
+    dd REP_OFFSET(0x9752b4), REPLACE_ALL  ; offset of bullet.anm
+    dd REP_OFFSET(0x9752b8), REPLACE_ALL  ; size of bullet manager
     dd LIST_END
 
 item_mgr_layout:  ; HEADER: AUTO
@@ -108,19 +108,19 @@ iend
     dd REGION_NORMAL(0x79dcd4)
     dd REGION_END(0x79dd04)
 .replacements:
-    dd 0x79dcd4, REPLACE_ALL  ; freelist head .entry
-    dd 0x79dcd8, REPLACE_ALL  ; freelist head .next
-    dd 0x79dcdc, REPLACE_ALL  ; freelist head .prev
-    dd 0x79dce0, REPLACE_ALL  ; freelist head .unused
-    dd 0x79dce4, REPLACE_ALL  ; tick list head .entry
-    dd 0x79dce8, REPLACE_ALL  ; tick list head .next
-    dd 0x79dcec, REPLACE_ALL  ; tick list head .prev
-    dd 0x79dcf0, REPLACE_ALL  ; tick list head .unused
-    dd 0x79dcf4, REPLACE_ALL  ; num items alive
-    dd 0x79dcf8, REPLACE_ALL  ; next cancel item index  (always zero now)
-    dd 0x79dcfc, REPLACE_ALL  ; num cancel items spawned this frame  (always zero now)
-    dd 0x79dd00, REPLACE_ALL  ; num ufos spawned during this stage  (always zero now)
-    dd 0x79dd04, REPLACE_ALL  ; ItemManager size
+    dd REP_OFFSET(0x79dcd4), REPLACE_ALL  ; freelist head .entry
+    dd REP_OFFSET(0x79dcd8), REPLACE_ALL  ; freelist head .next
+    dd REP_OFFSET(0x79dcdc), REPLACE_ALL  ; freelist head .prev
+    dd REP_OFFSET(0x79dce0), REPLACE_ALL  ; freelist head .unused
+    dd REP_OFFSET(0x79dce4), REPLACE_ALL  ; tick list head .entry
+    dd REP_OFFSET(0x79dce8), REPLACE_ALL  ; tick list head .next
+    dd REP_OFFSET(0x79dcec), REPLACE_ALL  ; tick list head .prev
+    dd REP_OFFSET(0x79dcf0), REPLACE_ALL  ; tick list head .unused
+    dd REP_OFFSET(0x79dcf4), REPLACE_ALL  ; num items alive
+    dd REP_OFFSET(0x79dcf8), REPLACE_ALL  ; next cancel item index  (always zero now)
+    dd REP_OFFSET(0x79dcfc), REPLACE_ALL  ; num cancel items spawned this frame  (always zero now)
+    dd REP_OFFSET(0x79dd00), REPLACE_ALL  ; num ufos spawned during this stage  (always zero now)
+    dd REP_OFFSET(0x79dd04), REPLACE_ALL  ; ItemManager size
     dd LIST_END
 
 perf_fix_data:  ; HEADER: AUTO

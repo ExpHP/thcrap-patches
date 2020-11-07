@@ -206,9 +206,6 @@ do_replacement_list:  ; HEADER: AUTO
     cmp  eax, LIST_END
     je   .end
 
-    cmp  eax, DWORD_RANGE_TOKEN
-    je   .dword_range
-
 .single_value:
     ; Read entry
     read_advance_dword [%$old_value], ecx, eax
@@ -229,8 +226,6 @@ do_replacement_list:  ; HEADER: AUTO
     mov  [%$list], eax
     jmp  .iter
 
-.dword_range:
-    die  ; can only replace ranges of offsets, not of values
 .end:
     func_epilogue
     func_ret
@@ -240,59 +235,80 @@ do_replacement_list:  ; HEADER: AUTO
 do_offset_replacement_list:  ; HEADER: AUTO
     func_begin
     func_arg  %$structid
-    func_local  %$list
     func_local  %$old_value
     func_local  %$new_value
-    func_local  %$range_start
-    func_local  %$range_end
     func_prologue  esi, edi
+    %define %$list_reg esi
 
     push dword [%$structid]
     call get_struct_data  ; REWRITE: [codecave:AUTO]
     add  eax, [eax + LayoutHeader.offset_to_replacements]
-    mov  [%$list], eax
+    mov  %$list_reg, eax
 
 .iter:
-    ; No more entries?
-    mov  ecx, [%$list]
-    mov  eax, [ecx]
+    ; Dword token indicating what's coming next.
+    mov  eax, [%$list_reg]
+    add  %$list_reg, 0x4
     cmp  eax, LIST_END
     je   .end
+    cmp  eax, _REP_OFFSET_TOKEN
+    je   .single_offset
+    cmp  eax, _REP_OFFSET_RANGE_TOKEN
+    je   .offset_range
+    die  ; bad token, probably forgot to use a REP_ macro
 
-    cmp  eax, DWORD_RANGE_TOKEN
-    je   .dword_range
-
-.single_value:
-    ; Read entry
-    read_advance_dword [%$old_value], ecx, eax
-    mov  [%$list], ecx  ; now points to blacklist/whitelist
-
-    ; Find the new offset
-    push dword [%$old_value]  ; old value
+.single_offset:
+    ; Find the new offset.
+    push dword [%$list_reg + RepOffset.to]  ; old value
     push dword [%$structid]
     push 0  ; struct_base.  0 because we're mapping an offset.
     call get_modified_address  ; REWRITE: [codecave:AUTO]
     mov  [%$new_value], eax
 
-    push dword [%$list]
+    ; This is generalized to be between two fields, so also find the new offset
+    ; of the place we're measuring from and subtract that.
+    push dword [%$list_reg + RepOffset.from]
+    push dword [%$structid]
+    push 0
+    call get_modified_address  ; REWRITE: [codecave:AUTO]
+    sub  [%$new_value], eax
+
+    ; Here's the value we should expect to find in the code (just the difference).
+    mov  eax, [%$list_reg + RepOffset.to]
+    sub  eax, [%$list_reg + RepOffset.from]
+    mov  [%$old_value], eax
+
+    %macro do_division 1.nolist
+        mov  eax, %1
+        cdq
+        idiv dword [%$list_reg + RepOffset.divisor]
+        test edx, edx
+        jnz  .notdivisible
+        mov  %1, eax
+    %endmacro
+    do_division [%$new_value]
+    do_division [%$old_value]
+
+    add  %$list_reg, RepOffset_size
+    push %$list_reg  ; blacklist/whitelist
     push dword [%$new_value]
     push dword [%$old_value]
     call perform_single_replacement  ; REWRITE: [codecave:AUTO]
-    ; return value is pointer to after blacklist
-    mov  [%$list], eax
+    mov  %$list_reg, eax  ; return value points after blacklist
     jmp  .iter
 
-.dword_range:
-    lea  ecx, [ecx+0x4]  ; scan past the DWORD_RANGE_TOKEN
-    read_advance_dword [%$range_start], ecx, eax
-    read_advance_dword [%$range_end], ecx, eax
+.notdivisible:
+    die
 
-    push ecx  ; blacklist/whitelist
-    push dword [%$range_end]
-    push dword [%$range_start]
+.offset_range:
+    mov  ecx, %$list_reg
+    add  %$list_reg, RepOffsetRange_size
+    push %$list_reg  ; blacklist/whitelist
+    push dword [ecx+RepOffsetRange.end]
+    push dword [ecx+RepOffsetRange.start]
     push dword [%$structid]
     call perform_dword_range_replacement  ; REWRITE: [codecave:AUTO]
-    mov  [%$list], eax
+    mov  %$list_reg, eax  ; return value points after blacklist
     jmp  .iter
 .end:
     func_epilogue

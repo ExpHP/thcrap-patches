@@ -119,19 +119,19 @@ iend
     dd REGION_NORMAL(0x1403b14)
     dd REGION_END(0x1403b28)
 .replacements:
-    dd 0x9ff68e  ; offset of dummy bullet state
+    dd REP_OFFSET(0x9ff68e)  ; offset of dummy bullet state
     dd WHITELIST_BEGIN
     dd 0x411a7a  ; BulletManager::initialize
     dd 0x411bb1  ; BulletManager::destroy_all
     dd WHITELIST_END
 
-    dd 0x9ffe94  ; LoLK snapshot bullet array
+    dd REP_OFFSET(0x9ffe94)  ; LoLK snapshot bullet array
     dd WHITELIST_BEGIN
     dd 0x4118e0  ; BulletManager::constructor
     dd 0x411d84  ; BulletManager::destructor
     dd WHITELIST_END
 
-    dd 0x13ffc8c  ; anm id array
+    dd REP_OFFSET(0x13ffc8c)  ; anm id array
     dd WHITELIST_BEGIN
     dd 0x4118f5  ; BulletManager::constructor
     dd 0x411bb7  ; BulletManager::destroy_all
@@ -139,27 +139,27 @@ iend
     dd 0x417023  ; BulletManager::clear_all
     dd WHITELIST_END
 
-    dd 0x1401bd0  ; LoLK snapshot anm id array
+    dd REP_OFFSET(0x1401bd0)  ; LoLK snapshot anm id array
     dd WHITELIST_BEGIN
     dd 0x411908  ; BulletManager::constructor
     dd WHITELIST_END
 
-    dd 0x1403b14  ; Something related to cancels
+    dd REP_OFFSET(0x1403b14)  ; Something related to cancels
     dd WHITELIST_BEGIN
     dd 0x411c88  ; BulletManager::destroy_all
     dd 0x416a78  ; BulletManager::gen_items_from_cancel
     dd 0x416a7e  ; BulletManager::gen_items_from_cancel
     dd WHITELIST_END
 
-    dd 0x1403b1c  ; "current" pointer for iteration
+    dd REP_OFFSET(0x1403b1c)  ; "current" pointer for iteration
     dd REPLACE_ALL  ; 12 usages
-    dd 0x1403b20  ; "next" pointer for iteration
+    dd REP_OFFSET(0x1403b20)  ; "next" pointer for iteration
     dd REPLACE_ALL  ; 12 usages
 
-    dd 0x1403b24  ; bullet.anm
+    dd REP_OFFSET(0x1403b24)  ; bullet.anm
     dd REPLACE_ALL  ; 31 usages
 
-    dd 0x1403b28  ; size of BulletManager
+    dd REP_OFFSET(0x1403b28)  ; size of BulletManager
     dd WHITELIST_BEGIN
     dd 0x411901  ; BulletManager::constructor
     dd 0x411df5  ; BulletManager::operator
@@ -189,7 +189,7 @@ iend
     dd REGION_END(%$SIZE)
 .replacements:
     ; freelist head nodes, lolk slowdown factor, snapshot item array
-    dd DWORD_RANGE_INCLUSIVE(%$FIRST_INNER + %$INNER_CANCEL_END, %$SECOND_INNER)
+    dd REP_OFFSET_RANGE_INCLUSIVE(%$FIRST_INNER + %$INNER_CANCEL_END, %$SECOND_INNER)
     dd WHITELIST_BEGIN
     dd 0x4184cb   ; ItemManager::destroy_all  (normal item freelist)
     dd 0x4309b9   ; ItemManager::spawn_item  (normal item freelist)
@@ -208,7 +208,7 @@ iend
     ; in TH16, the snapshot versions of the freelist and slowdown still exist but are never referenced
 
     ; fields at end of struct
-    dd DWORD_RANGE(%$SECOND_INNER + %$INNER_SIZE, %$SIZE)
+    dd REP_OFFSET_RANGE(%$SECOND_INNER + %$INNER_SIZE, %$SIZE)
     dd WHITELIST_BEGIN
     dd 0x42f529  ; ItemManager::on_tick__body  (num items onscreen)
     dd 0x43004e  ; ItemManager::on_tick__body  (num items onscreen)
@@ -223,7 +223,7 @@ iend
     dd 0x430b10  ; ItemManager::spawn_item   (???)
     dd WHITELIST_END
 
-    dd %$SIZE  ; struct size
+    dd REP_OFFSET(%$SIZE)  ; struct size
     dd WHITELIST_BEGIN
     dd 0x42d47d  ; GameThread::destructor
     dd 0x42f126  ; ItemManager::constructor

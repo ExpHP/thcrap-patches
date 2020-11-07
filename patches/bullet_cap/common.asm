@@ -78,23 +78,44 @@ endstruc
 ; Indicates that a region of the struct has been pointerized
 %define _REGION_FLAG_POINTERIZED  0x1
 
-; After that is a list of offsets to change.  Each entry consists of:
+; After that is a list of offsets into the vanilla struct that should be searched
+; for and replaced wherever they appear in the code. Each entry consists of:
 ;
-; - An offset to change, or the DWORD_RANGE() macro.
+; - A specification of the offset(s) to be replaced, using a REP_* macro.
 ; - A blacklist or whitelist.
 ;
 ; One might wonder, why have lists under structs in addition to lists for each cap?
 ; The reason is because struct offsets could be affected by more than one array.
-; (e.g. if we had a normal item cap and cancel item cap).
-;
-; In contrast to the lists associated with caps, these lists defer to the struct's
-; layout when replacing values, rather than using scale constants.
+; (e.g. if we had a normal item cap and cancel item cap). To handle this properly,
+; these lists defer to the struct's layout when replacing values, rather than using
+; scale constants.
 
-; Replaces values in the half-open range from start to end, instead of a single value.
-%define DWORD_RANGE(start, end)  DWORD_RANGE_TOKEN, start, end
+; Value to be replaced is the given offset.
+%define REP_OFFSET(offset)                      REP_OFFSET_BETWEEN(0, offset)
+; Value to be replaced is the offset between the fields originally at 'from' and 'to'.
+%define REP_OFFSET_BETWEEN(from, to)            _REP_OFFSET_TOKEN, from, to, 1
+; Value to be replaced is the number of dwords between the fields originally at 'from' and 'to'.
+%define REP_NUM_DWORDS_BETWEEN(from, to)        _REP_OFFSET_TOKEN, from, to, 4
+; Replaces all values in the half-open range from start to end, instead of a single value.
+; Its purpose is to consolidate whitelists. (it does not even support blacklists!)
+%define REP_OFFSET_RANGE(start, end)            _REP_OFFSET_RANGE_TOKEN, start, end
 ; Useful if the range ends in an array and you want to remap that too I guess.
-%define DWORD_RANGE_INCLUSIVE(start, end)  DWORD_RANGE(start, end+1)
-%define DWORD_RANGE_TOKEN -47
+%define REP_OFFSET_RANGE_INCLUSIVE(start, end)  REP_OFFSET_RANGE(start, end+1)
+
+%define _REP_OFFSET_TOKEN 0x6090
+%define _REP_OFFSET_RANGE_TOKEN 0x6091
+struc RepOffset
+    ; Offset into struct that the offset in question is measured from.  Typically zero,
+    ; but e.g. TH15 contains a value '-0x1f44'  that is the offset of the bullet anm id
+    ; array measured relative to the snapshot id array.
+    .from: resd 1
+    .to: resd 1  ; Offset into struct in vanilla game.
+    .divisor: resd 1  ; Value to divide by. E.g. 4 for number of dwords
+endstruc
+struc RepOffsetRange
+    .start: resd 1
+    .end: resd 1
+endstruc
 
 ; ================================
 ;        SCALE CONSTANTS
@@ -132,12 +153,12 @@ endstruc
 ;             that smaller caps produce final values closer to zero, so you should still write positive scales.
 
 ; Stored as 3 bytes of a dword.
-struc ScaleConst  ; DELETE
-    .size_mult: resb 1  ; DELETE
-    .one_mult: resb 1  ; DELETE
-    .divisor: resb 1  ; DELETE
-    .padding: resb 1  ; DELETE
-endstruc  ; DELETE
+struc ScaleConst
+    .size_mult: resb 1
+    .one_mult: resb 1
+    .divisor: resb 1
+    .padding: resb 1
+endstruc
 %define SCALE_GENERAL(size_mult, one_mult, divisor)  size_mult + one_mult * 0x100 + divisor * 0x10000
 %define SCALE_1               SCALE_GENERAL(0, 1, 1)
 %define SCALE_SIZE            SCALE_GENERAL(1, 0, 1)

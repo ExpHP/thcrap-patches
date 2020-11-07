@@ -97,12 +97,12 @@ iend
     dd REGION_NORMAL(0x9bf6c0)
     dd REGION_END(0x9bf6d0)
 .replacements:
-    dd 0x9beeda, REPLACE_ALL  ; offset of dummy bullet state
-    dd 0x9bf6c0, REPLACE_ALL  ; offset of current ptr for iteration
-    dd 0x9bf6c4, REPLACE_ALL  ; offset of next ptr for iteration
-    dd 0x9bf6c8, REPLACE_ALL  ; offset of unknown cancel-related counter
-    dd 0x9bf6cc, REPLACE_ALL  ; offset of bullet.anm
-    dd 0x9bf6d0, REPLACE_ALL  ; size of bullet manager
+    dd REP_OFFSET(0x9beeda), REPLACE_ALL  ; offset of dummy bullet state
+    dd REP_OFFSET(0x9bf6c0), REPLACE_ALL  ; offset of current ptr for iteration
+    dd REP_OFFSET(0x9bf6c4), REPLACE_ALL  ; offset of next ptr for iteration
+    dd REP_OFFSET(0x9bf6c8), REPLACE_ALL  ; offset of unknown cancel-related counter
+    dd REP_OFFSET(0x9bf6cc), REPLACE_ALL  ; offset of bullet.anm
+    dd REP_OFFSET(0x9bf6d0), REPLACE_ALL  ; size of bullet manager
     dd LIST_END
 
 item_mgr_layout:  ; HEADER: AUTO
@@ -114,7 +114,7 @@ iend
     dd REGION_NORMAL(0xde21b4)
     dd REGION_END(0xde21e8)
 .replacements:
-    dd DWORD_RANGE_INCLUSIVE(0xde21b4, 0xde21e8)
+    dd REP_OFFSET_RANGE_INCLUSIVE(0xde21b4, 0xde21e8)
     dd WHITELIST_BEGIN
     dd 0x419935  ; ItemManager::destroy_all  (normal item freelist)
     dd 0x4199a2  ; ItemManager::destroy_all  (cancel item freelist)

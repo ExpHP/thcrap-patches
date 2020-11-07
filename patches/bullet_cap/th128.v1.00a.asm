@@ -106,9 +106,9 @@ iend
     dd REGION_NORMAL(0x8a7f9c)
     dd REGION_END(0x8a7fa0)
 .replacements:
-    dd 0x8a780e, REPLACE_ALL  ; offset of dummy bullet state
-    dd 0x8a7f9c, REPLACE_ALL  ; offset of bullet.anm
-    dd 0x8a7fa0, REPLACE_ALL  ; size of bullet manager
+    dd REP_OFFSET(0x8a780e), REPLACE_ALL  ; offset of dummy bullet state
+    dd REP_OFFSET(0x8a7f9c), REPLACE_ALL  ; offset of bullet.anm
+    dd REP_OFFSET(0x8a7fa0), REPLACE_ALL  ; size of bullet manager
     dd LIST_END
 
 item_mgr_layout:  ; HEADER: AUTO
@@ -120,11 +120,11 @@ iend
     dd REGION_NORMAL(0x1cab14)
     dd REGION_END(0x1cab24)
 .replacements:
-    dd 0x1cab14, REPLACE_ALL  ; num items alive
-    dd 0x1cab18, REPLACE_ALL  ; next cancel item index
-    dd 0x1cab1c, REPLACE_ALL  ; num cancel items spawned this frame
-    dd 0x1cab20, REPLACE_ALL  ; num ufos spawned during this stage (unused but still zeroed out)
-    dd 0x1cab24, REPLACE_ALL  ; ItemManager size
+    dd REP_OFFSET(0x1cab14), REPLACE_ALL  ; num items alive
+    dd REP_OFFSET(0x1cab18), REPLACE_ALL  ; next cancel item index
+    dd REP_OFFSET(0x1cab1c), REPLACE_ALL  ; num cancel items spawned this frame
+    dd REP_OFFSET(0x1cab20), REPLACE_ALL  ; num ufos spawned during this stage (unused but still zeroed out)
+    dd REP_OFFSET(0x1cab24), REPLACE_ALL  ; ItemManager size
     dd LIST_END
 
 perf_fix_data:  ; HEADER: AUTO

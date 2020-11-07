@@ -96,12 +96,12 @@ iend
     dd REGION_NORMAL(0x9bf6c0)
     dd REGION_END(0x9bf6d0)
 .replacements:
-    dd 0x9beeda, REPLACE_ALL  ; offset of dummy bullet state
-    dd 0x9bf6c0, REPLACE_ALL  ; offset of current ptr for iteration
-    dd 0x9bf6c4, REPLACE_ALL  ; offset of next ptr for iteration
-    dd 0x9bf6c8, REPLACE_ALL  ; offset of unknown cancel-related counter
-    dd 0x9bf6cc, REPLACE_ALL  ; offset of bullet.anm
-    dd 0x9bf6d0, REPLACE_ALL  ; size of bullet manager
+    dd REP_OFFSET(0x9beeda), REPLACE_ALL  ; offset of dummy bullet state
+    dd REP_OFFSET(0x9bf6c0), REPLACE_ALL  ; offset of current ptr for iteration
+    dd REP_OFFSET(0x9bf6c4), REPLACE_ALL  ; offset of next ptr for iteration
+    dd REP_OFFSET(0x9bf6c8), REPLACE_ALL  ; offset of unknown cancel-related counter
+    dd REP_OFFSET(0x9bf6cc), REPLACE_ALL  ; offset of bullet.anm
+    dd REP_OFFSET(0x9bf6d0), REPLACE_ALL  ; size of bullet manager
     dd LIST_END
 
 item_mgr_layout:  ; HEADER: AUTO
@@ -113,20 +113,20 @@ iend
     dd REGION_NORMAL(0xddd854)
     dd REGION_END(0xddd888)
 .replacements:
-    dd 0xddd854, REPLACE_ALL  ; freelist head .entry
-    dd 0xddd858, REPLACE_ALL  ; freelist head .next
-    dd 0xddd85c, REPLACE_ALL  ; freelist head .prev
-    dd 0xddd860, REPLACE_ALL  ; freelist head .unused
-    dd 0xddd864, REPLACE_ALL  ; tick list head .entry
-    dd 0xddd868, REPLACE_ALL  ; tick list head .next
-    dd 0xddd86c, REPLACE_ALL  ; tick list head .prev
-    dd 0xddd870, REPLACE_ALL  ; tick list head .unused
-    dd 0xddd874, REPLACE_ALL  ; num items alive
-    dd 0xddd878, REPLACE_ALL  ; some cancel counter (different from earlier games)
-    dd 0xddd87c, REPLACE_ALL  ; num cancel items spawned this frame  (always zero now)
-    dd 0xddd880, REPLACE_ALL  ; dumb field that's always zero, copied onto piv items...
-    dd 0xddd884, REPLACE_ALL  ; num ufos spawned during this stage  (always zero now)
-    dd 0xddd888, REPLACE_ALL  ; ItemManager size
+    dd REP_OFFSET(0xddd854), REPLACE_ALL  ; freelist head .entry
+    dd REP_OFFSET(0xddd858), REPLACE_ALL  ; freelist head .next
+    dd REP_OFFSET(0xddd85c), REPLACE_ALL  ; freelist head .prev
+    dd REP_OFFSET(0xddd860), REPLACE_ALL  ; freelist head .unused
+    dd REP_OFFSET(0xddd864), REPLACE_ALL  ; tick list head .entry
+    dd REP_OFFSET(0xddd868), REPLACE_ALL  ; tick list head .next
+    dd REP_OFFSET(0xddd86c), REPLACE_ALL  ; tick list head .prev
+    dd REP_OFFSET(0xddd870), REPLACE_ALL  ; tick list head .unused
+    dd REP_OFFSET(0xddd874), REPLACE_ALL  ; num items alive
+    dd REP_OFFSET(0xddd878), REPLACE_ALL  ; some cancel counter (different from earlier games)
+    dd REP_OFFSET(0xddd87c), REPLACE_ALL  ; num cancel items spawned this frame  (always zero now)
+    dd REP_OFFSET(0xddd880), REPLACE_ALL  ; dumb field that's always zero, copied onto piv items...
+    dd REP_OFFSET(0xddd884), REPLACE_ALL  ; num ufos spawned during this stage  (always zero now)
+    dd REP_OFFSET(0xddd888), REPLACE_ALL  ; ItemManager size
     dd LIST_END
 
 perf_fix_data:  ; HEADER: AUTO

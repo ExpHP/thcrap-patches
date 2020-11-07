@@ -73,9 +73,9 @@ iend
     dd REGION_NORMAL(0x46d674)
     dd REGION_END(0x46d678)
 .replacements:
-    dd 0x46d216, REPLACE_ALL  ; offset of dummy bullet state
-    dd 0x46d674, REPLACE_ALL  ; offset of bullet.anm
-    dd 0x46d678, REPLACE_ALL  ; size of bullet manager
+    dd REP_OFFSET(0x46d216), REPLACE_ALL  ; offset of dummy bullet state
+    dd REP_OFFSET(0x46d674), REPLACE_ALL  ; offset of bullet.anm
+    dd REP_OFFSET(0x46d678), REPLACE_ALL  ; size of bullet manager
     dd LIST_END
 
 item_mgr_layout:  ; HEADER: AUTO
@@ -87,10 +87,10 @@ iend
     dd REGION_NORMAL(0x265e64)
     dd REGION_END(0x265e70)
 .replacements:
-    dd 0x265e64, REPLACE_ALL  ; num items alive
-    dd 0x265e68, REPLACE_ALL  ; next cancel item index
-    dd 0x265e6c, REPLACE_ALL  ; num cancel items spawned this frame
-    dd 0x265e70, REPLACE_ALL  ; ItemManager size
+    dd REP_OFFSET(0x265e64), REPLACE_ALL  ; num items alive
+    dd REP_OFFSET(0x265e68), REPLACE_ALL  ; next cancel item index
+    dd REP_OFFSET(0x265e6c), REPLACE_ALL  ; num cancel items spawned this frame
+    dd REP_OFFSET(0x265e70), REPLACE_ALL  ; ItemManager size
     dd LIST_END
 
 perf_fix_data:  ; HEADER: AUTO

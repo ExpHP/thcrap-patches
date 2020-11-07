@@ -105,13 +105,13 @@ iend
     dd REGION_NORMAL(0x71b538)
     dd REGION_END(0x71b54c)
 .replacements:
-    dd 0x7195bc  ; offset of dummy bullet state
+    dd REP_OFFSET(0x7195bc)  ; offset of dummy bullet state
     dd WHITELIST_BEGIN
     dd 0x4146a1  ; BulletManager::destroy_all
     dd 0x41489d  ; BulletManager::operator new
     dd WHITELIST_END
 
-    dd 0x7195f4  ; anm id array
+    dd REP_OFFSET(0x7195f4)  ; anm id array
     dd WHITELIST_BEGIN
     dd 0x4146a7  ; BulletManager::destroy_all
     dd 0x414823  ; BulletManager::operator new
@@ -119,7 +119,7 @@ iend
     dd 0x41a2a3  ; BulletManager::cancel_all
     dd WHITELIST_END
 
-    dd 0x71b538  ; Related to cancels
+    dd REP_OFFSET(0x71b538)  ; Related to cancels
     dd WHITELIST_BEGIN
     dd 0x414785  ; BulletManager::destroy_all
     dd 0x419c98  ; gen_items_from_et_cancel
@@ -129,7 +129,7 @@ iend
     dd 0x43be54  ; LaserInfinite::cancel
     dd WHITELIST_END
 
-    dd 0x71b540  ; "current" pointer for iteration
+    dd REP_OFFSET(0x71b540)  ; "current" pointer for iteration
     dd WHITELIST_BEGIN
     dd 0x41579e  ; BulletManager::on_tick__body
     dd 0x415924  ; BulletManager::on_tick__body
@@ -141,7 +141,7 @@ iend
     dd 0x4290cf  ; BulletManager::sub_428f60
     dd WHITELIST_END
 
-    dd 0x71b544  ; "next" pointer for iteration
+    dd REP_OFFSET(0x71b544)  ; "next" pointer for iteration
     dd WHITELIST_BEGIN
     dd 0x4157b1  ; BulletManager::on_tick__body
     dd 0x41591e  ; BulletManager::on_tick__body
@@ -157,10 +157,10 @@ iend
     dd 0x4290e2  ; BulletManager::sub_428f60
     dd WHITELIST_END
 
-    dd 0x71b548  ; bullet.anm
+    dd REP_OFFSET(0x71b548)  ; bullet.anm
     dd REPLACE_ALL  ; 8 usages
 
-    dd 0x71b54c  ; size of BulletManager
+    dd REP_OFFSET(0x71b54c)  ; size of BulletManager
     dd WHITELIST_BEGIN
     dd 0x4147e7  ; BulletManager::operator new
     dd 0x414828  ; BulletManager::operator new
@@ -180,7 +180,7 @@ iend
     dd REGION_END(0xe4b988)
 .replacements:
     ; freelist head nodes, lolk slowdown factor
-    dd DWORD_RANGE(0xe4b954, 0xe4b988)
+    dd REP_OFFSET_RANGE(0xe4b954, 0xe4b988)
     dd WHITELIST_BEGIN
     dd 0x41b3eb  ; ItemManager::destroy_all  (normal freelist head)
     dd 0x4348c3  ; ItemManager::spawn_item  (normal freelist head)
@@ -208,7 +208,7 @@ iend
     dd 0x44d936  ; sub_44d8a0  (unused field? #2)
     dd WHITELIST_END
 
-    dd 0xe4b988  ; struct size
+    dd REP_OFFSET(0xe4b988)  ; struct size
     dd WHITELIST_BEGIN
     dd 0x4331d8  ; ItemManager::operator new
     dd 0x433211  ; ItemManager::operator new
