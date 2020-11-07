@@ -9,9 +9,9 @@ address_range:  ; HEADER: AUTO
     dd 0x48ae15
 
 bullet_replacements:  ; HEADER: AUTO
-istruc ListHeader
-    at ListHeader.old_cap, dd 0x7d0
-    at ListHeader.elem_size, dd 0x910
+istruc CapGameData
+    at CapGameData.old_cap, dd 0x7d0
+    at CapGameData.elem_size, dd 0x910
 iend
     dd 0x7d0
     dd SCALE_1
@@ -32,9 +32,9 @@ iend
     dd LIST_END
 
 laser_replacements:  ; HEADER: AUTO
-istruc ListHeader
-    at ListHeader.old_cap, dd 0x100
-    at ListHeader.elem_size, dd 0
+istruc CapGameData
+    at CapGameData.old_cap, dd 0x100
+    at CapGameData.elem_size, dd 0
 iend
     dd 0x100
     dd SCALE_1
@@ -50,11 +50,11 @@ iend
     dd LIST_END
 
 cancel_replacements:  ; HEADER: AUTO
-istruc ListHeader
-    at ListHeader.old_cap, dd 0x800
-    at ListHeader.elem_size, dd 0x478
+istruc CapGameData
+    at CapGameData.old_cap, dd 0x800
+    at CapGameData.elem_size, dd 0x478
 iend
-    dd 0x896  ; array size (includes non-cancel items)
+    dd 0x896  ; array length (includes non-cancel items)
     dd SCALE_1
     dd REPLACE_ALL
 

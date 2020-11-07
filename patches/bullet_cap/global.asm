@@ -66,40 +66,40 @@ strings:
 .divisibility_error: db "Sorry, due to technical limitations, the bullet cap in Ten Desires must be divisible by 5, and the cancel cap must be divisible by 4.", 0
 
 cap_definitions:  ; HEADER: AUTO
-istruc GlobalCapEntry
-    at GlobalCapEntry.capid, dd CAPID_BULLET
-    at GlobalCapEntry.game_data_cave, dd bullet_replacements  ; REWRITE: <codecave:AUTO>
-    at GlobalCapEntry.game_data_offset, dd 0
-    at GlobalCapEntry.new_cap_bigendian_codecave, dd 0  ; REWRITE: <codecave:bullet-cap>
-    at GlobalCapEntry.new_cap_test_value, dd NOT_APPLICABLE
+istruc CapGlobalData
+    at CapGlobalData.capid, dd CAPID_BULLET
+    at CapGlobalData.game_data_cave, dd bullet_replacements  ; REWRITE: <codecave:AUTO>
+    at CapGlobalData.game_data_offset, dd 0
+    at CapGlobalData.new_cap_bigendian_codecave, dd 0  ; REWRITE: <codecave:bullet-cap>
+    at CapGlobalData.new_cap_test_value, dd NOT_APPLICABLE
 iend
-istruc GlobalCapEntry
-    at GlobalCapEntry.capid, dd CAPID_LASER
-    at GlobalCapEntry.game_data_cave, dd laser_replacements  ; REWRITE: <codecave:AUTO>
-    at GlobalCapEntry.game_data_offset, dd 0
-    at GlobalCapEntry.new_cap_bigendian_codecave, dd 0  ; REWRITE: <codecave:laser-cap>
-    at GlobalCapEntry.new_cap_test_value, dd NOT_APPLICABLE
+istruc CapGlobalData
+    at CapGlobalData.capid, dd CAPID_LASER
+    at CapGlobalData.game_data_cave, dd laser_replacements  ; REWRITE: <codecave:AUTO>
+    at CapGlobalData.game_data_offset, dd 0
+    at CapGlobalData.new_cap_bigendian_codecave, dd 0  ; REWRITE: <codecave:laser-cap>
+    at CapGlobalData.new_cap_test_value, dd NOT_APPLICABLE
 iend
-istruc GlobalCapEntry
-    at GlobalCapEntry.capid, dd CAPID_CANCEL
-    at GlobalCapEntry.game_data_cave, dd cancel_replacements  ; REWRITE: <codecave:AUTO>
-    at GlobalCapEntry.game_data_offset, dd 0
-    at GlobalCapEntry.new_cap_bigendian_codecave, dd 0  ; REWRITE: <codecave:cancel-cap>
-    at GlobalCapEntry.new_cap_test_value, dd NOT_APPLICABLE
+istruc CapGlobalData
+    at CapGlobalData.capid, dd CAPID_CANCEL
+    at CapGlobalData.game_data_cave, dd cancel_replacements  ; REWRITE: <codecave:AUTO>
+    at CapGlobalData.game_data_offset, dd 0
+    at CapGlobalData.new_cap_bigendian_codecave, dd 0  ; REWRITE: <codecave:cancel-cap>
+    at CapGlobalData.new_cap_test_value, dd NOT_APPLICABLE
 iend
-istruc GlobalCapEntry
-    at GlobalCapEntry.capid, dd __CAPID_TEST_1
-    at GlobalCapEntry.game_data_cave, dd the_worlds_saddest_unit_test  ; REWRITE: <codecave:AUTO>
-    at GlobalCapEntry.game_data_offset, dd the_worlds_saddest_unit_test.capdata_1 - the_worlds_saddest_unit_test
-    at GlobalCapEntry.new_cap_bigendian_codecave, dd NOT_APPLICABLE
-    at GlobalCapEntry.new_cap_test_value, dd TEST_NEW_CAP_1
+istruc CapGlobalData
+    at CapGlobalData.capid, dd __CAPID_TEST_1
+    at CapGlobalData.game_data_cave, dd the_worlds_saddest_unit_test  ; REWRITE: <codecave:AUTO>
+    at CapGlobalData.game_data_offset, dd the_worlds_saddest_unit_test.capdata_1 - the_worlds_saddest_unit_test
+    at CapGlobalData.new_cap_bigendian_codecave, dd NOT_APPLICABLE
+    at CapGlobalData.new_cap_test_value, dd TEST_NEW_CAP_1
 iend
-istruc GlobalCapEntry
-    at GlobalCapEntry.capid, dd __CAPID_TEST_2
-    at GlobalCapEntry.game_data_cave, dd the_worlds_saddest_unit_test  ; REWRITE: <codecave:AUTO>
-    at GlobalCapEntry.game_data_offset, dd the_worlds_saddest_unit_test.capdata_2 - the_worlds_saddest_unit_test
-    at GlobalCapEntry.new_cap_bigendian_codecave, dd NOT_APPLICABLE
-    at GlobalCapEntry.new_cap_test_value, dd TEST_NEW_CAP_2
+istruc CapGlobalData
+    at CapGlobalData.capid, dd __CAPID_TEST_2
+    at CapGlobalData.game_data_cave, dd the_worlds_saddest_unit_test  ; REWRITE: <codecave:AUTO>
+    at CapGlobalData.game_data_offset, dd the_worlds_saddest_unit_test.capdata_2 - the_worlds_saddest_unit_test
+    at CapGlobalData.new_cap_bigendian_codecave, dd NOT_APPLICABLE
+    at CapGlobalData.new_cap_test_value, dd TEST_NEW_CAP_2
 iend
     dd LIST_END
 
@@ -196,7 +196,7 @@ do_replacement_list:  ; HEADER: AUTO
 
     push dword [%$capid]
     call get_cap_data  ; REWRITE: [codecave:AUTO]
-    lea  eax, [eax + ListHeader.list]
+    lea  eax, [eax + CapGameData.list]
     mov  [%$list], eax
 
 .iter:
@@ -343,7 +343,7 @@ get_struct_data:  ; HEADER: AUTO
     epilogue_sd
     ret 0x4
 
-; __stdcall GlobalCapEntry* GetGlobalCapData(capid)
+; __stdcall CapGlobalData* GetGlobalCapData(capid)
 get_global_cap_data:  ; HEADER: AUTO
     func_begin
     func_arg %$capid
@@ -352,10 +352,10 @@ get_global_cap_data:  ; HEADER: AUTO
 .iter:
     cmp  dword [ecx], LIST_END
     je   .fail
-    mov  eax, [ecx+GlobalCapEntry.capid]
+    mov  eax, [ecx+CapGlobalData.capid]
     cmp  eax, [%$capid]
     je   .found
-    add  ecx, GlobalCapEntry_size
+    add  ecx, CapGlobalData_size
     jmp  .iter
 .fail:
     die  ; no cap exists with the given ID
@@ -365,7 +365,7 @@ get_global_cap_data:  ; HEADER: AUTO
     func_ret
     func_end
 
-; __stdcall ListHeader* GetCapData(capid)
+; __stdcall CapGameData* GetCapData(capid)
 get_cap_data:  ; HEADER: AUTO
     func_begin
     func_arg  %$capid
@@ -373,13 +373,13 @@ get_cap_data:  ; HEADER: AUTO
     push dword [%$capid]
     call get_global_cap_data  ; REWRITE: [codecave:AUTO]
     mov  ecx, eax
-    mov  eax, [ecx+GlobalCapEntry.game_data_cave]
-    add  eax, [ecx+GlobalCapEntry.game_data_offset]
+    mov  eax, [ecx+CapGlobalData.game_data_cave]
+    add  eax, [ecx+CapGlobalData.game_data_offset]
     func_epilogue
     func_ret
     func_end
 
-; __stdcall ListHeader* GetNewCap(capid)
+; __stdcall CapGameData* GetNewCap(capid)
 get_new_cap:  ; HEADER: AUTO
     func_begin
     func_arg  %$capid
@@ -387,13 +387,13 @@ get_new_cap:  ; HEADER: AUTO
     push dword [%$capid]
     call get_global_cap_data  ; REWRITE: [codecave:AUTO]
     mov  ecx, eax
-    mov  eax, [ecx+GlobalCapEntry.new_cap_bigendian_codecave]
+    mov  eax, [ecx+CapGlobalData.new_cap_bigendian_codecave]
     cmp  eax, NOT_APPLICABLE
     jne  .codecave
-    mov  eax, [ecx+GlobalCapEntry.new_cap_test_value]
+    mov  eax, [ecx+CapGlobalData.new_cap_test_value]
     cmp  eax, NOT_APPLICABLE
     jne  .done
-    die  ; invalid GlobalCapEntry
+    die  ; invalid CapGlobalData
 .codecave:
     mov  eax, [eax]
     bswap eax
@@ -423,9 +423,9 @@ adjust_value_for_cap:  ; HEADER: AUTO
     push dword [%$capid]
     call get_cap_data  ; REWRITE: [codecave:AUTO]
     mov  ecx, eax
-    mov  eax, [ecx+ListHeader.old_cap]
+    mov  eax, [ecx+CapGameData.old_cap]
     mov  [%$old_cap], eax
-    mov  eax, [ecx+ListHeader.elem_size]
+    mov  eax, [ecx+CapGameData.elem_size]
     mov  [%$item_size], eax
     push dword [%$capid]
     call get_new_cap  ; REWRITE: [codecave:AUTO]
@@ -540,7 +540,7 @@ determine_array_elem_size:  ; HEADER: AUTO
     push 0  ; old value
     push 1  ; new cap
     push 0  ; old cap
-    push dword [eax+ListHeader.elem_size]
+    push dword [eax+CapGameData.elem_size]
     push dword [%$scale_const]
     call adjust_value_for_cap_impl  ; REWRITE: [codecave:AUTO]
 

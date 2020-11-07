@@ -55,17 +55,17 @@ iend
 
 ; Returned by get_cap_data for capid = __CAPID_TEST_1
 .capdata_1:
-istruc ListHeader
-    at ListHeader.old_cap, dd TEST_OLD_CAP_1
-    at ListHeader.elem_size, dd TEST_SIZE_1
+istruc CapGameData
+    at CapGameData.old_cap, dd TEST_OLD_CAP_1
+    at CapGameData.elem_size, dd TEST_SIZE_1
 iend
     dd TEST_NEW_CAP_1
 
 ; Returned by get_cap_data for capid = __CAPID_TEST_2
 .capdata_2:
-istruc ListHeader
-    at ListHeader.old_cap, dd TEST_OLD_CAP_2
-    at ListHeader.elem_size, dd TEST_SIZE_2
+istruc CapGameData
+    at CapGameData.old_cap, dd TEST_OLD_CAP_2
+    at CapGameData.elem_size, dd TEST_SIZE_2
 iend
     dd TEST_NEW_CAP_2
 

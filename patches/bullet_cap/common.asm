@@ -11,37 +11,58 @@
 %define __CAPID_TEST_2 0x401
 
 ; =============================
+;        COMMON
+; =============================
+
+; Dword-search-and-replace relies on whitelists and blacklists to ensure that
+; it is targeting the right addresses.  Those are delimited by these macros.
+%define WHITELIST_BEGIN 1
+%define WHITELIST_END   0
+%define BLACKLIST_BEGIN -1
+%define BLACKLIST_END   0
+; Synonym for an empty blacklist, since BLACKLIST_BEGIN BLACKLIST_END feels noisy and
+; makes it harder to notice the size constant.
+%define REPLACE_ALL -1, 0
+
+; Some lists use the following macro to signal the end of the list.
+%define LIST_END 0
+
+; =============================
 ;        CAP SPECS
 ; =============================
 %define NOT_APPLICABLE  -0x50506060
 
-struc GlobalCapEntry
+; Cap data applicable to all games.
+struc CapGlobalData
     .capid: resd 1  ; The capid for this cap
-    .game_data_cave: resd 1  ; Pointer to cave containing ListHeader
-    .game_data_offset: resd 1  ; Offset to ListHeader within cave
+    .game_data_cave: resd 1  ; Pointer to cave containing CapGameData
+    .game_data_offset: resd 1  ; Offset to CapGameData within cave
     .new_cap_bigendian_codecave: resd 1  ; Pointer to old, bigendian config cave, or NOT_APPLICABLE
     .new_cap_test_value: resd 1  ; A fixed value for a test cap, or NOT_APPLICABLE
 endstruc
 
-struc ListHeader
+; Cap data applicable to a single game.
+struc CapGameData
     ; "old cap" should be whatever the maximum amount is of something in the vanilla game,
     ; regardless of the length of the underlying array. (e.g. in TH10 the bullet array
     ; has 0x2001 bullets but it can only spawn 0x2000, so you would write 0x2000).
-    .old_cap: resd 1  ; old cap
-    .elem_size: resd 1  ; size in bytes of each array item.  If they don't live in an array this will never be needed and you can put 0.
-    .list:  ; list of replacements
+    .old_cap: resd 1
+
+    ; Size in bytes of each array item.  If they don't live in an array (e.g. modern lasers) this
+    ; will never be needed and you can put 0.
+    .elem_size: resd 1
+
+    ; Each cap changed by the patch includes a list of values to search and replace in the code
+    ; which are directly related to this cap. (values that may depend on multiple caps must instead
+    ; be handled through offset replacements, documented under struct layouts)
+    ;
+    ; Each entry in the list contains the following:
+    ; - A value to change.
+    ; - A scale constant (documented below) describing how the value should change in relation to the cap.
+    ; - A whitelist or blacklist.
+    ; and the list is terminated by LIST_END.
+    .list: resd 0
 endstruc
-
-; =============================
-;        CAP CHANGES
-; =============================
-; Each cap changed by the patch includes a list of values to change.
-
-
-; Each entry in the list of replacements contains:
-; - A value to change.
-; - A scale constant (documented below) describing how the value should change in relation to the cap.
-; - A whitelist or blacklist.
 
 ; ================================
 ;        STRUCT LAYOUT
@@ -85,8 +106,8 @@ endstruc
 ; - A blacklist or whitelist.
 ;
 ; One might wonder, why have lists under structs in addition to lists for each cap?
-; The reason is because struct offsets could be affected by more than one array.
-; (e.g. if we had a normal item cap and cancel item cap). To handle this properly,
+; The reason is because struct offsets could be affected by more than one cap.
+; (e.g. fairy and rival bullets in PoFV). To handle this properly,
 ; these lists defer to the struct's layout when replacing values, rather than using
 ; scale constants.
 
@@ -122,7 +143,7 @@ endstruc
 ; ================================
 ;
 ; Scale constants are used to represent how much a value should change in response to
-; a cap being changed.  For instance, the length of an array of bullets would change by
+; a cap being changed.  For instance, the size of an array of bullets would change by
 ; the bullet size for each difference of 1 in the cap (SCALE_SIZE), whereas a value like
 ; "the cap plus 1" would only change by 1 for each such difference (SCALE_1).
 ;
@@ -165,22 +186,6 @@ endstruc
 %define SCALE_SIZE_DIV(n)     SCALE_GENERAL(1, 0, n)
 %define SCALE_1_DIV(n)        SCALE_GENERAL(0, 1, n)
 %define SCALE_FIXED(b)        SCALE_GENERAL(0, b, 1)
-
-; -----------------------
-
-; After the scale expression is either a whitelist of addresses to replace, or a blacklist of addresses to NOT replace.
-
-%define WHITELIST_BEGIN 1
-%define WHITELIST_END   0
-%define BLACKLIST_BEGIN -1
-%define BLACKLIST_END   0
-; Synonym for an empty blacklist, since BLACKLIST_BEGIN BLACKLIST_END feels noisy and
-; makes it harder to notice the size constant.
-%define REPLACE_ALL -1, 0
-
-; After the last entry is LIST_END.
-
-%define LIST_END 0
 
 ; ================================
 ; SPECIALIZED STUFF FOR SOME GAMES
