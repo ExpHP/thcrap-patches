@@ -71,7 +71,7 @@ iend
     dd REP_OFFSET(0x3e0b50), REPLACE_ALL  ; offset of bullet.anm
     dd REP_OFFSET(0x3e0b54), REPLACE_ALL  ; size of bullet manager
     
-    dd REP_NUM_DWORDS_BETWEEN(0, 0x3e0b54)  ; 0xf82d5 - size in dwords
+    dd REP_NUM_DWORDS_FROM_START(0x3e0b54)  ; 0xf82d5 - size in dwords
     dd WHITELIST_BEGIN
     dd 0x405ce1  ; BulletManager::constructor
     dd 0x4060b5  ; BulletManager::operator new
@@ -93,7 +93,7 @@ iend
     dd REP_OFFSET(0x21cebc), REPLACE_ALL  ; num cancel items spawned this frame
     dd REP_OFFSET(0x21cec0), REPLACE_ALL  ; ItemManager size
 
-    dd REP_NUM_DWORDS_BETWEEN(0, 0x21cec0)  ; 0x873b0 - size in dwords
+    dd REP_NUM_DWORDS_FROM_START(0x21cec0)  ; 0x873b0 - size in dwords
     dd WHITELIST_BEGIN
     dd 0x41acd1  ; ItemManager::constructor
     dd 0x41af27  ; ItemManager::operator new

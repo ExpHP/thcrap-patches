@@ -259,23 +259,14 @@ do_offset_replacement_list:  ; HEADER: AUTO
 
 .single_offset:
     ; Find the new offset.
-    push dword [%$list_reg + RepOffset.to]  ; old value
+    push dword [%$list_reg + RepOffset.offset]  ; old value
     push dword [%$structid]
     push 0  ; struct_base.  0 because we're mapping an offset.
     call get_modified_address  ; REWRITE: [codecave:AUTO]
     mov  [%$new_value], eax
 
-    ; This is generalized to be between two fields, so also find the new offset
-    ; of the place we're measuring from and subtract that.
-    push dword [%$list_reg + RepOffset.from]
-    push dword [%$structid]
-    push 0
-    call get_modified_address  ; REWRITE: [codecave:AUTO]
-    sub  [%$new_value], eax
-
-    ; Here's the value we should expect to find in the code (just the difference).
-    mov  eax, [%$list_reg + RepOffset.to]
-    sub  eax, [%$list_reg + RepOffset.from]
+    ; Value we should expect to find in the code.
+    mov  eax, [%$list_reg + RepOffset.offset]
     mov  [%$old_value], eax
 
     %macro do_division 1.nolist

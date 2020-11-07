@@ -112,11 +112,13 @@ endstruc
 ; scale constants.
 
 ; Value to be replaced is the given offset.
-%define REP_OFFSET(offset)                      REP_OFFSET_BETWEEN(0, offset)
-; Value to be replaced is the offset between the fields originally at 'from' and 'to'.
-%define REP_OFFSET_BETWEEN(from, to)            _REP_OFFSET_TOKEN, from, to, 1
-; Value to be replaced is the number of dwords between the fields originally at 'from' and 'to'.
-%define REP_NUM_DWORDS_BETWEEN(from, to)        _REP_OFFSET_TOKEN, from, to, 4
+%define REP_OFFSET(offset)                      _REP_OFFSET_TOKEN, offset, 1
+; Value to be replaced is the number of dwords between the start of the struct and 'offset'.
+;
+; Only sensible use case is where offset = size of struct, to help replace a rep stosd that
+; depends on multiple caps. REP_NUM_DWORDS_BETWEEN(from, to) would perhaps make a bit more
+; sense, but I'd rather not add the concept of an "offset from" until we need it.
+%define REP_NUM_DWORDS_FROM_START(offset)       _REP_OFFSET_TOKEN, offset, 4
 ; Replaces all values in the half-open range from start to end, instead of a single value.
 ; Its purpose is to consolidate whitelists. (it does not even support blacklists!)
 %define REP_OFFSET_RANGE(start, end)            _REP_OFFSET_RANGE_TOKEN, start, end
@@ -126,11 +128,7 @@ endstruc
 %define _REP_OFFSET_TOKEN 0x6090
 %define _REP_OFFSET_RANGE_TOKEN 0x6091
 struc RepOffset
-    ; Offset into struct that the offset in question is measured from.  Typically zero,
-    ; but e.g. TH15 contains a value '-0x1f44'  that is the offset of the bullet anm id
-    ; array measured relative to the snapshot id array.
-    .from: resd 1
-    .to: resd 1  ; Offset into struct in vanilla game.
+    .offset: resd 1  ; Offset into struct in vanilla game.
     .divisor: resd 1  ; Value to divide by. E.g. 4 for number of dwords
 endstruc
 struc RepOffsetRange
