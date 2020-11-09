@@ -14,11 +14,11 @@
         "ExpHP.bullet-cap.pointerize-data": "58F96200 // 18B26300 // 805F9900 // 705C5700 // 705C5700 // 680D0000 // EC040000 // 88020000 // 06000000 // FC0B0000 // 64A13700 // 7CE50A00",
         "ExpHP.bullet-cap.iat-funcs": "7CD04800 // 88D14800 // 00000000 // 5CD04800 // E4D14800",
         "ExpHP.bullet-cap.corefuncs": "41D44700",
-        "bullet-cap": "00004000",
-        "laser-cap": "00000400",
-        "cancel-cap": "000044c0",
-        "bullet-cap-config.anm-search-lag-spike-size": "00002000",
-        "bullet-cap-config.mof-sa-lag-spike-size": "ffffffff",
+        "bullet-cap": "ffff ffff",
+        "laser-cap": "ffff ffff",
+        "cancel-cap": "ffff ffff",
+        "bullet-cap-config.anm-search-lag-spike-size": "ffff ffff",
+        "bullet-cap-config.mof-sa-lag-spike-size": "ffff ffff",
         "of(ExpHP.bullet-cap.install)": "E8[codecave:ExpHP.bullet-cap.initialize] // B8A0764200 // FFD0 // E800000000C70424E0F04200C3",
         "of(ExpHP.bullet-cap.pointerize-bullets-constructor)": "e8[codecave:ExpHP.bullet-cap.allocate-pointerized-bmgr-arrays]e800000000c70424e5334200c3",
         "of(ExpHP.bullet-cap.pointerize-items-constructor)": "e8[codecave:ExpHP.bullet-cap.allocate-pointerized-imgr-arrays]e800000000c704246f264300c3",
@@ -52,6 +52,24 @@
         "of(ExpHP.bullet-cap.pointerize-items-spawn-wrap(24, eax))": "8b45e88b008945f8c3",
         "of(ExpHP.bullet-cap.pointerize-item-tick(204, 36))": "8b8534ffffff8b008945dcc3",
         "of(ExpHP.bullet-cap.pointerize-item-other(eax, 4, 8))": "8b008945f8c745fc00000000c3"
+    },
+    "options": {
+        "bullet-cap.bullet-cap": {
+            "type": "i32",
+            "val": 16384
+        },
+        "bullet-cap.laser-cap": {
+            "type": "i32",
+            "val": 1024
+        },
+        "bullet-cap.cancel-cap": {
+            "type": "i32",
+            "val": 17600
+        },
+        "bullet-cap.anm-search-lag-spike-size": {
+            "type": "i32",
+            "val": 8192
+        }
     },
     "binhacks": {
         "ExpHP.bullet-cap.install": {

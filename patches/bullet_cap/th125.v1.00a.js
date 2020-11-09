@@ -10,12 +10,30 @@
         "ExpHP.bullet-cap.perf-fix-data": "00000000",
         "ExpHP.bullet-cap.iat-funcs": "C8714900 // 00000000 // 78714900 // EC704900 // 50724900",
         "ExpHP.bullet-cap.corefuncs": "3CB54600",
-        "bullet-cap": "00007d00",
-        "laser-cap": "00001000",
-        "cancel-cap": "00000c80",
-        "bullet-cap-config.anm-search-lag-spike-size": "00002000",
-        "bullet-cap-config.mof-sa-lag-spike-size": "ffffffff",
+        "bullet-cap": "ffff ffff",
+        "laser-cap": "ffff ffff",
+        "cancel-cap": "ffff ffff",
+        "bullet-cap-config.anm-search-lag-spike-size": "ffff ffff",
+        "bullet-cap-config.mof-sa-lag-spike-size": "ffff ffff",
         "of(ExpHP.bullet-cap.install)": "51 // E8[codecave:ExpHP.bullet-cap.initialize] // 59 // B8A0A14200FFD0 // E800000000C70424A8D94100C3"
+    },
+    "options": {
+        "bullet-cap.bullet-cap": {
+            "type": "i32",
+            "val": 32000
+        },
+        "bullet-cap.laser-cap": {
+            "type": "i32",
+            "val": 4096
+        },
+        "bullet-cap.cancel-cap": {
+            "type": "i32",
+            "val": 3200
+        },
+        "bullet-cap.anm-search-lag-spike-size": {
+            "type": "i32",
+            "val": 8192
+        }
     },
     "binhacks": {
         "ExpHP.bullet-cap.install": {

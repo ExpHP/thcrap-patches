@@ -14,11 +14,11 @@
         "ExpHP.bullet-cap.pointerize-data": "904EF500 // 10F7F600 // C8575B01 // 48366501 // 48366501 // B8100000 // 9C050000 // E4020000 // 06000000 // B80D0000 // 78A56B00 // 94B01700",
         "ExpHP.bullet-cap.iat-funcs": "74404B00 // E0404B00 // 00000000 // D8404B00 // E8414B00",
         "ExpHP.bullet-cap.corefuncs": "D4434A00",
-        "bullet-cap": "00006000",
-        "laser-cap": "00001000",
-        "cancel-cap": "00008300",
-        "bullet-cap-config.anm-search-lag-spike-size": "00002000",
-        "bullet-cap-config.mof-sa-lag-spike-size": "ffffffff",
+        "bullet-cap": "ffff ffff",
+        "laser-cap": "ffff ffff",
+        "cancel-cap": "ffff ffff",
+        "bullet-cap-config.anm-search-lag-spike-size": "ffff ffff",
+        "bullet-cap-config.mof-sa-lag-spike-size": "ffff ffff",
         "of(ExpHP.bullet-cap.install)": "E8[codecave:ExpHP.bullet-cap.initialize] // B8A0114300 // FFD0 // E800000000C7042419B44300C3",
         "of(ExpHP.bullet-cap.pointerize-bullets-constructor)": "e8[codecave:ExpHP.bullet-cap.allocate-pointerized-bmgr-arrays]e800000000c7042478f44200c3",
         "of(ExpHP.bullet-cap.pointerize-items-constructor)": "e8[codecave:ExpHP.bullet-cap.allocate-pointerized-imgr-arrays]e800000000c704242f004400c3",
@@ -37,6 +37,24 @@
         "of(ExpHP.bullet-cap.pointerize-lasers-reg(ecx))": "8b0dc8575b01c3",
         "of(ExpHP.bullet-cap.pointerize-items-spawn(12))": "8b55f48b1201cac3",
         "of(ExpHP.bullet-cap.pointerize-items-spawn-wrap(12, ecx))": "8b4df48b09894df8c3"
+    },
+    "options": {
+        "bullet-cap.bullet-cap": {
+            "type": "i32",
+            "val": 24576
+        },
+        "bullet-cap.laser-cap": {
+            "type": "i32",
+            "val": 4096
+        },
+        "bullet-cap.cancel-cap": {
+            "type": "i32",
+            "val": 33536
+        },
+        "bullet-cap.anm-search-lag-spike-size": {
+            "type": "i32",
+            "val": 8192
+        }
     },
     "binhacks": {
         "ExpHP.bullet-cap.install": {

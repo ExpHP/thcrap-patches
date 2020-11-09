@@ -7,7 +7,6 @@
 %define TEST_SIZE_2_ALT 0xc  ; for an array that uses SCALE_FIXED
 
 ; The layout code is pretty complicated, and, at present, underutilized.
-; There's 
 ;
 ; ...unfortunately, it is difficult to factor out the reliance of some of this
 ; patches' code on global lookup functions (see e.g. `get_cap_data`), so we take

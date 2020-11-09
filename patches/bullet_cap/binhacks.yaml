@@ -1,29 +1,46 @@
-codecaves:
-  bullet-cap:
-    /value-if(th06): "00002800"
-    /value-if(th07): "00004000"
-    /value-if(th08): "00006000"
-    /value-if(any(th10..th17)): "00007d00"
-  laser-cap:
-    /value-if(th06..th07): "00000400"
-    /value-if(any(th08, th10..th143)): "00001000"
-    /value-if(th15..th17): "00002000"
-  cancel-cap:
-    /value-if(th06):  "00002000"
-    /value-if(th07):  "000044c0"
-    /value-if(th08):  "00008300"
-    /value-if(all(integer, th10..th13)): "00008000"
-    /value-if(all(not(th165), th14..th17)): "00010000"
-    /value-if(any(th125, th165)): "00000c80"
-    /value-if(th128): "00000640"
+options:
+  bullet-cap.bullet-cap:
+    type: "i32"
+    val:
+      /value-if(th06): 0x2800
+      /value-if(th07): 0x4000
+      /value-if(th08): 0x6000
+      /value-if(any(th10..th17)): 0x7d00
+
+  bullet-cap.laser-cap:
+    type: "i32"
+    val:
+      /value-if(th06..th07): 0x400
+      /value-if(any(th08, th10..th143)): 0x1000
+      /value-if(th15..th17): 0x2000
+
+  bullet-cap.cancel-cap:
+    type: "i32"
+    val:
+      /value-if(th06):  0x2000
+      /value-if(th07):  0x44c0
+      /value-if(th08):  0x8300
+      /value-if(all(integer, th10..th13)): 0x8000
+      /value-if(all(not(th165), th14..th17)): 0x10000
+      /value-if(any(th125, th165)): 0xc80
+      /value-if(th128): 0x640
 
   # Lag spike "softening" constant for big cancels in MoF and SA.
   # Bigger number = more lag.
   #
   # On my FX-8170 (3.8GHz), this default value makes 32000 cancels in SA
   # take about 4s, and larger cancels go linear with the number of bullets.
-  bullet-cap-config.anm-search-lag-spike-size: "00002000"
-  bullet-cap-config.mof-sa-lag-spike-size: "ffffffff" # deprecated name, takes over if non-negative
+  bullet-cap.anm-search-lag-spike-size:
+    type: "i32"
+    val: 0x2000
+
+# Deprecated configuration by codecaves.  If nonnegative, they take over.
+codecaves:
+  bullet-cap: "ffff ffff"
+  laser-cap: "ffff ffff"
+  cancel-cap: "ffff ffff"
+  bullet-cap-config.anm-search-lag-spike-size: "ffff ffff"
+  bullet-cap-config.mof-sa-lag-spike-size: "ffff ffff" # deprecated name, takes over if non-negative
 
 binhacks:
   # Uncomment this to give yourself a chance to attach CE if you need to debug a crash in life before main.

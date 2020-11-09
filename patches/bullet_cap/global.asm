@@ -71,35 +71,35 @@ istruc CapGlobalData
     at CapGlobalData.game_data_cave, dd bullet_replacements  ; REWRITE: <codecave:AUTO>
     at CapGlobalData.game_data_offset, dd 0
     at CapGlobalData.new_cap_bigendian_codecave, dd 0  ; REWRITE: <codecave:bullet-cap>
-    at CapGlobalData.new_cap_test_value, dd NOT_APPLICABLE
+    at CapGlobalData.new_cap_value, dd 0  ; REWRITE: <option:bullet-cap.bullet-cap>
 iend
 istruc CapGlobalData
     at CapGlobalData.capid, dd CAPID_LASER
     at CapGlobalData.game_data_cave, dd laser_replacements  ; REWRITE: <codecave:AUTO>
     at CapGlobalData.game_data_offset, dd 0
     at CapGlobalData.new_cap_bigendian_codecave, dd 0  ; REWRITE: <codecave:laser-cap>
-    at CapGlobalData.new_cap_test_value, dd NOT_APPLICABLE
+    at CapGlobalData.new_cap_value, dd 0  ; REWRITE: <option:bullet-cap.laser-cap>
 iend
 istruc CapGlobalData
     at CapGlobalData.capid, dd CAPID_CANCEL
     at CapGlobalData.game_data_cave, dd cancel_replacements  ; REWRITE: <codecave:AUTO>
     at CapGlobalData.game_data_offset, dd 0
     at CapGlobalData.new_cap_bigendian_codecave, dd 0  ; REWRITE: <codecave:cancel-cap>
-    at CapGlobalData.new_cap_test_value, dd NOT_APPLICABLE
+    at CapGlobalData.new_cap_value, dd 0  ; REWRITE: <option:bullet-cap.cancel-cap>
 iend
 istruc CapGlobalData
     at CapGlobalData.capid, dd __CAPID_TEST_1
     at CapGlobalData.game_data_cave, dd the_worlds_saddest_unit_test  ; REWRITE: <codecave:AUTO>
     at CapGlobalData.game_data_offset, dd the_worlds_saddest_unit_test.capdata_1 - the_worlds_saddest_unit_test
     at CapGlobalData.new_cap_bigendian_codecave, dd NOT_APPLICABLE
-    at CapGlobalData.new_cap_test_value, dd TEST_NEW_CAP_1
+    at CapGlobalData.new_cap_value, dd TEST_NEW_CAP_1
 iend
 istruc CapGlobalData
     at CapGlobalData.capid, dd __CAPID_TEST_2
     at CapGlobalData.game_data_cave, dd the_worlds_saddest_unit_test  ; REWRITE: <codecave:AUTO>
     at CapGlobalData.game_data_offset, dd the_worlds_saddest_unit_test.capdata_2 - the_worlds_saddest_unit_test
     at CapGlobalData.new_cap_bigendian_codecave, dd NOT_APPLICABLE
-    at CapGlobalData.new_cap_test_value, dd TEST_NEW_CAP_2
+    at CapGlobalData.new_cap_value, dd TEST_NEW_CAP_2
 iend
     dd LIST_END
 
@@ -168,16 +168,20 @@ initialize:  ; HEADER: AUTO
 ;
 ; __stdcall int NextCancelIndex(int)
 next_cancel_index:  ; HEADER: AUTO
-    prologue_sd
-    mov  eax, [ebp+0x08]
+    func_begin
+    func_arg %$index
+    func_prologue
+    push CAPID_CANCEL
+    call get_new_cap  ; REWRITE: [codecave:AUTO]
+    mov  edx, eax
+    mov  eax, [%$index]
     inc  eax
-    mov  edx, [new_cancel_cap_bigendian]  ; REWRITE: <codecave:cancel-cap>
-    bswap edx
     cmp  eax, edx
     mov  edx, 0
     cmove eax, edx
-    epilogue_sd
-    ret  0x4
+    func_epilogue
+    func_ret
+    func_end
 
 ;=========================================
 ; Main implementation
@@ -378,16 +382,22 @@ get_new_cap:  ; HEADER: AUTO
     push dword [%$capid]
     call get_global_cap_data  ; REWRITE: [codecave:AUTO]
     mov  ecx, eax
+
+    ; deprecated form takes precedence when non-negative
+    ; (required for backwards compatibility)
     mov  eax, [ecx+CapGlobalData.new_cap_bigendian_codecave]
     cmp  eax, NOT_APPLICABLE
-    jne  .codecave
-    mov  eax, [ecx+CapGlobalData.new_cap_test_value]
-    cmp  eax, NOT_APPLICABLE
-    jne  .done
-    die  ; invalid CapGlobalData
-.codecave:
+    je   .notcodecave  ; this cap has no codecave
     mov  eax, [eax]
     bswap eax
+    test eax, eax
+    js   .notcodecave  ; ignore when negative (the default when not user-supplied)
+    jmp  .done
+.notcodecave:
+
+    ; standard way of getting value
+    mov  eax, [ecx+CapGlobalData.new_cap_value]
+
 .done:
     func_epilogue
     func_ret
@@ -939,14 +949,20 @@ less_spikey_find_world_vm:  ; HEADER: AUTO
     func_local %$tail_delay
     func_prologue
 
-    ; deprecated name;  use if not negative
+    ; very deprecated codecave; use if not negative
     mov  eax, dword [config_lag_spike_cutoff_bigendian]  ; REWRITE: <codecave:bullet-cap-config.mof-sa-lag-spike-size>
     bswap eax
     test eax, eax
     jns  .done_config
 
+    ; somewhat less deprecated (but still deprecated) codecave
     mov  eax, dword [config_lag_spike_cutoff_bigendian]  ; REWRITE: <codecave:bullet-cap-config.anm-search-lag-spike-size>
     bswap eax
+    test eax, eax
+    jns  .done_config
+
+    ; The Right Way
+    mov  eax, dword 0  ; REWRITE: <option:bullet-cap.anm-search-lag-spike-size>
 .done_config:
     inc  eax  ; this is so that we can check ZF after doing `dec`
     mov  [%$tail_delay], eax
@@ -1024,8 +1040,8 @@ allocate_pointerized_bmgr_arrays:  ; HEADER: AUTO
     ; This is not what the original code did (which called default value initializers on a
     ; static bullet array).  And we don't need to worry about calling those initializers
     ; because the bullets are about to be memset to 0 anyways.
-    mov  eax, [new_bullet_cap_bigendian]  ; REWRITE: <codecave:bullet-cap>
-    bswap eax
+    push CAPID_BULLET
+    call get_new_cap  ; REWRITE: [codecave:AUTO]
     inc  eax  ; plus dummy bullet
     imul eax, [ebx+PointerizeData.bullet_size]
     push eax
@@ -1036,8 +1052,8 @@ allocate_pointerized_bmgr_arrays:  ; HEADER: AUTO
     mov  [ecx], eax
 
     ; oh and uhhh lasers too cause they're on the same struct
-    mov  eax, [new_laser_cap_bigendian]  ; REWRITE: <codecave:laser-cap>
-    bswap eax
+    push CAPID_LASER
+    call get_new_cap  ; REWRITE: [codecave:AUTO]
     imul eax, [ebx+PointerizeData.laser_size]
     push eax
     mov  eax, [edi + corefuncs.malloc - corefuncs]
@@ -1055,8 +1071,8 @@ allocate_pointerized_imgr_arrays:  ; HEADER: AUTO
     mov  ebx, pointerize_data  ; REWRITE: <codecave:AUTO>
     mov  edi, corefuncs  ; REWRITE: <codecave:AUTO>
 
-    mov  eax, [new_cancel_cap_bigendian]  ; REWRITE: <codecave:cancel-cap>
-    bswap eax
+    push CAPID_CANCEL
+    call get_new_cap  ; REWRITE: [codecave:AUTO]
     ; inc eax unnecessary because we don't pointerize the dummy item
 
     imul eax, [ebx+PointerizeData.item_size]
@@ -1099,8 +1115,9 @@ clear_pointerized_bullet_mgr:  ; HEADER: AUTO
     pop  dword [eax]
 
     ; we also have to memset our arrays now, too
-    mov  ecx, [new_bullet_cap_bigendian]  ; REWRITE: <codecave:bullet-cap>
-    bswap ecx
+    push CAPID_BULLET
+    call get_new_cap  ; REWRITE: [codecave:AUTO]
+    mov  ecx, eax
     inc  ecx  ; plus dummy bullet
     imul ecx, [ebx+PointerizeData.bullet_size]
     mov  [%$bullet_array_size], ecx
@@ -1109,8 +1126,9 @@ clear_pointerized_bullet_mgr:  ; HEADER: AUTO
     xor  eax, eax
     rep stosb
 
-    mov  ecx, [new_laser_cap_bigendian]  ; REWRITE: <codecave:laser-cap>
-    bswap ecx
+    push CAPID_LASER
+    call get_new_cap  ; REWRITE: [codecave:AUTO]
+    mov  ecx, eax
     imul ecx, [ebx+PointerizeData.laser_size]
     mov  edi, [ebx+PointerizeData.laser_array_ptr]
     mov  edi, [edi]

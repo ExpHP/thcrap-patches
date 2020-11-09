@@ -10,14 +10,32 @@
         "ExpHP.bullet-cap.perf-fix-data": "101C4900 // D4DA7200 // 00000000",
         "ExpHP.bullet-cap.iat-funcs": "DCFA4500 // 98614600 // 00000000 // 58614600 // 34624600",
         "ExpHP.bullet-cap.corefuncs": "93244500",
-        "bullet-cap": "00007d00",
-        "laser-cap": "00001000",
-        "cancel-cap": "00008000",
-        "bullet-cap-config.anm-search-lag-spike-size": "00002000",
-        "bullet-cap-config.mof-sa-lag-spike-size": "ffffffff",
+        "bullet-cap": "ffff ffff",
+        "laser-cap": "ffff ffff",
+        "cancel-cap": "ffff ffff",
+        "bullet-cap-config.anm-search-lag-spike-size": "ffff ffff",
+        "bullet-cap-config.mof-sa-lag-spike-size": "ffff ffff",
         "of(ExpHP.bullet-cap.install)": "51 // E8[codecave:ExpHP.bullet-cap.initialize] // 59 // B850C14400FFD0 // E800000000C70424CD0E4200C3",
         "of(ExpHP.bullet-cap.fix-next-cancel)": "52 // E8[codecave:ExpHP.bullet-cap.next-cancel-index] // 89C2 // E800000000C70424 0abe4100 C3",
         "of(ExpHP.bullet-cap.cancel-perf-fix)": "52 // 51 // 51 // E8[codecave:ExpHP.bullet-cap.less-spikey-find-world-vm] // 59 // 5A // 85C0 // 7404 // 90 // C20400 // 56 // E800000000C70424 e5914400 C3"
+    },
+    "options": {
+        "bullet-cap.bullet-cap": {
+            "type": "i32",
+            "val": 32000
+        },
+        "bullet-cap.laser-cap": {
+            "type": "i32",
+            "val": 4096
+        },
+        "bullet-cap.cancel-cap": {
+            "type": "i32",
+            "val": 32768
+        },
+        "bullet-cap.anm-search-lag-spike-size": {
+            "type": "i32",
+            "val": 8192
+        }
     },
     "binhacks": {
         "ExpHP.bullet-cap.install": {

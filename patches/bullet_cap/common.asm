@@ -37,8 +37,8 @@ struc CapGlobalData
     .capid: resd 1  ; The capid for this cap
     .game_data_cave: resd 1  ; Pointer to cave containing CapGameData
     .game_data_offset: resd 1  ; Offset to CapGameData within cave
-    .new_cap_bigendian_codecave: resd 1  ; Pointer to old, bigendian config cave, or NOT_APPLICABLE
-    .new_cap_test_value: resd 1  ; A fixed value for a test cap, or NOT_APPLICABLE
+    .new_cap_bigendian_codecave: resd 1  ; Pointer to deprecated, bigendian config cave, or NOT_APPLICABLE
+    .new_cap_value: resd 1  ; Value of the cap from an <option:...>
 endstruc
 
 ; Cap data applicable to a single game.
