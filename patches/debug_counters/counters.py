@@ -482,7 +482,7 @@ def define_counters(game, thc, defs):
         'th07': lambda: specs.embedded(specs.field, 0x9a9b00, limit_addr(0x4207ec-4), count_offset=0x9545bc),
         'th08': lambda: specs.embedded(specs.field, 0x577f20, limit_addr(0x42c879-4), count_offset=0x9dcdc4),
         'th095': lambda: specs.field(0x4bddc0, limit_addr(0x415aa1-4), count_offset=0x26ae2c),
-        'th10': lambda: specs.list(0x477704, limit_none, head_ptr_offset=0x58),
+        'th10': lambda: specs.field(0x477704, limit_none, count_offset=0x60),
         'th11': lambda: specs.field(0x4a8d7c, limit_none, count_offset=0x70),
         'th12': lambda: specs.field(0x4b43dc, limit_none, count_offset=0x70),
         'th125': lambda: specs.field(0x4b678c, limit_none, count_offset=0xa8),
