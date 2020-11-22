@@ -112,13 +112,14 @@ endstruc
 ; scale constants.
 
 ; Value to be replaced is the given offset.
-%define REP_OFFSET(offset)                      _REP_OFFSET_TOKEN, offset, 1
-; Value to be replaced is the number of dwords between the start of the struct and 'offset'.
+%define REP_OFFSET(offset)                      REP_OFFSET_BETWEEN(0, offset)
+; Value to be replaced is the 'to - from', and new value is the new offset for 'to'
+; minus the new offset for 'from'.
+%define REP_OFFSET_BETWEEN(from, to)            REP_OFFSET_BETWEEN_DIV(from, to, 1)
+; Value to be replaced is the difference between two offsets, divided by something.
 ;
-; Only sensible use case is where offset = size of struct, to help replace a rep stosd that
-; depends on multiple caps. REP_NUM_DWORDS_BETWEEN(from, to) would perhaps make a bit more
-; sense, but I'd rather not add the concept of an "offset from" until we need it.
-%define REP_NUM_DWORDS_FROM_START(offset)       _REP_OFFSET_TOKEN, offset, 4
+; This is for when a single memset or loop covers multiple adjacent arrays.
+%define REP_OFFSET_BETWEEN_DIV(from, to, div)   _REP_OFFSET_TOKEN, from, to, div
 ; Replaces all values in the half-open range from start to end, instead of a single value.
 ; Its purpose is to consolidate whitelists. (it does not even support blacklists!)
 %define REP_OFFSET_RANGE(start, end)            _REP_OFFSET_RANGE_TOKEN, start, end
@@ -128,7 +129,8 @@ endstruc
 %define _REP_OFFSET_TOKEN 0x6090
 %define _REP_OFFSET_RANGE_TOKEN 0x6091
 struc RepOffset
-    .offset: resd 1  ; Offset into struct in vanilla game.
+    .offset_from: resd 1  ; Vanilla offset that we're measuring from. (almost always 0)
+    .offset_to: resd 1  ; Vanilla offset that we're measuring to.
     .divisor: resd 1  ; Value to divide by. E.g. 4 for number of dwords
 endstruc
 struc RepOffsetRange

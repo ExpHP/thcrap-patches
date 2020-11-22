@@ -10,13 +10,14 @@ except ImportError:
 def main():
     game = binhack_helper.default_arg_parser(require_game=True).parse_args().game
     thc = binhack_helper.ThcrapGen('ExpHP.bullet-cap.')
+    defs = binhack_helper.NasmDefs.from_file_rel('common.asm')
 
-    add_main_binhacks(game, thc)
-    add_access_binhacks(game, thc)
+    add_main_binhacks(game, thc, defs)
+    add_access_binhacks(game, thc, defs)
 
     thc.print()
 
-def add_main_binhacks(game, thc):
+def add_main_binhacks(game, thc, defs):
     # ===============================================
     # Binhacks that allocate the pointerized arrays.
     # These run in life before main.
@@ -93,7 +94,7 @@ def add_main_binhacks(game, thc):
 
 # ===============================================
 # Replacing all places that load the array.
-def add_access_binhacks(game, thc):
+def add_access_binhacks(game, thc, defs):
     if game == 'th06':
         bullet_manager_base = 0x5a5ff8
         bullet_array_offset = 0x5600
@@ -282,9 +283,8 @@ def add_access_binhacks(game, thc):
                 '0f8d'  # first bytes of the jge; we can't easily get the whole thing because it's a relative address
             ],
             'codecave': thc.asm(lambda c: f'''
-                mov  eax, {c.abs_global('laser-cap')}
-                mov  eax, [eax]
-                bswap eax
+                push {defs.CAPID_LASER:#x}
+                call {c.rel_auto('get-new-cap')}
                 cmp  dword ptr [ebp-{offset:#x}], eax
                 jl   skip
                 {c.jmp(br_taken)}
