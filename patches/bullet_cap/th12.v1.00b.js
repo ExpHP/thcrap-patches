@@ -15,8 +15,8 @@
         "cancel-cap": "ffff ffff",
         "bullet-cap-config.anm-search-lag-spike-size": "ffff ffff",
         "bullet-cap-config.mof-sa-lag-spike-size": "ffff ffff",
-        "of(ExpHP.bullet-cap.install)": "51 // E8[codecave:ExpHP.bullet-cap.initialize] // 59 // B800054300FFD0 // E800000000C704245D274200C3",
-        "of(ExpHP.bullet-cap.fix-next-cancel)": "52 // E8[codecave:ExpHP.bullet-cap.next-cancel-index] // 89C2 // E800000000C70424 6a784200 C3"
+        "of(ExpHP.bullet-cap.install)": "51e8[codecave:ExpHP.bullet-cap.initialize]59b800054300ffd0e800000000c704245d274200c3",
+        "of(ExpHP.bullet-cap.fix-next-cancel)": "52e8[codecave:ExpHP.bullet-cap.next-cancel-index]89c2e800000000c704246a784200c3"
     },
     "options": {
         "bullet-cap.bullet-cap": {
@@ -31,6 +31,14 @@
             "type": "i32",
             "val": 32768
         },
+        "bullet-cap.fairy-bullet-cap": {
+            "type": "i32",
+            "val": -1
+        },
+        "bullet-cap.rival-bullet-cap": {
+            "type": "i32",
+            "val": -1
+        },
         "bullet-cap.anm-search-lag-spike-size": {
             "type": "i32",
             "val": 8192
@@ -42,11 +50,6 @@
             "expected": "e8a3dd0000",
             "code": "E9 [codecave:of(ExpHP.bullet-cap.install)]"
         },
-        "ExpHP.bullet-cap.fix-next-cancel": {
-            "addr": "0x427859",
-            "expected": "4281e2ff070080",
-            "code": "E9 [codecave:of(ExpHP.bullet-cap.fix-next-cancel)] // CCCC"
-        },
         "ExpHP.bullet-cap.fix-ufo-item-bugs": {
             "addr": [
                 "0x427243",
@@ -54,6 +57,11 @@
             ],
             "expected": "580a0000",
             "code": "680a0000"
+        },
+        "ExpHP.bullet-cap.fix-next-cancel": {
+            "addr": "0x427859",
+            "expected": "4281e2ff070080",
+            "code": "E9 [codecave:of(ExpHP.bullet-cap.fix-next-cancel)] // CCCC"
         }
     }
 }

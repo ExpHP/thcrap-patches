@@ -15,7 +15,7 @@
         "cancel-cap": "ffff ffff",
         "bullet-cap-config.anm-search-lag-spike-size": "ffff ffff",
         "bullet-cap-config.mof-sa-lag-spike-size": "ffff ffff",
-        "of(ExpHP.bullet-cap.install)": "51 // E8[codecave:ExpHP.bullet-cap.initialize] // 59 // B8B04C4300FFD0 // E800000000C7042475694200C3"
+        "of(ExpHP.bullet-cap.install)": "51e8[codecave:ExpHP.bullet-cap.initialize]59b8b04c4300ffd0e800000000c7042475694200c3"
     },
     "options": {
         "bullet-cap.bullet-cap": {
@@ -30,6 +30,14 @@
             "type": "i32",
             "val": 1600
         },
+        "bullet-cap.fairy-bullet-cap": {
+            "type": "i32",
+            "val": -1
+        },
+        "bullet-cap.rival-bullet-cap": {
+            "type": "i32",
+            "val": -1
+        },
         "bullet-cap.anm-search-lag-spike-size": {
             "type": "i32",
             "val": 8192
@@ -42,7 +50,9 @@
             "code": "E9 [codecave:of(ExpHP.bullet-cap.install)]"
         },
         "ExpHP.bullet-cap.fix-ufo-item-bugs": {
-            "addr": "0x429223",
+            "addr": [
+                "0x429223"
+            ],
             "expected": "bc020000",
             "code": "cc020000"
         }

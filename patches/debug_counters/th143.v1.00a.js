@@ -10,12 +10,12 @@
     "codecaves": {
         "ExpHP.debug-counters.color-data": "f8694e00b0910100",
         "ExpHP.debug-counters.drawf-debug-int": "c8000000ff7514ff7510ff750cff7508b850ba4000ffd083c410c9c21000",
-        "ExpHP.debug-counters.bullet-data": "01000000086a4e00cc284100ffffffff8c0000000e0c0000f413000000000000",
-        "ExpHP.debug-counters.normal-item-data": "01000000646b4e00000000005802000014000000f40b00001c0c000000000000",
-        "ExpHP.debug-counters.cancel-item-data": "01000000646b4e000d504300a8fdffffb4611c00f40b00001c0c000000000000",
-        "ExpHP.debug-counters.laser-data": "030000006c6b4e007190430000000000d4050000",
+        "ExpHP.debug-counters.bullet-data": "01000000086a4e00cc284100ffffffff8c0000000e0c0000f413000000010000",
+        "ExpHP.debug-counters.normal-item-data": "01000000646b4e00000000005802000014000000f40b00001c0c000001010000",
+        "ExpHP.debug-counters.cancel-item-data": "01000000646b4e000d504300a8fdffffb4611c00f40b00001c0c000001010000",
+        "ExpHP.debug-counters.laser-data": "030000006c6b4e007190430000000000d405000000000000",
         "ExpHP.debug-counters.anmid-data": "02000000e88d530000000000ff1f00001882fe002082fe00",
-        "ExpHP.debug-counters.enemy-data": "03000000486a4e0000000000ffffff7fd8000000",
+        "ExpHP.debug-counters.enemy-data": "03000000486a4e0000000000ffffff7fd800000000000000",
         "ExpHP.debug-counters.line-info": "0205000000000a440000e64300000000000020c103050000<codecave:ExpHP.debug-counters.anmid-data>25376420616e6d696400000003050000<codecave:ExpHP.debug-counters.bullet-data>253764206574616d6100000003050000<codecave:ExpHP.debug-counters.laser-data>253764206c6173657200000003050000<codecave:ExpHP.debug-counters.normal-item-data>253764206974656d4e00000003050000<codecave:ExpHP.debug-counters.cancel-item-data>253764206974656d4300000003050000<codecave:ExpHP.debug-counters.enemy-data>25376420656e656d7900000001050000",
         "of(ExpHP.debug-counters.draw)": "e8[codecave:ExpHP.debug-counters.show-debug-data]a1f8694e00e800000000c7042458bf4200c3"
     }

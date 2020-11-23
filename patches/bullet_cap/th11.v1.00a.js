@@ -15,9 +15,9 @@
         "cancel-cap": "ffff ffff",
         "bullet-cap-config.anm-search-lag-spike-size": "ffff ffff",
         "bullet-cap-config.mof-sa-lag-spike-size": "ffff ffff",
-        "of(ExpHP.bullet-cap.install)": "51 // E8[codecave:ExpHP.bullet-cap.initialize] // 59 // B800A54200FFD0 // E800000000C704242D034200C3",
-        "of(ExpHP.bullet-cap.fix-next-cancel)": "51 // E8[codecave:ExpHP.bullet-cap.next-cancel-index] // 89C1 // E800000000C70424 5e454200 C3",
-        "of(ExpHP.bullet-cap.cancel-perf-fix)": "52 // 51 // 51 // E8[codecave:ExpHP.bullet-cap.less-spikey-find-world-vm] // 59 // 5A // 85C0 // 7404 // 90 // C20400 // 56 // E800000000C70424 05624500 C3"
+        "of(ExpHP.bullet-cap.install)": "51e8[codecave:ExpHP.bullet-cap.initialize]59b800a54200ffd0e800000000c704242d034200c3",
+        "of(ExpHP.bullet-cap.fix-next-cancel)": "51e8[codecave:ExpHP.bullet-cap.next-cancel-index]89c1e800000000c704245e454200c3",
+        "of(ExpHP.bullet-cap.cancel-perf-fix)": "525151e8[codecave:ExpHP.bullet-cap.less-spikey-find-world-vm]595a85c07403c2040056e800000000c7042405624500c3"
     },
     "options": {
         "bullet-cap.bullet-cap": {
@@ -31,6 +31,14 @@
         "bullet-cap.cancel-cap": {
             "type": "i32",
             "val": 32768
+        },
+        "bullet-cap.fairy-bullet-cap": {
+            "type": "i32",
+            "val": -1
+        },
+        "bullet-cap.rival-bullet-cap": {
+            "type": "i32",
+            "val": -1
         },
         "bullet-cap.anm-search-lag-spike-size": {
             "type": "i32",

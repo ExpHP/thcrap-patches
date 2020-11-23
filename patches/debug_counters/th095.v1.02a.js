@@ -11,12 +11,12 @@
         "ExpHP.debug-counters.ascii-manager-ptr": "809f4a00",
         "ExpHP.debug-counters.color-data": "<codecave:ExpHP.debug-counters.ascii-manager-ptr>6c800000",
         "ExpHP.debug-counters.drawf-debug-int": "c8000000ff7514ff7510ff750cff7508b810164000ffd083c410c9c21000",
-        "ExpHP.debug-counters.bullet-data": "0300000098dd4b000752400000000000b4c52700",
+        "ExpHP.debug-counters.bullet-data": "0300000098dd4b000752400000000000b4c5270000010000",
         "ExpHP.debug-counters.normal-item-data": "04000000dc454c00",
-        "ExpHP.debug-counters.cancel-item-data": "01000000dc454c0048cb41000000000004000000f4020000f802000000000000",
-        "ExpHP.debug-counters.laser-data": "03000000e0454c00f4db41000000000054000000",
-        "ExpHP.debug-counters.anmid-data": "03000000b8a14c0000000000ffffff7f28000000",
-        "ExpHP.debug-counters.enemy-data": "03000000c0dd4b009d5a4100000000002cae2600",
+        "ExpHP.debug-counters.cancel-item-data": "01000000dc454c0048cb41000000000004000000f4020000f802000001010000",
+        "ExpHP.debug-counters.laser-data": "03000000e0454c00f4db4100000000005400000000000000",
+        "ExpHP.debug-counters.anmid-data": "03000000b8a14c0000000000ffffff7f2800000000000000",
+        "ExpHP.debug-counters.enemy-data": "03000000c0dd4b009d5a4100000000002cae260000000000",
         "ExpHP.debug-counters.line-info": "02050000000001440000e14300000000000040c103050000<codecave:ExpHP.debug-counters.anmid-data>25376420616e6d696400000003050000<codecave:ExpHP.debug-counters.bullet-data>253764206574616d6100000003050000<codecave:ExpHP.debug-counters.laser-data>253764206c6173657200000003050000<codecave:ExpHP.debug-counters.cancel-item-data>253764206974656d2000000003050000<codecave:ExpHP.debug-counters.enemy-data>25376420656e656d7900000001050000",
         "of(ExpHP.debug-counters.draw)": "e8[codecave:ExpHP.debug-counters.show-debug-data]b801000000e800000000c7042436384200c3"
     }

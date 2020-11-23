@@ -10,12 +10,12 @@
     "codecaves": {
         "ExpHP.debug-counters.color-data": "588d4a0080840100",
         "ExpHP.debug-counters.drawf-debug-int": "c8000000535657ff7514ff75108b5d0c8b4d08b800164000ffd083c4085f5e5bc9c21000",
-        "ExpHP.debug-counters.bullet-data": "01000000688d4a003c8d40000000000064000000b20400001009000000000000",
-        "ExpHP.debug-counters.normal-item-data": "01000000908e4a00000000009600000014000000640400007804000000000000",
-        "ExpHP.debug-counters.cancel-item-data": "01000000908e4a008c3442006affffff649e0200640400007804000000000000",
-        "ExpHP.debug-counters.laser-data": "03000000948e4a00fd4d42000000000054040000",
+        "ExpHP.debug-counters.bullet-data": "01000000688d4a003c8d40000000000064000000b20400001009000000010000",
+        "ExpHP.debug-counters.normal-item-data": "01000000908e4a00000000009600000014000000640400007804000001010000",
+        "ExpHP.debug-counters.cancel-item-data": "01000000908e4a008c3442006affffff649e0200640400007804000001010000",
+        "ExpHP.debug-counters.laser-data": "03000000948e4a00fd4d4200000000005404000000000000",
         "ExpHP.debug-counters.anmid-data": "0200000068324c0000000000001000002c567b0034567b00",
-        "ExpHP.debug-counters.enemy-data": "030000007c8d4a0000000000ffffff7f70000000",
+        "ExpHP.debug-counters.enemy-data": "030000007c8d4a0000000000ffffff7f7000000000000000",
         "ExpHP.debug-counters.line-info": "02050000008008440000e64300000000000020c103050000<codecave:ExpHP.debug-counters.anmid-data>25376420616e6d696400000003050000<codecave:ExpHP.debug-counters.bullet-data>253764206574616d6100000003050000<codecave:ExpHP.debug-counters.laser-data>253764206c6173657200000003050000<codecave:ExpHP.debug-counters.normal-item-data>253764206974656d4e00000003050000<codecave:ExpHP.debug-counters.cancel-item-data>253764206974656d4300000003050000<codecave:ExpHP.debug-counters.enemy-data>25376420656e656d7900000001050000",
         "of(ExpHP.debug-counters.draw)": "e8[codecave:ExpHP.debug-counters.show-debug-data]8b0d588d4a00e800000000c70424319f4100c3"
     }

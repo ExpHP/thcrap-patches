@@ -19,7 +19,7 @@
         "cancel-cap": "ffff ffff",
         "bullet-cap-config.anm-search-lag-spike-size": "ffff ffff",
         "bullet-cap-config.mof-sa-lag-spike-size": "ffff ffff",
-        "of(ExpHP.bullet-cap.install)": "E8[codecave:ExpHP.bullet-cap.initialize] // B8F0484100 // FFD0 // E800000000C704245FC04100C3",
+        "of(ExpHP.bullet-cap.install)": "e8[codecave:ExpHP.bullet-cap.initialize]b8f0484100ffd0e800000000c704245fc04100c3",
         "of(ExpHP.bullet-cap.pointerize-bullets-constructor)": "e8[codecave:ExpHP.bullet-cap.allocate-pointerized-bmgr-arrays]e800000000c704243b354100c3",
         "of(ExpHP.bullet-cap.pointerize-items-constructor)": "e8[codecave:ExpHP.bullet-cap.allocate-pointerized-imgr-arrays]e800000000c7042483f24100c3",
         "of(ExpHP.bullet-cap.pointerize-bullets-memset)": "e8[codecave:ExpHP.bullet-cap.clear-pointerized-bullet-mgr]c3",
@@ -60,6 +60,14 @@
         "bullet-cap.cancel-cap": {
             "type": "i32",
             "val": 8192
+        },
+        "bullet-cap.fairy-bullet-cap": {
+            "type": "i32",
+            "val": -1
+        },
+        "bullet-cap.rival-bullet-cap": {
+            "type": "i32",
+            "val": -1
         },
         "bullet-cap.anm-search-lag-spike-size": {
             "type": "i32",

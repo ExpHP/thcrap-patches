@@ -15,7 +15,7 @@
         "cancel-cap": "ffff ffff",
         "bullet-cap-config.anm-search-lag-spike-size": "ffff ffff",
         "bullet-cap-config.mof-sa-lag-spike-size": "ffff ffff",
-        "of(ExpHP.bullet-cap.install)": "51 // E8[codecave:ExpHP.bullet-cap.initialize] // 59 // B8A0A14200FFD0 // E800000000C70424A8D94100C3"
+        "of(ExpHP.bullet-cap.install)": "51e8[codecave:ExpHP.bullet-cap.initialize]59b8a0a14200ffd0e800000000c70424a8d94100c3"
     },
     "options": {
         "bullet-cap.bullet-cap": {
@@ -29,6 +29,14 @@
         "bullet-cap.cancel-cap": {
             "type": "i32",
             "val": 3200
+        },
+        "bullet-cap.fairy-bullet-cap": {
+            "type": "i32",
+            "val": -1
+        },
+        "bullet-cap.rival-bullet-cap": {
+            "type": "i32",
+            "val": -1
         },
         "bullet-cap.anm-search-lag-spike-size": {
             "type": "i32",
