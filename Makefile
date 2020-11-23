@@ -183,6 +183,9 @@ POINTERIZE_YAMLS= \
 $(POINTERIZE_YAMLS) : $(DIR)/pointerize.th%.yaml: $(DIR)/pointerize.py $(BINHACK_HELPER_PY)
 	$(PYTHON) $< --game th$* >$@
 
+$(DIR)/binhacks.th%.yaml: $(DIR)/binhacks.py $(BINHACK_HELPER_PY)
+	$(PYTHON) $< --game th$* >$@
+
 TH_ASM_YAMLS=$(patsubst %.asm,%.asm.yaml,$(wildcard $(DIR)/th*.asm))
 
 .INTERMEDIATE: $(TH_ASM_YAMLS)
@@ -193,10 +196,10 @@ $(TH_ASM_YAMLS): $(DIR)/common.asm
 $(DIR)/global.js: $(DIR)/global.asm.yaml
 	scripts/convert-yaml.py $^ >$@
 
-$(DIR)/th%.js: $(DIR)/th%.asm.yaml $(DIR)/binhacks.yaml $(DIR)/pointerize.th%.yaml
+$(DIR)/th%.js: $(DIR)/th%.asm.yaml $(DIR)/options.yaml $(DIR)/binhacks.th%.yaml $(DIR)/pointerize.th%.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
 
-$(DIR)/th%.js: $(DIR)/th%.asm.yaml $(DIR)/binhacks.yaml
+$(DIR)/th%.js: $(DIR)/th%.asm.yaml $(DIR)/options.yaml $(DIR)/binhacks.th%.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
 
 #================================================

@@ -40,8 +40,6 @@ address_range:  ; DELETE
 
 game_data:  ; DELETE
 bullet_replacements:  ; DELETE
-fairy_bullet_replacements:  ; DELETE
-rival_bullet_replacements:  ; DELETE
 cancel_replacements:  ; DELETE
 laser_replacements:  ; DELETE
 bullet_mgr_layout:  ; DELETE
@@ -88,6 +86,20 @@ istruc CapGlobalData
     at CapGlobalData.new_cap_value, dd 0  ; REWRITE: <option:bullet-cap.cancel-cap>
 iend
 istruc CapGlobalData
+    at CapGlobalData.capid, dd CAPID_FAIRY_BULLET
+    at CapGlobalData.game_data_cave, dd fairy_bullet_replacements  ; REWRITE: <codecave:AUTO>
+    at CapGlobalData.game_data_offset, dd 0
+    at CapGlobalData.new_cap_bigendian_codecave, dd NOT_APPLICABLE
+    at CapGlobalData.new_cap_value, dd 0  ; REWRITE: <option:bullet-cap.fairy-bullet-cap>
+iend
+istruc CapGlobalData
+    at CapGlobalData.capid, dd CAPID_RIVAL_BULLET
+    at CapGlobalData.game_data_cave, dd rival_bullet_replacements  ; REWRITE: <codecave:AUTO>
+    at CapGlobalData.game_data_offset, dd 0
+    at CapGlobalData.new_cap_bigendian_codecave, dd NOT_APPLICABLE
+    at CapGlobalData.new_cap_value, dd 0  ; REWRITE: <option:bullet-cap.rival-bullet-cap>
+iend
+istruc CapGlobalData
     at CapGlobalData.capid, dd __CAPID_TEST_1
     at CapGlobalData.game_data_cave, dd the_worlds_saddest_unit_test  ; REWRITE: <codecave:AUTO>
     at CapGlobalData.game_data_offset, dd the_worlds_saddest_unit_test.capdata_1 - the_worlds_saddest_unit_test
@@ -100,6 +112,21 @@ istruc CapGlobalData
     at CapGlobalData.game_data_offset, dd the_worlds_saddest_unit_test.capdata_2 - the_worlds_saddest_unit_test
     at CapGlobalData.new_cap_bigendian_codecave, dd NOT_APPLICABLE
     at CapGlobalData.new_cap_value, dd TEST_NEW_CAP_2
+iend
+    dd LIST_END
+
+; Default definitions, overridden in th09
+fairy_bullet_replacements:  ; HEADER: AUTO
+istruc CapGameData
+    at CapGameData.old_cap, dd 0
+    at CapGameData.elem_size, dd 0
+iend
+    dd LIST_END
+
+rival_bullet_replacements:  ; HEADER: AUTO
+istruc CapGameData
+    at CapGameData.old_cap, dd 0
+    at CapGameData.elem_size, dd 0
 iend
     dd LIST_END
 
@@ -152,6 +179,10 @@ initialize:  ; HEADER: AUTO
     push CAPID_LASER
     call do_replacement_list  ; REWRITE: [codecave:AUTO]
     push CAPID_CANCEL
+    call do_replacement_list  ; REWRITE: [codecave:AUTO]
+    push CAPID_FAIRY_BULLET
+    call do_replacement_list  ; REWRITE: [codecave:AUTO]
+    push CAPID_RIVAL_BULLET
     call do_replacement_list  ; REWRITE: [codecave:AUTO]
 
     push STRUCT_BULLET_MGR

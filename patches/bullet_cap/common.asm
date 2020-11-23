@@ -7,6 +7,8 @@
 %define CAPID_BULLET   0x300
 %define CAPID_LASER    0x301
 %define CAPID_CANCEL   0x302
+%define CAPID_FAIRY_BULLET   0x303
+%define CAPID_RIVAL_BULLET   0x304
 %define __CAPID_TEST_1 0x400
 %define __CAPID_TEST_2 0x401
 
