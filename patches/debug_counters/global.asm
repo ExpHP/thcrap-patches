@@ -166,8 +166,12 @@ drawf_field_spec:  ; HEADER: AUTO
     call parse_limit  ; REWRITE: [codecave:AUTO]
     mov  [%$limit], eax
 
-    mov  eax, [esi + FieldSpec.count_offset]
-    push dword [edi+eax] ; count
+    push dword [esi + FieldSpec.struct_id]
+    push dword [esi + FieldSpec.count_offset]
+    push edi  ; struct ptr
+    call get_struct_field  ; REWRITE: [codecave:AUTO]
+
+    push dword [eax] ; count
     push dword [%$fmt]
     push dword [%$limit]
     push dword [%$pos_ptr]
@@ -288,20 +292,20 @@ count_linked_list:  ; HEADER: AUTO
 ; (Specifically, searches for items where a specific byte is nonzero.)
 ; __stdcall void CountArrayItemsWithNonzeroByte(ArraySpec* spec, int length)
 count_array_items_with_nonzero_byte:  ; HEADER: AUTO
-    %push
-    %define %$data_ptr      ebp+0x8
-    %define %$length        ebp+0xc
-    prologue_sd 0x10
-    %define %$remaining     ebp-0x04
-    %define %$used_count    ebp-0x08
-    %define %$is_dword      ebp-0x0c
-    %define %$stride        ebp-0x10
+    func_begin
+    func_arg  %$data_ptr, %$length
+    func_local  %$remaining, %$used_count, %$is_dword, %$stride
+    func_prologue  edi, esi
     ; using a register saves some verbosity
     %define %$reg_state_iter  edi
 
-    ; call this before using any variables so we don't have to think about which ones are in volatile registers.
-    push dword [%$data_ptr]
-    call get_array_from_spec  ; REWRITE: [codecave:AUTO]
+    ; Get array
+    mov  edx, [%$data_ptr]
+    push dword [edx + ArraySpec.struct_id]
+    push dword [edx + ArraySpec.array_offset]
+    mov  eax, [edx + ArraySpec.struct_ptr]
+    push dword [eax]
+    call get_struct_field  ; REWRITE: [codecave:AUTO]
     mov  %$reg_state_iter, eax  ; now points to array
 
     ; Parse field_offset
@@ -351,30 +355,9 @@ count_array_items_with_nonzero_byte:  ; HEADER: AUTO
     jmp  .dworditer
 .end:
     mov  eax, [%$used_count]
-    epilogue_sd
-    ret  0x8
-    %pop
-
-; __stdcall void* get_array_from_spec(ArraySpecV2* spec)
-get_array_from_spec:  ; HEADER: AUTO
-    %push
-    prologue_sd
-    mov  esi, [ebp+0x8]  ; spec
-
-    ; If bullet_cap is installed, it might have moved the array behind a pointer.
-    ; Support both games with and without bullet_cap by calling a func from base_exphp.
-    test dword [esi + ArraySpec.struct_id], -1
-    jz   .noremap
-    mov  eax, [esi + ArraySpec.struct_ptr]
-    push eax  ; struct base
-    add  eax, [esi + ArraySpec.array_offset]
-    push eax  ; array ptr
-    push dword [esi + ArraySpec.struct_id]
-    call adjust_field_ptr  ; REWRITE: [codecave:base-exphp.adjust-field-ptr]
-.noremap:
-    epilogue_sd
-    ret 0x4
-    %pop
+    func_epilogue
+    func_ret
+    func_end
 
 ; __stdcall void DrawfZeroSpec(Float3*, ZeroSpec*, char* fmt)
 drawf_zero_spec:  ; HEADER: AUTO
@@ -449,6 +432,32 @@ drawf_embedded_spec:  ; HEADER: AUTO
     epilogue_sd
     ret 0xc
     %pop
+
+; void* GetStructField(struct*, int offset, int structid_or_zero)
+get_struct_field:  ; HEADER: AUTO
+    func_begin
+    func_arg %$struct_base, %$offset, %$structid
+    func_prologue
+
+    ; If bullet_cap is installed, it might have moved the field behind a pointer (e.g. IN)
+    ; or resized arrays before the field (e.g. PoFV).
+    ; Support both games with and without bullet_cap by calling a func from base_exphp.
+    test dword [%$structid], -1
+    jz   .noremap
+    mov  eax, [%$struct_base]
+    push eax  ; struct ptr
+    add  eax, [%$offset]
+    push eax  ; field ptr
+    push dword [%$structid]
+    call adjust_field_ptr  ; REWRITE: [codecave:base-exphp.adjust-field-ptr]
+    jmp .done
+.noremap:
+    mov  eax, [%$struct_base]
+    add  eax, [%$offset]
+.done:
+    func_epilogue
+    func_ret
+    func_end
 
 ; =============================================================================
 
