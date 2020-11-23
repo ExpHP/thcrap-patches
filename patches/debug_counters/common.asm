@@ -43,49 +43,51 @@ endstruc
 ; Special value for ArraySpec .field_offset which means to simply read a dword-sized field at zero offset.
 %define FIELD_IS_DWORD -67
 
-struc ArraySpec  ; DELETE
-    .struct_ptr: resd 1 ; address of (possibly null) pointer to struct that holds the array  ; DELETE
-    .limit: resd 2  ; for coloring ; DELETE
-    .array_offset: resd 1  ; offset of array in struct  ; DELETE
-    .field_offset: resd 1  ; offset of a byte in an array item that is nonzero if and only if the item is in use  ; DELETE
-    .stride: resd 1  ; size of each item in the array  ; DELETE
-    .adjust_array_func: resd 1  ; func from `base_exphp` that may dereference a pointerified array (0 if none)  ; DELETE
-endstruc  ; DELETE
+struc ArraySpec
+    .struct_ptr: resd 1 ; address of (possibly null) pointer to struct that holds the array
+    .limit: resd 2  ; for coloring
+    .array_offset: resd 1  ; offset of array in struct
+    .field_offset: resd 1  ; offset of a byte in an array item that is nonzero if and only if the item is in use
+    .stride: resd 1  ; size of each item in the array
+    .struct_id: resd 1  ; struct id from `base_exphp` for finding relocated fields, or 0
+endstruc
 
-struc FieldSpec  ; DELETE
-    .struct_ptr: resd 1  ; DELETE
-    .limit: resd 2  ; DELETE
+struc FieldSpec
+    .struct_ptr: resd 1
+    .limit: resd 2
     ; Find these in the function that allocates a laser.
     ; (in the LASER_MANAGER crossrefs, about two down from LaserManager::operator new)
-    .count_offset: resd 1  ;  DELETE
-endstruc  ; DELETE
+    .count_offset: resd 1
+    .struct_id: resd 1  ; struct id from `base_exphp` for finding relocated fields, or 0
+endstruc
 
-struc AnmidSpec  ; DELETE
-    .struct_ptr: resd 1  ; DELETE
-    .limit: resd 2  ; size of the "fast VM" array.  Technically the number of VMs can surpass this. DELETE
+struc AnmidSpec
+    .struct_ptr: resd 1
+    .limit: resd 2  ; size of the "fast VM" array.  Technically the number of VMs can surpass this.
     ; For these, check AnmManager's on_ticks.
-    .world_head_ptr_offset: resd 1  ; DELETE
-    .ui_head_ptr_offset: resd 1  ; DELETE
+    .world_head_ptr_offset: resd 1
+    .ui_head_ptr_offset: resd 1
     ; Check AnmManager::initialize for the first array it initializes
-endstruc  ; DELETE
+endstruc
 
 ; Counter that's always zero
-struc ZeroSpec  ; DELETE
-    .struct_ptr: resd 1  ; Display the counter whenever this pointer is non-null.  ; DELETE
-endstruc  ; DELETE
+struc ZeroSpec
+    .struct_ptr: resd 1  ; Display the counter whenever this pointer is non-null.
+endstruc
 
 ; Spec that adapts one of the other spec types to a struct that is directly embedded in static memory
 ; rather than living behind a pointer, for early games.
-struc EmbeddedSpec  ; DELETE
-    .show_when_nonzero: resd 1  ; display only when this address contains nonzero  ; DELETE
-    .struct_base: resd 1  ; base address of struct  ; DELETE
-    .spec_kind: resd 1  ; kind constant of .spec field  ; DELETE
-    .spec_size: resd 1  ; length of .spec in bytes  ; DELETE
-    .spec: ; a spec to delegate to (placed inline), whose first field (.struct_ptr) will be ignored  ; DELETE
-endstruc  ; DELETE
+struc EmbeddedSpec
+    .show_when_nonzero: resd 1  ; display only when this address contains nonzero
+    .struct_base: resd 1  ; base address of struct
+    .spec_kind: resd 1  ; kind constant of .spec field
+    .spec_size: resd 1  ; length of .spec in bytes
+    .spec: ; a spec to delegate to (placed inline), whose first field (.struct_ptr) will be ignored
+endstruc
 
-struc ListSpec  ; DELETE
-    .struct_ptr: resd 1  ; DELETE
-    .limit: resd 2  ; DELETE
-    .head_ptr_offset: resd 1  ; DELETE
-endstruc  ; DELETE
+struc ListSpec
+    .struct_ptr: resd 1
+    .limit: resd 2
+    .head_ptr_offset: resd 1
+    .struct_id: resd 1  ; struct id from `base_exphp` for finding relocated fields, or 0
+endstruc

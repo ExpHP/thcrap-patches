@@ -9,6 +9,14 @@ except ImportError:
 
 from functools import partial
 
+STRUCT_BULLET_MGR = 0x100
+STRUCT_ITEM_MGR   = 0x101
+STRUCT_LASER_MGR  = 0
+STRUCT_EFFECT_MGR = 0
+STRUCT_ANM_MGR    = 0
+STRUCT_SPIRIT_MGR = 0
+STRUCT_ENEMY_MGR  = 0
+
 def main():
     game = binhack_helper.default_arg_parser(require_game=True).parse_args().game
     thc = binhack_helper.ThcrapGen('ExpHP.debug-counters.')
@@ -336,13 +344,13 @@ def get_spec_constructors(game, thc, defs):
     specs = Struct()
 
     # Wrappers around the spec types that automatically emit the tag constant.
-    specs.array = lambda *args, **kw: (defs.KIND_ARRAY, defs.ArraySpec(*args, **with_defaults(kw, adjust_array_func=0)))
+    specs.array = lambda *args, **kw: (defs.KIND_ARRAY, defs.ArraySpec(*args, **kw))
     specs.zero = lambda *args, **kw: (defs.KIND_ZERO, defs.ZeroSpec(*args, **kw))
     specs.field = lambda *args, **kw: (defs.KIND_FIELD, defs.FieldSpec(*args, **kw))
     specs.anmid = lambda *args, **kw: (defs.KIND_ANMID, defs.AnmidSpec(*args, **kw))
     specs.list = lambda *args, **kw: (defs.KIND_LIST, defs.ListSpec(*args, **kw))
-    def dword_array(addr, limit, array_offset):
-        return specs.array(addr, limit, array_offset=array_offset, field_offset=defs.FIELD_IS_DWORD, stride=0x4)
+    def dword_array(addr, limit, **kw):
+        return specs.array(addr, limit, field_offset=defs.FIELD_IS_DWORD, stride=0x4, **kw)
     def embedded(inner_spec_func, struct_base, *args, **kw):
         replay_manager_ptr = {
             'th06': 0x6d3f18,
@@ -367,89 +375,80 @@ def define_counters(game, thc, defs):
 
     thc.codecave('bullet-data', thc.data({
         # Early games track the count for their CAVE slowdown emulation feature.  Hooray!
-        'th06': lambda: specs.embedded(specs.field, 0x5a5ff8, limit_addr(0x4135fa-4), count_offset=0xf5c04),
-        'th07': lambda: specs.embedded(specs.field, 0x62f958, limit_addr(0x423770-4), count_offset=0x37a128),
-        'th08': lambda: specs.embedded(specs.field, 0xf54e90, limit_addr(0x4312ae-4), count_offset=0x6ba538),
-        'th095': lambda: specs.field(0x4bdd98, limit_addr(0x40520b-4), count_offset=0x27c5b4),
+        'th06': lambda: specs.embedded(specs.field, 0x5a5ff8, limit_addr(0x4135fa-4), count_offset=0xf5c04, struct_id=STRUCT_BULLET_MGR),
+        'th07': lambda: specs.embedded(specs.field, 0x62f958, limit_addr(0x423770-4), count_offset=0x37a128, struct_id=STRUCT_BULLET_MGR),
+        'th08': lambda: specs.embedded(specs.field, 0xf54e90, limit_addr(0x4312ae-4), count_offset=0x6ba538, struct_id=STRUCT_BULLET_MGR),
+        'th095': lambda: specs.field(0x4bdd98, limit_addr(0x40520b-4), count_offset=0x27c5b4, struct_id=STRUCT_BULLET_MGR),
         # ...these games don't track it. Scan the array.
-        'th10': lambda: specs.array(0x4776f0, limit_addr(0x425856-4), array_offset=0x60, field_offset=0x446, stride=0x7f0),
-        'th11': lambda: specs.array(0x4a8d68, limit_addr(0x408d40-4), array_offset=0x64, field_offset=0x4b2, stride=0x910),
-        'th12': lambda: specs.array(0x4b43c8, limit_addr(0x40a061), array_offset=0x64, field_offset=0x532, stride=0x9f8),
-        'th125': lambda: specs.array(0x4b677c, limit_addr(0x408785-4), array_offset=0x64, field_offset=0x512, stride=0xa34),
-        'th128': lambda: specs.array(0x4b8930, limit_addr(0x408d95-4), array_offset=0x64, field_offset=0xa2a, stride=0x11b8),
-        'th13': lambda: specs.array(0x4c2174, limit_addr(0x40d970-4, -1), array_offset=0x90, field_offset=0xbbe, stride=0x135c),
-        'th14': lambda: specs.array(0x4db530, limit_addr(0x416560-4, -1), array_offset=0x8c, field_offset=0xc0e, stride=0x13f4),
-        'th143': lambda: specs.array(0x4e6a08, limit_addr(0x4128d0-4, -1), array_offset=0x8c, field_offset=0xc0e, stride=0x13f4),
-        'th15': lambda: specs.array(0x4e9a6c, limit_addr(0x418c99-4, -1), array_offset=0x98, field_offset=0xc8a, stride=0x1494),
-        'th16': lambda: specs.array(0x4a6dac, limit_addr(0x4118b9-4, -1), array_offset=0x9c, field_offset=0xc72, stride=0x1478),
-        'th165': lambda: specs.array(0x4b550c, limit_addr(0x40ebc7-4, -1), array_offset=0x9c, field_offset=0xe54, stride=0xe8c),
-        'th17': lambda: specs.array(0x4b768c, limit_addr(0x414807-4, -1), array_offset=0xec, field_offset=0xe50, stride=0xe88),
+        'th10': lambda: specs.array(0x4776f0, limit_addr(0x425856-4), array_offset=0x60, field_offset=0x446, stride=0x7f0, struct_id=STRUCT_BULLET_MGR),
+        'th11': lambda: specs.array(0x4a8d68, limit_addr(0x408d40-4), array_offset=0x64, field_offset=0x4b2, stride=0x910, struct_id=STRUCT_BULLET_MGR),
+        'th12': lambda: specs.array(0x4b43c8, limit_addr(0x40a061), array_offset=0x64, field_offset=0x532, stride=0x9f8, struct_id=STRUCT_BULLET_MGR),
+        'th125': lambda: specs.array(0x4b677c, limit_addr(0x408785-4), array_offset=0x64, field_offset=0x512, stride=0xa34, struct_id=STRUCT_BULLET_MGR),
+        'th128': lambda: specs.array(0x4b8930, limit_addr(0x408d95-4), array_offset=0x64, field_offset=0xa2a, stride=0x11b8, struct_id=STRUCT_BULLET_MGR),
+        'th13': lambda: specs.array(0x4c2174, limit_addr(0x40d970-4, -1), array_offset=0x90, field_offset=0xbbe, stride=0x135c, struct_id=STRUCT_BULLET_MGR),
+        'th14': lambda: specs.array(0x4db530, limit_addr(0x416560-4, -1), array_offset=0x8c, field_offset=0xc0e, stride=0x13f4, struct_id=STRUCT_BULLET_MGR),
+        'th143': lambda: specs.array(0x4e6a08, limit_addr(0x4128d0-4, -1), array_offset=0x8c, field_offset=0xc0e, stride=0x13f4, struct_id=STRUCT_BULLET_MGR),
+        'th15': lambda: specs.array(0x4e9a6c, limit_addr(0x418c99-4, -1), array_offset=0x98, field_offset=0xc8a, stride=0x1494, struct_id=STRUCT_BULLET_MGR),
+        'th16': lambda: specs.array(0x4a6dac, limit_addr(0x4118b9-4, -1), array_offset=0x9c, field_offset=0xc72, stride=0x1478, struct_id=STRUCT_BULLET_MGR),
+        'th165': lambda: specs.array(0x4b550c, limit_addr(0x40ebc7-4, -1), array_offset=0x9c, field_offset=0xe54, stride=0xe8c, struct_id=STRUCT_BULLET_MGR),
+        'th17': lambda: specs.array(0x4b768c, limit_addr(0x414807-4, -1), array_offset=0xec, field_offset=0xe50, stride=0xe88, struct_id=STRUCT_BULLET_MGR),
     }[game]()))
 
     thc.codecave('normal-item-data', thc.data({
-        'th06': lambda: specs.embedded(specs.field, 0x69e268, limit_addr(0x41f2ff-4), count_offset=0x28948),
-        'th07': lambda: specs.embedded(specs.field, 0x575c70, limit_addr(0x432750-4), count_offset=0xae2ec),
-        'th08': lambda: specs.embedded(specs.field, 0x1653648, limit_addr(0x440187-4), count_offset=0x17ada8),
+        'th06': lambda: specs.embedded(specs.field, 0x69e268, limit_addr(0x41f2ff-4), count_offset=0x28948, struct_id=STRUCT_ITEM_MGR),
+        'th07': lambda: specs.embedded(specs.field, 0x575c70, limit_addr(0x432750-4), count_offset=0xae2ec, struct_id=STRUCT_ITEM_MGR),
+        'th08': lambda: specs.embedded(specs.field, 0x1653648, limit_addr(0x440187-4), count_offset=0x17ada8, struct_id=STRUCT_ITEM_MGR),
         'th095': lambda: specs.zero(0x4c45dc),
-        'th10': lambda: specs.array(0x477818, limit_value(150), array_offset=0x14, field_offset=0x3dc, stride=0x3f0),
-        'th11': lambda: specs.array(0x4a8e90, limit_value(150), array_offset=0x14, field_offset=0x464, stride=0x478),
-        'th12': lambda: specs.array(0x4b44f0, limit_value(600), array_offset=0x14, field_offset=0x9b0, stride=0x9d8),
+        'th10': lambda: specs.array(0x477818, limit_value(150), array_offset=0x14, field_offset=0x3dc, stride=0x3f0, struct_id=STRUCT_ITEM_MGR),
+        'th11': lambda: specs.array(0x4a8e90, limit_value(150), array_offset=0x14, field_offset=0x464, stride=0x478, struct_id=STRUCT_ITEM_MGR),
+        'th12': lambda: specs.array(0x4b44f0, limit_value(600), array_offset=0x14, field_offset=0x9b0, stride=0x9d8, struct_id=STRUCT_ITEM_MGR),
         'th125': lambda: specs.zero(0x4b68a0),
-        'th128': lambda: specs.array(0x4b8a5c, limit_value(600), array_offset=0x14, field_offset=0xa18, stride=0xa40),
-        'th13': lambda: specs.array(0x4c229c, limit_value(600), array_offset=0x14, field_offset=0xba0, stride=0xbc8),
-        'th14': lambda: specs.array(0x4db660, limit_value(600), array_offset=0x14, field_offset=0xbf0, stride=0xc18),
-        'th143': lambda: specs.array(0x4e6b64, limit_value(600), array_offset=0x14, field_offset=0xbf4, stride=0xc1c),
-        'th15': lambda: specs.array(0x4e9a9c, limit_value(600), array_offset=0x10, field_offset=0xc64, stride=0xc88),
-        'th16': lambda: specs.array(0x4a6ddc, limit_value(600), array_offset=0x14, field_offset=0xc50, stride=0xc78),
+        'th128': lambda: specs.array(0x4b8a5c, limit_value(600), array_offset=0x14, field_offset=0xa18, stride=0xa40, struct_id=STRUCT_ITEM_MGR),
+        'th13': lambda: specs.array(0x4c229c, limit_value(600), array_offset=0x14, field_offset=0xba0, stride=0xbc8, struct_id=STRUCT_ITEM_MGR),
+        'th14': lambda: specs.array(0x4db660, limit_value(600), array_offset=0x14, field_offset=0xbf0, stride=0xc18, struct_id=STRUCT_ITEM_MGR),
+        'th143': lambda: specs.array(0x4e6b64, limit_value(600), array_offset=0x14, field_offset=0xbf4, stride=0xc1c, struct_id=STRUCT_ITEM_MGR),
+        'th15': lambda: specs.array(0x4e9a9c, limit_value(600), array_offset=0x10, field_offset=0xc64, stride=0xc88, struct_id=STRUCT_ITEM_MGR),
+        'th16': lambda: specs.array(0x4a6ddc, limit_value(600), array_offset=0x14, field_offset=0xc50, stride=0xc78, struct_id=STRUCT_ITEM_MGR),
         'th165': lambda: specs.zero(0x4b5634),
-        'th17': lambda: specs.array(0x4b76b8, limit_value(600), array_offset=0x14, field_offset=0xc58, stride=0xc78),
+        'th17': lambda: specs.array(0x4b76b8, limit_value(600), array_offset=0x14, field_offset=0xc58, stride=0xc78, struct_id=STRUCT_ITEM_MGR),
     }[game]()))
 
     thc.codecave('cancel-item-data', thc.data({
         'th06': lambda: 0,  # unused
         'th07': lambda: 0,  # unused
         'th08': lambda: 0,  # unused
-        'th095': lambda: specs.array(0x4c45dc, limit_addr(0x41cb4c-4, -0), array_offset=0x4, field_offset=0x2f4, stride=0x2f8),
-        'th10': lambda: specs.array(0x477818, limit_addr(0x41af16-4, -150), array_offset=0x24eb4, field_offset=0x3dc, stride=0x3f0),
-        'th11': lambda: specs.array(0x4a8e90, limit_addr(0x423490-4, -150), array_offset=0x29e64, field_offset=0x464, stride=0x478),
-        'th12': lambda: specs.array(0x4b44f0, limit_addr(0x425b60-4, -600-16), array_offset=0x17afd4, field_offset=0x9b0, stride=0x9d8),
-        'th125': lambda: specs.array(0x4b68a0, limit_addr(0x41f320-4, -0), array_offset=0x14, field_offset=0x4f0, stride=0x4f4),
-        'th128': lambda: specs.array(0x4b8a5c, limit_addr(0x428550-4, -600-16), array_offset=0x18aa14, field_offset=0xa18, stride=0xa40),
-        'th13': lambda: specs.array(0x4c229c, limit_addr(0x42e2c0-4, -600), array_offset=0x1b9cd4, field_offset=0xba0, stride=0xbc8),
-        'th14': lambda: specs.array(0x4db660, limit_addr(0x438481-4, -600), array_offset=0x1c5854, field_offset=0xbf0, stride=0xc18),
-        'th143': lambda: specs.array(0x4e6b64, limit_addr(0x435011-4, -600), array_offset=0x1c61b4, field_offset=0xbf4, stride=0xc1c),
-        'th15': lambda: specs.array(0x4e9a9c, limit_addr(0x43f458-4, -600), array_offset=0x1d5ed0, field_offset=0xc64, stride=0xc88),
-        'th16': lambda: specs.array(0x4a6ddc, limit_addr(0x42f0ea-4, -600), array_offset=0x1d3954, field_offset=0xc50, stride=0xc78),
-        'th165': lambda: specs.array(0x4b5634, limit_addr(0x42bb46-4, -0), array_offset=0x10, field_offset=0x630, stride=0x634),
-        'th17': lambda: specs.array(0x4b76b8, limit_addr(0x4331f8-4, -600), array_offset=0x1d3954, field_offset=0xc58, stride=0xc78),
+        'th095': lambda: specs.array(0x4c45dc, limit_addr(0x41cb4c-4, -0), array_offset=0x4, field_offset=0x2f4, stride=0x2f8, struct_id=STRUCT_ITEM_MGR),
+        'th10': lambda: specs.array(0x477818, limit_addr(0x41af16-4, -150), array_offset=0x24eb4, field_offset=0x3dc, stride=0x3f0, struct_id=STRUCT_ITEM_MGR),
+        'th11': lambda: specs.array(0x4a8e90, limit_addr(0x423490-4, -150), array_offset=0x29e64, field_offset=0x464, stride=0x478, struct_id=STRUCT_ITEM_MGR),
+        'th12': lambda: specs.array(0x4b44f0, limit_addr(0x425b60-4, -600-16), array_offset=0x17afd4, field_offset=0x9b0, stride=0x9d8, struct_id=STRUCT_ITEM_MGR),
+        'th125': lambda: specs.array(0x4b68a0, limit_addr(0x41f320-4, -0), array_offset=0x14, field_offset=0x4f0, stride=0x4f4, struct_id=STRUCT_ITEM_MGR),
+        'th128': lambda: specs.array(0x4b8a5c, limit_addr(0x428550-4, -600-16), array_offset=0x18aa14, field_offset=0xa18, stride=0xa40, struct_id=STRUCT_ITEM_MGR),
+        'th13': lambda: specs.array(0x4c229c, limit_addr(0x42e2c0-4, -600), array_offset=0x1b9cd4, field_offset=0xba0, stride=0xbc8, struct_id=STRUCT_ITEM_MGR),
+        'th14': lambda: specs.array(0x4db660, limit_addr(0x438481-4, -600), array_offset=0x1c5854, field_offset=0xbf0, stride=0xc18, struct_id=STRUCT_ITEM_MGR),
+        'th143': lambda: specs.array(0x4e6b64, limit_addr(0x435011-4, -600), array_offset=0x1c61b4, field_offset=0xbf4, stride=0xc1c, struct_id=STRUCT_ITEM_MGR),
+        'th15': lambda: specs.array(0x4e9a9c, limit_addr(0x43f458-4, -600), array_offset=0x1d5ed0, field_offset=0xc64, stride=0xc88, struct_id=STRUCT_ITEM_MGR),
+        'th16': lambda: specs.array(0x4a6ddc, limit_addr(0x42f0ea-4, -600), array_offset=0x1d3954, field_offset=0xc50, stride=0xc78, struct_id=STRUCT_ITEM_MGR),
+        'th165': lambda: specs.array(0x4b5634, limit_addr(0x42bb46-4, -0), array_offset=0x10, field_offset=0x630, stride=0x634, struct_id=STRUCT_ITEM_MGR),
+        'th17': lambda: specs.array(0x4b76b8, limit_addr(0x4331f8-4, -600), array_offset=0x1d3954, field_offset=0xc58, stride=0xc78, struct_id=STRUCT_ITEM_MGR),
     }[game]()))
 
     thc.codecave('laser-data', thc.data({
-        'th06': lambda: specs.embedded(
-            specs.array, 0x5a5ff8, limit_addr(0x4134e5-4), array_offset=0xec000, field_offset=0x258, stride=0x270,
-            adjust_array_func='<codecave:base-exphp.adjust-laser-array>'
-        ),
-        'th07': lambda: specs.embedded(
-            specs.array, 0x62f958, limit_addr(0x4233b1-4), array_offset=0x366628, field_offset=0x4d4, stride=0x4ec,
-            adjust_array_func='<codecave:base-exphp.adjust-laser-array>'
-        ),
-        'th08': lambda: specs.embedded(
-            specs.array, 0xf54e90, limit_addr(0x42f464-4), array_offset=0x660938, field_offset=0x584, stride=0x59c,
-            adjust_array_func='<codecave:base-exphp.adjust-laser-array>'
-        ),
-        'th095': lambda: specs.field(0x4c45e0, limit_addr(0x41dbf8-4), count_offset=0x54),
-        'th10': lambda: specs.field(0x47781c, limit_addr(0x41c51a-4), count_offset=0x438),
-        'th11': lambda: specs.field(0x4a8e94, limit_addr(0x424e01-4), count_offset=0x454),
-        'th12': lambda: specs.field(0x4b44f4, limit_addr(0x42845d), count_offset=0x468),
-        'th125': lambda: specs.field(0x4b68a4, limit_addr(0x420411-4), count_offset=0x468),
-        'th128': lambda: specs.field(0x4b8a60, limit_addr(0x42a411-4), count_offset=0x5d4),
-        'th13': lambda: specs.field(0x4c22a0, limit_addr(0x42fee1-4), count_offset=0x5d4),
-        'th14': lambda: specs.field(0x4db664, limit_addr(0x43a765-4), count_offset=0x5d4),
-        'th143': lambda: specs.field(0x4e6b6c, limit_addr(0x439075-4), count_offset=0x5d4),
-        'th15': lambda: specs.field(0x4e9ba0, limit_addr(0x4419e5-4), count_offset=0x5e4),
-        'th16': lambda: specs.field(0x4a6ee0, limit_addr(0x431775-4), count_offset=0x5e4),
-        'th165': lambda: specs.field(0x4b5638, limit_addr(0x42cb65-4), count_offset=0x5e4),
-        'th17': lambda: specs.field(0x4b76bc, limit_addr(0x4355d5-4), count_offset=0x5e4),
+        'th06': lambda: specs.embedded(specs.array, 0x5a5ff8, limit_addr(0x4134e5-4), array_offset=0xec000, field_offset=0x258, stride=0x270, struct_id=STRUCT_BULLET_MGR),
+        'th07': lambda: specs.embedded(specs.array, 0x62f958, limit_addr(0x4233b1-4), array_offset=0x366628, field_offset=0x4d4, stride=0x4ec, struct_id=STRUCT_BULLET_MGR),
+        'th08': lambda: specs.embedded(specs.array, 0xf54e90, limit_addr(0x42f464-4), array_offset=0x660938, field_offset=0x584, stride=0x59c, struct_id=STRUCT_BULLET_MGR),
+        'th095': lambda: specs.field(0x4c45e0, limit_addr(0x41dbf8-4), count_offset=0x54, struct_id=STRUCT_LASER_MGR),
+        'th10': lambda: specs.field(0x47781c, limit_addr(0x41c51a-4), count_offset=0x438, struct_id=STRUCT_LASER_MGR),
+        'th11': lambda: specs.field(0x4a8e94, limit_addr(0x424e01-4), count_offset=0x454, struct_id=STRUCT_LASER_MGR),
+        'th12': lambda: specs.field(0x4b44f4, limit_addr(0x42845d), count_offset=0x468, struct_id=STRUCT_LASER_MGR),
+        'th125': lambda: specs.field(0x4b68a4, limit_addr(0x420411-4), count_offset=0x468, struct_id=STRUCT_LASER_MGR),
+        'th128': lambda: specs.field(0x4b8a60, limit_addr(0x42a411-4), count_offset=0x5d4, struct_id=STRUCT_LASER_MGR),
+        'th13': lambda: specs.field(0x4c22a0, limit_addr(0x42fee1-4), count_offset=0x5d4, struct_id=STRUCT_LASER_MGR),
+        'th14': lambda: specs.field(0x4db664, limit_addr(0x43a765-4), count_offset=0x5d4, struct_id=STRUCT_LASER_MGR),
+        'th143': lambda: specs.field(0x4e6b6c, limit_addr(0x439075-4), count_offset=0x5d4, struct_id=STRUCT_LASER_MGR),
+        'th15': lambda: specs.field(0x4e9ba0, limit_addr(0x4419e5-4), count_offset=0x5e4, struct_id=STRUCT_LASER_MGR),
+        'th16': lambda: specs.field(0x4a6ee0, limit_addr(0x431775-4), count_offset=0x5e4, struct_id=STRUCT_LASER_MGR),
+        'th165': lambda: specs.field(0x4b5638, limit_addr(0x42cb65-4), count_offset=0x5e4, struct_id=STRUCT_LASER_MGR),
+        'th17': lambda: specs.field(0x4b76bc, limit_addr(0x4355d5-4), count_offset=0x5e4, struct_id=STRUCT_LASER_MGR),
     }[game]()))
 
     if 'th095' <= game:
@@ -457,7 +456,7 @@ def define_counters(game, thc, defs):
             # TH095: This has a non-standard linked list (next ptr at offset 0 on a VM) and we
             #        don't currently have any spec that can iterate over it.
             #        Thankfully, the game tracks a counter in a field.
-            'th095': lambda: specs.field(0x4ca1b8, limit_none, count_offset=0x28),
+            'th095': lambda: specs.field(0x4ca1b8, limit_none, count_offset=0x28, struct_id=STRUCT_ANM_MGR),
             # TH10+: There are now two lists, and no reliable total count stored anywhere.
             #        (The count from TH095 still exists, but it only counts VMs ticked this frame,
             #         so it leaves out game VMs while the game is paused. Worse, it's totally bugged in TH17...)
@@ -475,50 +474,50 @@ def define_counters(game, thc, defs):
             'th17': lambda: specs.anmid(0x509a20, limit_value(0x3fff), world_head_ptr_offset=0x6dc, ui_head_ptr_offset=0x6e4),
         }[game]()))
     if game == 'th13':
-        thc.codecave('spirit-data', thc.data(specs.field(0x4c22a4, limit_addr(0x438678-4), count_offset=0x8814)))
+        thc.codecave('spirit-data', thc.data(specs.field(0x4c22a4, limit_addr(0x438678-4), count_offset=0x8814, struct_id=STRUCT_SPIRIT_MGR)))
 
     thc.codecave('enemy-data', thc.data({
-        'th06': lambda: specs.embedded(specs.field, 0x4b79c8, limit_addr(0x412431-4), count_offset=0xee5bc),
-        'th07': lambda: specs.embedded(specs.field, 0x9a9b00, limit_addr(0x4207ec-4), count_offset=0x9545bc),
-        'th08': lambda: specs.embedded(specs.field, 0x577f20, limit_addr(0x42c879-4), count_offset=0x9dcdc4),
-        'th095': lambda: specs.field(0x4bddc0, limit_addr(0x415aa1-4), count_offset=0x26ae2c),
-        'th10': lambda: specs.field(0x477704, limit_none, count_offset=0x60),
-        'th11': lambda: specs.field(0x4a8d7c, limit_none, count_offset=0x70),
-        'th12': lambda: specs.field(0x4b43dc, limit_none, count_offset=0x70),
-        'th125': lambda: specs.field(0x4b678c, limit_none, count_offset=0xa8),
-        'th128': lambda: specs.field(0x4b8948, limit_none, count_offset=0xc0),
-        'th13': lambda: specs.field(0x4c2188, limit_none, count_offset=0xb8),
-        'th14': lambda: specs.field(0x4db544, limit_none, count_offset=0xd8),
-        'th143': lambda: specs.field(0x4e6a48, limit_none, count_offset=0xd8),
-        'th15': lambda: specs.field(0x4e9a80, limit_none, count_offset=0x18c),
-        'th16': lambda: specs.field(0x4a6dc0, limit_none, count_offset=0x18c),
-        'th165': lambda: specs.field(0x4b551c, limit_none, count_offset=0x1b4),
-        'th17': lambda: specs.field(0x4b76a0, limit_none, count_offset=0x18c),
+        'th06': lambda: specs.embedded(specs.field, 0x4b79c8, limit_addr(0x412431-4), count_offset=0xee5bc, struct_id=STRUCT_ENEMY_MGR),
+        'th07': lambda: specs.embedded(specs.field, 0x9a9b00, limit_addr(0x4207ec-4), count_offset=0x9545bc, struct_id=STRUCT_ENEMY_MGR),
+        'th08': lambda: specs.embedded(specs.field, 0x577f20, limit_addr(0x42c879-4), count_offset=0x9dcdc4, struct_id=STRUCT_ENEMY_MGR),
+        'th095': lambda: specs.field(0x4bddc0, limit_addr(0x415aa1-4), count_offset=0x26ae2c, struct_id=STRUCT_ENEMY_MGR),
+        'th10': lambda: specs.field(0x477704, limit_none, count_offset=0x60, struct_id=STRUCT_ENEMY_MGR),
+        'th11': lambda: specs.field(0x4a8d7c, limit_none, count_offset=0x70, struct_id=STRUCT_ENEMY_MGR),
+        'th12': lambda: specs.field(0x4b43dc, limit_none, count_offset=0x70, struct_id=STRUCT_ENEMY_MGR),
+        'th125': lambda: specs.field(0x4b678c, limit_none, count_offset=0xa8, struct_id=STRUCT_ENEMY_MGR),
+        'th128': lambda: specs.field(0x4b8948, limit_none, count_offset=0xc0, struct_id=STRUCT_ENEMY_MGR),
+        'th13': lambda: specs.field(0x4c2188, limit_none, count_offset=0xb8, struct_id=STRUCT_ENEMY_MGR),
+        'th14': lambda: specs.field(0x4db544, limit_none, count_offset=0xd8, struct_id=STRUCT_ENEMY_MGR),
+        'th143': lambda: specs.field(0x4e6a48, limit_none, count_offset=0xd8, struct_id=STRUCT_ENEMY_MGR),
+        'th15': lambda: specs.field(0x4e9a80, limit_none, count_offset=0x18c, struct_id=STRUCT_ENEMY_MGR),
+        'th16': lambda: specs.field(0x4a6dc0, limit_none, count_offset=0x18c, struct_id=STRUCT_ENEMY_MGR),
+        'th165': lambda: specs.field(0x4b551c, limit_none, count_offset=0x1b4, struct_id=STRUCT_ENEMY_MGR),
+        'th17': lambda: specs.field(0x4b76a0, limit_none, count_offset=0x18c, struct_id=STRUCT_ENEMY_MGR),
     }[game]()))
 
     if 'th06' <= game <= 'th08':
         thc.codecave('effect-general-data', thc.data({
-            'th06': specs.embedded(specs.array, 0x487fe0, limit_addr(0x40ef87-4), array_offset=0x8, field_offset=0x178, stride=0x17c),
-            'th07': specs.embedded(specs.array, 0x12fe250, limit_addr(0x41c1f7-4), array_offset=0x1c, field_offset=0x2cc, stride=0x2d8),
-            'th08': specs.embedded(specs.array, 0x4ece60, limit_addr(0x425468-4), array_offset=0x1c, field_offset=0x350, stride=0x360),
+            'th06': specs.embedded(specs.array, 0x487fe0, limit_addr(0x40ef87-4), array_offset=0x8, field_offset=0x178, stride=0x17c, struct_id=STRUCT_EFFECT_MGR),
+            'th07': specs.embedded(specs.array, 0x12fe250, limit_addr(0x41c1f7-4), array_offset=0x1c, field_offset=0x2cc, stride=0x2d8, struct_id=STRUCT_EFFECT_MGR),
+            'th08': specs.embedded(specs.array, 0x4ece60, limit_addr(0x425468-4), array_offset=0x1c, field_offset=0x350, stride=0x360, struct_id=STRUCT_EFFECT_MGR),
         }[game]))
         thc.codecave('effect-familiar-data', thc.data({
             'th06': 0,
             'th07': 0,
-            'th08': specs.embedded(specs.array, 0x4ece60, limit_addr(0x425ba9-4), array_offset=0x6c01c, field_offset=0x350, stride=0x360),
+            'th08': specs.embedded(specs.array, 0x4ece60, limit_addr(0x425ba9-4), array_offset=0x6c01c, field_offset=0x350, stride=0x360, struct_id=STRUCT_EFFECT_MGR),
         }[game]))
         thc.codecave('effect-indexed-data', thc.data({
             'th06': 0,
-            'th07': specs.embedded(specs.array, 0x12fe250, limit_value(0x9), array_offset=0x4719c, field_offset=0x2cc, stride=0x2d8),
-            'th08': specs.embedded(specs.array, 0x4ece60, limit_value(0xd), array_offset=0x8701c, field_offset=0x350, stride=0x360),
+            'th07': specs.embedded(specs.array, 0x12fe250, limit_value(0x9), array_offset=0x4719c, field_offset=0x2cc, stride=0x2d8, struct_id=STRUCT_EFFECT_MGR),
+            'th08': specs.embedded(specs.array, 0x4ece60, limit_value(0xd), array_offset=0x8701c, field_offset=0x350, stride=0x360, struct_id=STRUCT_EFFECT_MGR),
         }[game]))
 
     if 'th15' <= game <= 'th17':
         thc.codecave('effect-data', thc.data({
-            'th15': specs.dword_array(0x4e9a78, limit_addr(0x4228d1-4), array_offset=0x1c),
-            'th16': specs.dword_array(0x4a6db8, limit_addr(0x418ac1-4), array_offset=0x1c),
-            'th165': specs.dword_array(0x4b5518, limit_addr(0x415ef1-4), array_offset=0x1c),
-            'th17': specs.dword_array(0x4b7698, limit_addr(0x41b7e1-4), array_offset=0x1c),
+            'th15': specs.dword_array(0x4e9a78, limit_addr(0x4228d1-4), array_offset=0x1c, struct_id=STRUCT_EFFECT_MGR),
+            'th16': specs.dword_array(0x4a6db8, limit_addr(0x418ac1-4), array_offset=0x1c, struct_id=STRUCT_EFFECT_MGR),
+            'th165': specs.dword_array(0x4b5518, limit_addr(0x415ef1-4), array_offset=0x1c, struct_id=STRUCT_EFFECT_MGR),
+            'th17': specs.dword_array(0x4b7698, limit_addr(0x41b7e1-4), array_offset=0x1c, struct_id=STRUCT_EFFECT_MGR),
         }[game]))
 
 def define_counters_pofv(game, thc, defs):
@@ -527,14 +526,14 @@ def define_counters_pofv(game, thc, defs):
     sides = [('p1', 0x4a7d90), ('p2', 0x4a7dc8)]
     for pn, side_base in sides:
         bmgr_ptr = side_base + 0x08
-        read_bmgr_field = partial(specs.field, bmgr_ptr)
+        read_bmgr_field = partial(specs.field, bmgr_ptr, struct_id=STRUCT_BULLET_MGR)
         thc.codecave(f'{pn}-bullet-fairy-data', thc.data(read_bmgr_field(limit_addr(0x41506f-4, -1), count_offset=0x25e164)))
         thc.codecave(f'{pn}-bullet-rival-data', thc.data(read_bmgr_field(limit_addr(0x41508a-4, -1), count_offset=0x25e168)))
         thc.codecave(f'{pn}-laser-data', thc.data(
-            specs.array(bmgr_ptr, limit_addr(0x413c15-4, -1), array_offset=0x24d424, field_offset=0x584, stride=0x59c),
+            specs.array(bmgr_ptr, limit_addr(0x413c15-4, -1), array_offset=0x24d424, field_offset=0x584, stride=0x59c, struct_id=STRUCT_BULLET_MGR),
         ))
 
-        read_emgr_field = partial(specs.field, side_base + 0x10, limit=limit_addr(0x411639-4))
+        read_emgr_field = partial(specs.field, side_base + 0x10, limit=limit_addr(0x411639-4), struct_id=STRUCT_ENEMY_MGR)
         thc.codecave(f'{pn}-enemy-data', thc.data(read_emgr_field(count_offset=0x2ac3ac)))
         # three subtotals
         thc.codecave(f'{pn}-enemy-fairy-data', thc.data(read_emgr_field(count_offset=0x2ac3b0)))

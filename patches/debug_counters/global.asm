@@ -7,6 +7,7 @@
 line_info: ; DELETE
 color_data: ; DELETE
 bullet_cap_status:  ; DELETE
+adjust_field_ptr:  ; DELETE
 
 ; Each game.asm implements this to provide a stdcall wrapper around AsciiManager::drawf_debug
 ; for a format string that takes a single DWORD integer:
@@ -360,18 +361,17 @@ get_array_from_spec:  ; HEADER: AUTO
     prologue_sd
     mov  esi, [ebp+0x8]  ; spec
 
-    mov  eax, [esi + ArraySpec.struct_ptr]
-    mov  eax, [eax]  ; get struct
-    add  eax, [esi + ArraySpec.array_offset]  ; get array
-
     ; If bullet_cap is installed, it might have moved the array behind a pointer.
     ; Support both games with and without bullet_cap by calling a func from base_exphp.
-    mov  ecx, [esi + ArraySpec.adjust_array_func]
-    test ecx, ecx
-    jz   .nofunc  ; was one provided in spec?
-    push eax
-    call ecx  ; get the true array!
-.nofunc:
+    test dword [esi + ArraySpec.struct_id], -1
+    jz   .noremap
+    mov  eax, [esi + ArraySpec.struct_ptr]
+    push eax  ; struct base
+    add  eax, [esi + ArraySpec.array_offset]
+    push eax  ; array ptr
+    push dword [esi + ArraySpec.struct_id]
+    call adjust_field_ptr  ; REWRITE: [codecave:base-exphp.adjust-field-ptr]
+.noremap:
     epilogue_sd
     ret 0x4
     %pop

@@ -21,8 +21,8 @@ void* __stdcall AdjustFieldPtr(StructId what, void* field_ptr, void* struct_base
 **Arguments:**
 
 * `what`: a [`StructId`](#struct-id) indicating which struct the field belongs to. (e.g. BulletManager, ItemManager...)
-* `struct_base`: the current base address of the struct.
 * `field_ptr`: a pointer to where the desired field would normally exist on the struct, given its base address.  `field_ptr` must point to somewhere within the range from `struct_base` to `struct_base + original_struct_size`.  This range is doubly-inclusive (i.e. the pointer is permitted to point just past the end of the struct). If `field_ptr` points into an array resized by `bullet_cap`, then it must point to somewhere inside (not past the end of!) either the first or last element of the array.
+* `struct_base`: the current base address of the struct.
 
 `field_ptr` is listed before `struct_base` in the signature because it is generally easier to supply the arguments this way. (you can push the base pointer, add the field offset, and push again)
 
