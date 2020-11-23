@@ -272,6 +272,7 @@ DIR=$(PERSONAL)/ultra
 ultra: \
 	$(DIR)/$(TH07_VER).js \
 	$(DIR)/$(TH08_VER).js \
+	$(DIR)/$(TH09_VER).js \
 	$(DIR)/$(TH14_VER).js \
 	$(DIR)/$(TH15_VER).js \
 	$(DIR)/$(TH16_VER).js \

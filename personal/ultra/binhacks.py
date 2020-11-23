@@ -33,7 +33,31 @@ def add_hacks(game, thc):
             '''),
         }).at({'th07': 0x424dd1, 'th08': 0x430ee0}[game])
 
-    if 'th14' <= game <= 'th17':
+    elif game == 'th09':
+        count1_offset, count2_offset, exflags_offset = 0x1f4, 0x1f6, 0x1fc
+        side_ptr_offset = 0x25e190
+        thc.binhack('ultra-increase', {
+            'expected': thc.asm(f'   mov ecx, [ecx+{side_ptr_offset:#x}]   '),
+            'call-codecave': thc.asm(f'''
+                mov  eax, [ebp+0x8]
+                shl  word ptr [eax+{count1_offset:#x}], 0x2
+                shl  word ptr [eax+{count2_offset:#x}], 0x2
+                mov  ecx, [ecx+{side_ptr_offset:#x}]
+                ret
+            '''),
+        }).at([0x41310f, 0x4131df])  # one for fairy bullets, one for rival bullets
+
+        thc.binhack('ultra-decrease', {
+            'expected': thc.asm(f'   mov eax, [esi+{exflags_offset:#x}]   '),
+            'call-codecave': thc.asm(f'''
+                shr  word ptr [esi+{count1_offset:#x}], 0x2
+                shr  word ptr [esi+{count2_offset:#x}], 0x2
+                mov  eax, [esi+{exflags_offset:#x}]
+                ret
+            '''),
+        }).at([0x413190, 0x413260])
+
+    elif 'th14' <= game <= 'th17':
         thc.binhack('ultra-increase', {
             'expected': thc.asm(f'   movss dword ptr [esp+0x10], xmm0   '),
             'call-codecave': thc.asm(f'''
