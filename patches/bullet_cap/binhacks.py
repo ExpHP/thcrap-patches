@@ -126,6 +126,90 @@ def add_other_binhacks(game, thc, defs):
             0x429223,  # ItemManager::on_draw
         ])
 
+    # Normally bullet_cap uses its search-and-replace framework to substitute this sort of thing,
+    # but the laser cap in th06 and th07 is so tiny that it sometimes gets optimized to a single byte.
+    #
+    # To make matters even worse, the 'cmp' intruction ends up being 4 bytes, too small to fit a jump,
+    # so we also have to replace the 'jge'!
+    if 'th06' <= game <= 'th07':
+        old_laser_cap = {'th06': 0x40, 'th07': 0x40}[game]
+        laser_cap = thc.binhack_collection('fix-laser-cap', lambda offset, br_not_taken, br_taken: {
+            'expected': [
+                thc.asm(f'cmp  dword ptr [ebp-{offset:#x}], {old_laser_cap:#x}'),
+                '0f8d'  # first bytes of the jge; we can't easily get the whole thing because it's a relative address
+            ],
+            'codecave': thc.asm(lambda c: f'''
+                push {defs.CAPID_LASER:#x}
+                call {c.rel_auto('get-new-cap')}
+                cmp  dword ptr [ebp-{offset:#x}], eax
+                jge  taken
+                {c.jmp(br_not_taken)}
+            taken:
+                {c.jmp(br_taken)}
+            '''),
+        })
+        def add_laser_cap_binhack(address, offset, br_taken):
+            br_not_taken = address + 4 + 6  # after the cmp and jge
+            laser_cap.at(address, offset, br_not_taken=br_not_taken, br_taken=br_taken)
+
+        if game == 'th06':
+            add_laser_cap_binhack(0x41421e, 0x10, br_taken=0x41432b)  # BulletManager::sub_414160_cancels
+            add_laser_cap_binhack(0x41446d, 0x10, br_taken=0x414593)  # BulletManager::sub_414360_cancels
+            add_laser_cap_binhack(0x4146a2, 0x04, br_taken=0x4148e2)  # BulletManager::sub_414670_does_smn_to_lasers
+            add_laser_cap_binhack(0x415e1d, 0x08, br_taken=0x416499)  # BulletManager::on_tick_0b
+            add_laser_cap_binhack(0x416547, 0x04, br_taken=0x416769)  # BulletManager::on_draw
+
+        if game == 'th07':
+            add_laser_cap_binhack(0x4188b3, 0x24, br_taken=0x418b39)  # Enemy::hardcoded_func_07_s4_set
+            add_laser_cap_binhack(0x418b73, 0x2c, br_taken=0x418e6e)  # Enemy::hardcoded_func_08_s4_set
+            add_laser_cap_binhack(0x424830, 0x10, br_taken=0x424984)  # BulletManager::sub_424740_cancels_bullets
+            add_laser_cap_binhack(0x424ab1, 0x10, br_taken=0x424be2)  # BulletManager::sub_4249a0_cancels_bullets
+            add_laser_cap_binhack(0x424e56, 0x04, br_taken=0x4250bf)  # BulletManager::shoot_laser
+            add_laser_cap_binhack(0x4263ec, 0x08, br_taken=0x426a4e)  # BulletManager::on_tick_0c
+            add_laser_cap_binhack(0x426c72, 0x04, br_taken=0x426f03)  # BulletManager::on_draw_0a
+
+    # TH09 also has a small laser cap, but the optimized lines are so different
+    # from TH06/TH07 that we handle it separately.
+    if game == 'th09':
+        old_laser_cap = 0x30
+        laser_size = 0x59c
+
+        thc.binhack('fix-laser-cmp', {
+            'addr': 0x4132d1,
+            'expected': [
+                thc.asm(f'cmp  eax, {old_laser_cap:#x}'),
+                '7cea'  # a jl imm8
+            ],
+            'codecave': thc.asm(lambda c: f'''
+                push eax  # save
+                push {defs.CAPID_LASER:#x}
+                call {c.rel_auto('get-new-cap')}
+                mov  ecx, eax
+                pop  eax
+
+                cmp  eax, ecx
+                jl   taken
+                {c.jmp(0x4132d6)}
+            taken:
+                {c.jmp(0x4132c0)}
+            '''),
+        })
+
+        thc.binhack('fix-laser-push', {
+            'addr': 0x4150a0,
+            'expected': thc.asm(f'''
+                push {old_laser_cap:#x}
+                push {laser_size:#x}
+            '''),
+            'codecave': thc.asm(lambda c: f'''
+                push {defs.CAPID_LASER:#x}
+                call {c.rel_auto('get-new-cap')}
+                push eax
+                push {laser_size:#x}
+                {c.jmp(0x4150a7)}
+            '''),
+        })
+
     # Patch for where games without cancel item freelists increment the next index.
     #
     # Due to the compiler optimizing this check into a bitwise operation,

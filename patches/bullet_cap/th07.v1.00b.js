@@ -20,6 +20,13 @@
         "bullet-cap-config.anm-search-lag-spike-size": "ffff ffff",
         "bullet-cap-config.mof-sa-lag-spike-size": "ffff ffff",
         "of(ExpHP.bullet-cap.install)": "e8[codecave:ExpHP.bullet-cap.initialize]b8a0764200ffd0e800000000c70424e0f04200c3",
+        "of(ExpHP.bullet-cap.fix-laser-cap(36, 4294845, 4295481))": "6801030000e8[codecave:ExpHP.bullet-cap.get-new-cap]3945dc7d0de800000000c70424bd884100c3e800000000c70424398b4100c3",
+        "of(ExpHP.bullet-cap.fix-laser-cap(44, 4295549, 4296302))": "6801030000e8[codecave:ExpHP.bullet-cap.get-new-cap]3945d47d0de800000000c704247d8b4100c3e800000000c704246e8e4100c3",
+        "of(ExpHP.bullet-cap.fix-laser-cap(16, 4343866, 4344196))": "6801030000e8[codecave:ExpHP.bullet-cap.get-new-cap]3945f07d0de800000000c704243a484200c3e800000000c7042484494200c3",
+        "of(ExpHP.bullet-cap.fix-laser-cap(16, 4344507, 4344802))": "6801030000e8[codecave:ExpHP.bullet-cap.get-new-cap]3945f07d0de800000000c70424bb4a4200c3e800000000c70424e24b4200c3",
+        "of(ExpHP.bullet-cap.fix-laser-cap(4, 4345440, 4346047))": "6801030000e8[codecave:ExpHP.bullet-cap.get-new-cap]3945fc7d0de800000000c70424604e4200c3e800000000c70424bf504200c3",
+        "of(ExpHP.bullet-cap.fix-laser-cap(8, 4350966, 4352590))": "6801030000e8[codecave:ExpHP.bullet-cap.get-new-cap]3945f87d0de800000000c70424f6634200c3e800000000c704244e6a4200c3",
+        "of(ExpHP.bullet-cap.fix-laser-cap(4, 4353148, 4353795))": "6801030000e8[codecave:ExpHP.bullet-cap.get-new-cap]3945fc7d0de800000000c704247c6c4200c3e800000000c70424036f4200c3",
         "of(ExpHP.bullet-cap.pointerize-bullets-constructor)": "e8[codecave:ExpHP.bullet-cap.allocate-pointerized-bmgr-arrays]e800000000c70424e5334200c3",
         "of(ExpHP.bullet-cap.pointerize-items-constructor)": "e8[codecave:ExpHP.bullet-cap.allocate-pointerized-imgr-arrays]e800000000c704246f264300c3",
         "of(ExpHP.bullet-cap.pointerize-bullets-memset)": "e8[codecave:ExpHP.bullet-cap.clear-pointerized-bullet-mgr]c3",
@@ -41,13 +48,6 @@
         "of(ExpHP.bullet-cap.pointerize-lasers-reg(eax))": "a1805f9900c3",
         "of(ExpHP.bullet-cap.pointerize-lasers-reg(edx))": "8b15805f9900c3",
         "of(ExpHP.bullet-cap.pointerize-lasers-reg(ecx))": "8b0d805f9900c3",
-        "of(ExpHP.bullet-cap.fix-laser-cap(36, 4294845, 4295481))": "6801030000e8[codecave:ExpHP.bullet-cap.get-new-cap]3945dc7c0de800000000c70424398b4100c3e800000000c70424bd884100c3",
-        "of(ExpHP.bullet-cap.fix-laser-cap(44, 4295549, 4296302))": "6801030000e8[codecave:ExpHP.bullet-cap.get-new-cap]3945d47c0de800000000c704246e8e4100c3e800000000c704247d8b4100c3",
-        "of(ExpHP.bullet-cap.fix-laser-cap(16, 4343866, 4344196))": "6801030000e8[codecave:ExpHP.bullet-cap.get-new-cap]3945f07c0de800000000c7042484494200c3e800000000c704243a484200c3",
-        "of(ExpHP.bullet-cap.fix-laser-cap(16, 4344507, 4344802))": "6801030000e8[codecave:ExpHP.bullet-cap.get-new-cap]3945f07c0de800000000c70424e24b4200c3e800000000c70424bb4a4200c3",
-        "of(ExpHP.bullet-cap.fix-laser-cap(4, 4345440, 4346047))": "6801030000e8[codecave:ExpHP.bullet-cap.get-new-cap]3945fc7c0de800000000c70424bf504200c3e800000000c70424604e4200c3",
-        "of(ExpHP.bullet-cap.fix-laser-cap(8, 4350966, 4352590))": "6801030000e8[codecave:ExpHP.bullet-cap.get-new-cap]3945f87c0de800000000c704244e6a4200c3e800000000c70424f6634200c3",
-        "of(ExpHP.bullet-cap.fix-laser-cap(4, 4353148, 4353795))": "6801030000e8[codecave:ExpHP.bullet-cap.get-new-cap]3945fc7c0de800000000c70424036f4200c3e800000000c704247c6c4200c3",
         "of(ExpHP.bullet-cap.pointerize-items-spawn(24))": "8b55e88b1201cac3",
         "of(ExpHP.bullet-cap.pointerize-items-spawn-wrap(24, eax))": "8b45e88b008945f8c3",
         "of(ExpHP.bullet-cap.pointerize-item-tick(204, 36))": "8b8534ffffff8b008945dcc3",
@@ -84,6 +84,55 @@
             "addr": "0x42f0db",
             "expected": "e8c085ffff",
             "code": "E9 [codecave:of(ExpHP.bullet-cap.install)]"
+        },
+        "ExpHP.bullet-cap.fix-laser-cap(36, 4294845, 4295481)": {
+            "expected": "837ddc40 // 0f8d",
+            "addr": [
+                "0x4188b3"
+            ],
+            "code": "E9 [codecave:of(ExpHP.bullet-cap.fix-laser-cap(36, 4294845, 4295481))] // CC"
+        },
+        "ExpHP.bullet-cap.fix-laser-cap(44, 4295549, 4296302)": {
+            "expected": "837dd440 // 0f8d",
+            "addr": [
+                "0x418b73"
+            ],
+            "code": "E9 [codecave:of(ExpHP.bullet-cap.fix-laser-cap(44, 4295549, 4296302))] // CC"
+        },
+        "ExpHP.bullet-cap.fix-laser-cap(16, 4343866, 4344196)": {
+            "expected": "837df040 // 0f8d",
+            "addr": [
+                "0x424830"
+            ],
+            "code": "E9 [codecave:of(ExpHP.bullet-cap.fix-laser-cap(16, 4343866, 4344196))] // CC"
+        },
+        "ExpHP.bullet-cap.fix-laser-cap(16, 4344507, 4344802)": {
+            "expected": "837df040 // 0f8d",
+            "addr": [
+                "0x424ab1"
+            ],
+            "code": "E9 [codecave:of(ExpHP.bullet-cap.fix-laser-cap(16, 4344507, 4344802))] // CC"
+        },
+        "ExpHP.bullet-cap.fix-laser-cap(4, 4345440, 4346047)": {
+            "expected": "837dfc40 // 0f8d",
+            "addr": [
+                "0x424e56"
+            ],
+            "code": "E9 [codecave:of(ExpHP.bullet-cap.fix-laser-cap(4, 4345440, 4346047))] // CC"
+        },
+        "ExpHP.bullet-cap.fix-laser-cap(8, 4350966, 4352590)": {
+            "expected": "837df840 // 0f8d",
+            "addr": [
+                "0x4263ec"
+            ],
+            "code": "E9 [codecave:of(ExpHP.bullet-cap.fix-laser-cap(8, 4350966, 4352590))] // CC"
+        },
+        "ExpHP.bullet-cap.fix-laser-cap(4, 4353148, 4353795)": {
+            "expected": "837dfc40 // 0f8d",
+            "addr": [
+                "0x426c72"
+            ],
+            "code": "E9 [codecave:of(ExpHP.bullet-cap.fix-laser-cap(4, 4353148, 4353795))] // CC"
         },
         "ExpHP.bullet-cap.pointerize-bullets-constructor": {
             "addr": "0x423388",
@@ -249,55 +298,6 @@
                 "0x4263c6"
             ],
             "code": "E8 [codecave:of(ExpHP.bullet-cap.pointerize-lasers-reg(ecx))] // 90"
-        },
-        "ExpHP.bullet-cap.fix-laser-cap(36, 4294845, 4295481)": {
-            "expected": "837ddc40 // 0f8d",
-            "addr": [
-                "0x4188b3"
-            ],
-            "code": "E9 [codecave:of(ExpHP.bullet-cap.fix-laser-cap(36, 4294845, 4295481))] // CC"
-        },
-        "ExpHP.bullet-cap.fix-laser-cap(44, 4295549, 4296302)": {
-            "expected": "837dd440 // 0f8d",
-            "addr": [
-                "0x418b73"
-            ],
-            "code": "E9 [codecave:of(ExpHP.bullet-cap.fix-laser-cap(44, 4295549, 4296302))] // CC"
-        },
-        "ExpHP.bullet-cap.fix-laser-cap(16, 4343866, 4344196)": {
-            "expected": "837df040 // 0f8d",
-            "addr": [
-                "0x424830"
-            ],
-            "code": "E9 [codecave:of(ExpHP.bullet-cap.fix-laser-cap(16, 4343866, 4344196))] // CC"
-        },
-        "ExpHP.bullet-cap.fix-laser-cap(16, 4344507, 4344802)": {
-            "expected": "837df040 // 0f8d",
-            "addr": [
-                "0x424ab1"
-            ],
-            "code": "E9 [codecave:of(ExpHP.bullet-cap.fix-laser-cap(16, 4344507, 4344802))] // CC"
-        },
-        "ExpHP.bullet-cap.fix-laser-cap(4, 4345440, 4346047)": {
-            "expected": "837dfc40 // 0f8d",
-            "addr": [
-                "0x424e56"
-            ],
-            "code": "E9 [codecave:of(ExpHP.bullet-cap.fix-laser-cap(4, 4345440, 4346047))] // CC"
-        },
-        "ExpHP.bullet-cap.fix-laser-cap(8, 4350966, 4352590)": {
-            "expected": "837df840 // 0f8d",
-            "addr": [
-                "0x4263ec"
-            ],
-            "code": "E9 [codecave:of(ExpHP.bullet-cap.fix-laser-cap(8, 4350966, 4352590))] // CC"
-        },
-        "ExpHP.bullet-cap.fix-laser-cap(4, 4353148, 4353795)": {
-            "expected": "837dfc40 // 0f8d",
-            "addr": [
-                "0x426c72"
-            ],
-            "code": "E9 [codecave:of(ExpHP.bullet-cap.fix-laser-cap(4, 4353148, 4353795))] // CC"
         },
         "ExpHP.bullet-cap.pointerize-items-spawn(24)": {
             "expected": "8b55e8 // 03d1",

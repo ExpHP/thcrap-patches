@@ -89,5 +89,4 @@ struc ListSpec
     .struct_ptr: resd 1
     .limit: resd 2
     .head_ptr_offset: resd 1
-    .struct_id: resd 1  ; struct id from `base_exphp` for finding relocated fields, or 0
 endstruc

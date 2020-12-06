@@ -530,7 +530,7 @@ def define_counters_pofv(game, thc, defs):
         thc.codecave(f'{pn}-bullet-fairy-data', thc.data(read_bmgr_field(limit_addr(0x41506f-4, -1), count_offset=0x25e164)))
         thc.codecave(f'{pn}-bullet-rival-data', thc.data(read_bmgr_field(limit_addr(0x41508a-4, -1), count_offset=0x25e168)))
         thc.codecave(f'{pn}-laser-data', thc.data(
-            specs.array(bmgr_ptr, limit_addr(0x413c15-4, -1), array_offset=0x24d424, field_offset=0x584, stride=0x59c, struct_id=STRUCT_BULLET_MGR),
+            specs.array(bmgr_ptr, limit_addr(0x413c15-4), array_offset=0x24d424, field_offset=0x584, stride=0x59c, struct_id=STRUCT_BULLET_MGR),
         ))
 
         read_emgr_field = partial(specs.field, side_base + 0x10, limit=limit_addr(0x411639-4), struct_id=STRUCT_ENEMY_MGR)
