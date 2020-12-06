@@ -4,7 +4,7 @@
 	"patches": {
 		"anm_leak": "(15-17) Fixes TH16's crashes on large releases, and adds some related performance improvements.",
 		"base_exphp": "Provides functions that help other patches support patches like bullet_cap without directly depending on them.",
-		"bullet_cap": "(07-08, 10-17 STGs) Makes the bullet cap, laser cap, and cancel cap configurable.\nDefaults to 16x everything. To configure, see http://exphp.github.io/thpages/#/mods/bullet-cap",
+		"bullet_cap": "(06-09, 10-17 STGs) Makes the bullet cap, laser cap, and cancel cap configurable.\nDefaults to 16x everything. To configure, see http://exphp.github.io/thpages/#/mods/bullet-cap",
 		"c_key": "(17) Make Ctrl and C behave as separate keys internally, for use by other patches. (C maps to 0x4)",
 		"continue": "(10-12) Fixes the continue system. plz don't save cursed 3cc replays kthx",
 		"ctrl_speedup": "(10-17, 128) Makes Ctrl to speedup work outside of replays.",
