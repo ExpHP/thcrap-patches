@@ -23,6 +23,7 @@ all: \
 	ultra \
 	anm-leak \
 	auto-release \
+	coop-sa \
 
 REPO=patches
 PERSONAL=personal
@@ -326,3 +327,22 @@ auto-release: \
 
 $(DIR)/th%.js: $(DIR)/th%.yaml
 	scripts/convert-yaml.py $^ >$@
+
+#================================================
+
+DIR=$(PERSONAL)/coop-sa
+
+.PHONY: coop-sa
+coop-sa: \
+	$(DIR)/global.js \
+	$(DIR)/$(TH11_VER).js \
+
+.INTERMEDIATE: $(DIR)/global.asm.yaml
+$(DIR)/global.js: $(DIR)/global.asm.yaml $(DIR)/options.yaml $(DIR)/protection.yaml
+	scripts/convert-yaml.py $^ >$@
+
+$(DIR)/binhacks.th%.yaml: $(DIR)/binhacks.py $(BINHACK_HELPER_PY)
+	$(PYTHON) $< --game th$* >$@
+
+$(DIR)/th%.js: $(DIR)/binhacks.th%.yaml
+	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)

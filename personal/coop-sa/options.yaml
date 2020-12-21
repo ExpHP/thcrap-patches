@@ -1,0 +1,4 @@
+options:
+  coop-sa.num-extra-players:
+    type: "i32"
+    val: 2
