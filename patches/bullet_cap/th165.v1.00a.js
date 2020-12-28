@@ -15,7 +15,8 @@
         "cancel-cap": "ffff ffff",
         "bullet-cap-config.anm-search-lag-spike-size": "ffff ffff",
         "bullet-cap-config.mof-sa-lag-spike-size": "ffff ffff",
-        "of(ExpHP.bullet-cap.install)": "51e8[codecave:ExpHP.bullet-cap.initialize]59b8b0974300ffd0e800000000c704241e974200c3"
+        "of(ExpHP.bullet-cap.install)": "51e8[codecave:ExpHP.bullet-cap.initialize]59b8b0974300ffd0e800000000c704241e974200c3",
+        "of(ExpHP.bullet-cap.reuse-bullet-mgr)": "a10c554b0085c07507b88da74700ffd0e800000000c70424b0eb4000c3"
     },
     "options": {
         "bullet-cap.bullet-cap": {
@@ -48,6 +49,22 @@
             "addr": "0x429719",
             "expected": "e892000100",
             "code": "E9 [codecave:of(ExpHP.bullet-cap.install)]"
+        },
+        "ExpHP.bullet-cap.reuse-bullet-mgr": {
+            "addr": "0x40ebab",
+            "expected": "e8 ddbb0600",
+            "code": "E9 [codecave:of(ExpHP.bullet-cap.reuse-bullet-mgr)]"
+        },
+        "ExpHP.bullet-cap.no-zero-bullet-mgr": {
+            "addr": "0x40ee7f",
+            "expected": "c7050c554b0000000000",
+            "code": "9090 90909090 90909090"
+        },
+        "ExpHP.bullet-cap.leak-bullet-mgr": {
+            "addr": [
+                "0x40eeb0"
+            ],
+            "code": "90 90909090"
         }
     }
 }

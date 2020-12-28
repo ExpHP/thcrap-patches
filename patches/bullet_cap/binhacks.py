@@ -266,5 +266,62 @@ def add_other_binhacks(game, thc, defs):
     if game == 'th11': perf_hack(0x4561ed, jmp_addr=0x456205, expected='8b822c567b00')
     if game == 'th13': perf_hack(0x46fbae, jmp_addr=0x46fbd1, expected='8b820882f400', extra_cleanup='pop ebp')
 
+    # Leak and reuse Bullet Manager in TH15-TH165.
+    #
+    # Fixes crashes on starting a new game after a previous one in these games.
+    # The crashes are due to difficulty finding contiguous memory regions for reallocating bullet manager,
+    # especially when using the anm_leak patch to fix midgame crashes.
+    if 'th15' <= game <= 'th165':
+        bmgr = {
+            'th15': 0x4e9a6c,
+            'th16': 0x4a6dac,
+            'th165': 0x4b550c,
+        }[game]
+
+        def keep_bullet_manager(binhack_addr):
+            thc.binhack('leak-bullet-mgr', {
+                'addr': binhack_addr,
+                'code': '90 90909090',
+            })
+
+        def no_zero_bullet_manager(binhack_addr):
+            thc.binhack('no-zero-bullet-mgr', {
+                'addr': binhack_addr,
+                'expected': thc.asm(f'mov dword ptr [{bmgr:#x}], 0x0'),
+                'code': '9090 90909090 90909090',
+            })
+
+        def reuse_bullet_manager(binhack_addr, expected, malloc):
+            jmp_addr = binhack_addr + 5
+            thc.binhack('reuse-bullet-mgr', {
+                'addr': binhack_addr,
+                'expected': expected,
+                'codecave': thc.asm(lambda c: f'''
+                    mov  eax, dword ptr [{bmgr:#x}]
+                    test eax, eax
+                    jnz  noalloc
+                    mov  eax, {malloc:#x}
+                    call eax
+                noalloc:
+                    {c.jmp(jmp_addr)}
+                ''')
+            })
+
+        # Apply reuse_bullet_manager at the 'call malloc' in BulletManager::operator new.
+        # Apply keep_bullet_manager at every 'call free' after a call to the BulletManager destructor.
+        if game == 'th15':
+            reuse_bullet_manager(0x4191f9, expected='e8 a1710700', malloc=0x49039f)
+            no_zero_bullet_manager(0x419184)
+            keep_bullet_manager([0x41923a, 0x419279, 0x4192a3, 0x421739, 0x43c8dd])
+        elif game == 'th16':
+            reuse_bullet_manager(0x411df9, expected='e8 ae2b0600', malloc=0x4749ac)
+            no_zero_bullet_manager(0x411d88)
+            keep_bullet_manager([0x411e37, 0x42d463])
+        elif game == 'th165':
+            reuse_bullet_manager(0x40ebab, expected='e8 ddbb0600', malloc=0x47a78d),
+            no_zero_bullet_manager(0x40ee7f)
+            keep_bullet_manager([0x40eeb0])
+        else: assert False, game
+
 if __name__ == '__main__':
     main()
