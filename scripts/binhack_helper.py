@@ -425,7 +425,7 @@ class ThcrapGen:
         
         # Make sure all addresses are hexadecimal strings
         def hexify_if_int(x):
-            if isinstance(x, int): return f'{x:#x}'
+            if isinstance(x, int): return '{:#x}'.format(x)  # NOTE: .format() to work around GitHub highlighting bug in f-strings
             else: return x
 
         for binhack in cereal['binhacks'].values():
