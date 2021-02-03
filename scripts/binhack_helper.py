@@ -139,12 +139,12 @@ class CodeHelper:
     def jmp(self, addr):
         """ Generate asm text for an unconditional jump to an absolute address, without any side-effects. """
         symbol = _random_symbol()
-        return f'''
-            call {symbol}
-        {symbol}:
-            mov dword ptr [esp], {addr:#x}
+        return '''
+            call {}
+        {}:
+            mov dword ptr [esp], {:#x}
             ret
-        '''
+        '''.format(symbol, symbol, addr)  # NOTE: .format() as workaround for a bug in Github's highlighting of {:#x} in f strings
     def multipush(self, *exprs):
         """ Generate asm text for pushes of multiple dword-sized things. """
         return '; '.join(f'push {e}' for e in exprs)
