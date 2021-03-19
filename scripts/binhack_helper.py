@@ -12,6 +12,7 @@ import sys
 import re
 import struct
 import os.path
+import typing as tp
 
 # Debug flag. Set this to True to make the hex strings more similar to what they were
 # prior to the introduction of python scripts.  This can assist in the use of
@@ -274,7 +275,7 @@ def _thcrap_codecave_ref(name, kind):
 
 class Binhack(dict):
     """ dict for the yaml of a single binhack, with convenience methods. """
-    def at(self, addr):
+    def at(self, addr: tp.Union[int, tp.Iterable[int]]):
         """ Adds an address (or iterable of addresses) to 'addr'. """
         if isinstance(addr, collections.Iterable):
             for x in addr: self.at(x)
@@ -307,20 +308,31 @@ class BinhackCollection:
         """ Alternate way of writing ``self(*args, **kw).at(addr)`` that lets you put the address first. """
         self(*args, **kw).at(addr)
 
-    def __call__(self, *args, **kw):
+    def __call__(self, *args, **kw) -> Binhack:
         name_with_args = self._format_name(*args, **kw)
         if name_with_args not in self.binhacks:
             self.binhacks[name_with_args] = Binhack(self.callback(*args, **kw))
         return self.binhacks[name_with_args]
 
+SizedInt = tp.Union['Int8', 'Int16', 'Int32', 'Int64']
+SizedFloat = tp.Union['Float32', 'Float64']
+
+BasicDataArg = tp.Union[int, str, float, bytes, SizedInt, SizedFloat]
+DataArg = tp.Union[BasicDataArg, tp.Callable[[DataHelper], BasicDataArg], tp.Iterable[BasicDataArg]]
+
 class ThcrapGen:
+    auto_prefix: str
+    binhack_collections: tp.Dict[str, BinhackCollection]
+    single_binhacks: tp.Dict[str, Binhack]
+    codecaves: tp.Dict[str, str]
+
     def __init__(self, auto_prefix=None):
         self.auto_prefix = auto_prefix
         self.binhack_collections = {}
         self.single_binhacks = {}
         self.codecaves = {}
 
-    def binhack_collection(self, name, callback):
+    def binhack_collection(self, name, callback) -> BinhackCollection:
         """
         Define a new parameterized collection of binhacks.
 
@@ -332,7 +344,7 @@ class ThcrapGen:
         self.binhack_collections[name] = BinhackCollection(name=name, callback=callback)
         return self.binhack_collections[name]
 
-    def binhack(self, name, binhack):
+    def binhack(self, name: str, binhack: Binhack) -> Binhack:
         """
         Define a single binhack, with corresponding yaml.
 
@@ -344,7 +356,7 @@ class ThcrapGen:
         self.single_binhacks[name] = Binhack(binhack)
         return self.single_binhacks[name]
 
-    def codecave(self, name, hex):
+    def codecave(self, name: str, hex: str):
         """
         Define a codecave, with its corresponding hex string.
         """
@@ -353,7 +365,7 @@ class ThcrapGen:
             raise KeyError(f'codecave {repr(name)} already exists')
         self.codecaves[name] = hex
 
-    def asm(self, asm):
+    def asm(self, asm: tp.Union[str, tp.Callable[[CodeHelper], str]]):
         """
         Compile an x86 assembly string into hexadecimal for thcrap.
 
@@ -380,7 +392,7 @@ class ThcrapGen:
             asm = asm(ctx)
         return ctx._asm_to_thcrap_hex(asm)
 
-    def data(self, data):
+    def data(self, data: DataArg):
         """
         Compile a stream of data into hexadecimal for thcrap.
 

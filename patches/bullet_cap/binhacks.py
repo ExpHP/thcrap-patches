@@ -105,7 +105,7 @@ def add_initializing_binhack(game, thc, defs):
     else:
         assert False, game
 
-def add_other_binhacks(game, thc, defs):
+def add_other_binhacks(game, thc: binhack_helper.ThcrapGen, defs):
     # UFO (and GFW) actually has a bug in some of its loops over items where it misses the
     # last 16 cancel items because ZUN forgot to include UFOs in the iteration count.
     #
@@ -272,55 +272,58 @@ def add_other_binhacks(game, thc, defs):
     # The crashes are due to difficulty finding contiguous memory regions for reallocating bullet manager,
     # especially when using the anm_leak patch to fix midgame crashes.
     if 'th15' <= game <= 'th165':
-        bmgr = {
-            'th15': 0x4e9a6c,
-            'th16': 0x4a6dac,
-            'th165': 0x4b550c,
+        bullet_mgr, item_mgr, malloc = {
+            'th15': (0x4e9a6c, 0x4e9a9c, 0x49039f),
+            'th16': (0x4a6dac, 0x4a6ddc, 0x4749ac),
+            'th165': (0x4b550c, 0x4b5634, 0x47a78d),
         }[game]
 
-        def keep_bullet_manager(binhack_addr):
-            thc.binhack('leak-bullet-mgr', {
-                'addr': binhack_addr,
-                'code': '90 90909090',
-            })
+        # nops out a 'call free'
+        keep_manager = thc.binhack('leak-mgrs', {'code': '90 90909090'}).at
 
-        def no_zero_bullet_manager(binhack_addr):
-            thc.binhack('no-zero-bullet-mgr', {
-                'addr': binhack_addr,
-                'expected': thc.asm(f'mov dword ptr [{bmgr:#x}], 0x0'),
-                'code': '9090 90909090 90909090',
-            })
+        _no_zero_manager = thc.binhack_collection('no-zero-mgr', lambda mgr: {
+            'expected': thc.asm(f'mov dword ptr [{mgr:#x}], 0x0'),
+            'code': '9090 90909090 90909090',
+        })
+        no_zero_manager = lambda binhack_addr, mgr: _no_zero_manager(mgr=mgr).at(binhack_addr)
 
-        def reuse_bullet_manager(binhack_addr, expected, malloc):
-            jmp_addr = binhack_addr + 5
-            thc.binhack('reuse-bullet-mgr', {
-                'addr': binhack_addr,
-                'expected': expected,
-                'codecave': thc.asm(lambda c: f'''
-                    mov  eax, dword ptr [{bmgr:#x}]
-                    test eax, eax
-                    jnz  noalloc
-                    mov  eax, {malloc:#x}
-                    call eax
-                noalloc:
-                    {c.jmp(jmp_addr)}
-                ''')
-            })
+        _reuse_manager = thc.binhack_collection('reuse-mgr', lambda mgr, expected, jmp_addr: {
+            'expected': expected,
+            'codecave': thc.asm(lambda c: f'''
+                mov  eax, dword ptr [{mgr:#x}]
+                test eax, eax
+                jnz  noalloc
+                mov  eax, {malloc:#x}
+                call eax
+            noalloc:
+                {c.jmp(jmp_addr)}
+            ''')
+        })
+        reuse_manager = lambda binhack_addr, mgr, expected: _reuse_manager(mgr=mgr, expected=expected, jmp_addr=binhack_addr+5).at(binhack_addr)
 
         # Apply reuse_bullet_manager at the 'call malloc' in BulletManager::operator new.
         # Apply keep_bullet_manager at every 'call free' after a call to the BulletManager destructor.
         if game == 'th15':
-            reuse_bullet_manager(0x4191f9, expected='e8 a1710700', malloc=0x49039f)
-            no_zero_bullet_manager(0x419184)
-            keep_bullet_manager([0x41923a, 0x419279, 0x4192a3, 0x421739, 0x43c8dd])
+            reuse_manager(0x4191f9, mgr=bullet_mgr, expected='e8 a1710700')
+            reuse_manager(0x43f76a, mgr=item_mgr, expected='e8 300c0500')
+            no_zero_manager(0x419184, mgr=bullet_mgr)
+            no_zero_manager(0x43f6ee, mgr=item_mgr)
+            keep_manager([0x41923a, 0x419279, 0x4192a3, 0x421739, 0x43c8dd])  # bullet_mgr
+            keep_manager([0x421799, 0x43c8f7, 0x43f7f9, 0x43f823])  # item_mgr
         elif game == 'th16':
-            reuse_bullet_manager(0x411df9, expected='e8 ae2b0600', malloc=0x4749ac)
-            no_zero_bullet_manager(0x411d88)
-            keep_bullet_manager([0x411e37, 0x42d463])
+            reuse_manager(0x411df9, mgr=bullet_mgr, expected='e8 ae2b0600')
+            reuse_manager(0x42f469, mgr=item_mgr, expected='e8 3e550400')
+            no_zero_manager(0x411d88, mgr=bullet_mgr)
+            no_zero_manager(0x42f3db, mgr=item_mgr)
+            keep_manager([0x411e37, 0x42d463])  # bullet_mgr
+            keep_manager([0x42d482, 0x42f4a7])  # item_mgr
         elif game == 'th165':
-            reuse_bullet_manager(0x40ebab, expected='e8 ddbb0600', malloc=0x47a78d),
-            no_zero_bullet_manager(0x40ee7f)
-            keep_bullet_manager([0x40eeb0])
+            reuse_manager(0x40ebab, mgr=bullet_mgr, expected='e8 ddbb0600'),
+            reuse_manager(0x42bb2a, mgr=item_mgr, expected='e8 5eec0400'),
+            no_zero_manager(0x40ee7f, mgr=bullet_mgr)
+            no_zero_manager(0x42bcd1, mgr=item_mgr)
+            keep_manager([0x40eeb0])  # bullet_mgr
+            keep_manager([0x42bce7])  # item_mgr
         else: assert False, game
 
 if __name__ == '__main__':
