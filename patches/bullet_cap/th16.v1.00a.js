@@ -16,7 +16,8 @@
         "bullet-cap-config.anm-search-lag-spike-size": "ffff ffff",
         "bullet-cap-config.mof-sa-lag-spike-size": "ffff ffff",
         "of(ExpHP.bullet-cap.install)": "51e8[codecave:ExpHP.bullet-cap.initialize]59b8b0c54300ffd0e800000000c7042473d74200c3",
-        "of(ExpHP.bullet-cap.reuse-bullet-mgr)": "a1ac6d4a0085c07507b8ac494700ffd0e800000000c70424fe1d4100c3"
+        "of(ExpHP.bullet-cap.reuse-mgr(4877740, e8 ae2b0600, 4267518))": "a1ac6d4a0085c07507b8ac494700ffd0e800000000c70424fe1d4100c3",
+        "of(ExpHP.bullet-cap.reuse-mgr(4877788, e8 3e550400, 4387950))": "a1dc6d4a0085c07507b8ac494700ffd0e800000000c704246ef44200c3"
     },
     "options": {
         "bullet-cap.bullet-cap": {
@@ -50,22 +51,42 @@
             "expected": "e83dee0000",
             "code": "E9 [codecave:of(ExpHP.bullet-cap.install)]"
         },
-        "ExpHP.bullet-cap.reuse-bullet-mgr": {
-            "addr": "0x411df9",
-            "expected": "e8 ae2b0600",
-            "code": "E9 [codecave:of(ExpHP.bullet-cap.reuse-bullet-mgr)]"
-        },
-        "ExpHP.bullet-cap.no-zero-bullet-mgr": {
-            "addr": "0x411d88",
-            "expected": "c705ac6d4a0000000000",
-            "code": "9090 90909090 90909090"
-        },
-        "ExpHP.bullet-cap.leak-bullet-mgr": {
+        "ExpHP.bullet-cap.leak-mgrs": {
+            "code": "90 90909090",
             "addr": [
                 "0x411e37",
-                "0x42d463"
+                "0x42d463",
+                "0x42d482",
+                "0x42f4a7"
+            ]
+        },
+        "ExpHP.bullet-cap.no-zero-mgr(4877740)": {
+            "expected": "c705ac6d4a0000000000",
+            "code": "9090 90909090 90909090",
+            "addr": [
+                "0x411d88"
+            ]
+        },
+        "ExpHP.bullet-cap.no-zero-mgr(4877788)": {
+            "expected": "c705dc6d4a0000000000",
+            "code": "9090 90909090 90909090",
+            "addr": [
+                "0x42f3db"
+            ]
+        },
+        "ExpHP.bullet-cap.reuse-mgr(4877740, e8 ae2b0600, 4267518)": {
+            "expected": "e8 ae2b0600",
+            "addr": [
+                "0x411df9"
             ],
-            "code": "90 90909090"
+            "code": "E9 [codecave:of(ExpHP.bullet-cap.reuse-mgr(4877740, e8 ae2b0600, 4267518))]"
+        },
+        "ExpHP.bullet-cap.reuse-mgr(4877788, e8 3e550400, 4387950)": {
+            "expected": "e8 3e550400",
+            "addr": [
+                "0x42f469"
+            ],
+            "code": "E9 [codecave:of(ExpHP.bullet-cap.reuse-mgr(4877788, e8 3e550400, 4387950))]"
         }
     }
 }
