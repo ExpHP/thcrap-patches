@@ -56,33 +56,42 @@ def add_hacks(game, thc):
             '''),
         }).at([0x413190, 0x413260])
 
-    elif 'th14' <= game <= 'th17':
+    elif 'th14' <= game <= 'th18':
+        count_1_offset, count_2_offset, exflags_offset = {
+            'th14': (0x364, 0x366, 0x36c),
+            'th15': (0x364, 0x366, 0x36c),
+            'th16': (0x364, 0x366, 0x36c),
+            'th165': (0x364, 0x366, 0x36c),
+            'th17': (0x364, 0x366, 0x36c),
+            'th18': (0x46c, 0x46e, 0x474),
+        }[game]
+
         thc.binhack('ultra-increase', {
             'expected': thc.asm(f'   movss dword ptr [esp+0x10], xmm0   '),
             'call-codecave': thc.asm(f'''
                 add  esp, 0x4  # use esp from original code
                 movss dword ptr [esp+0x10], xmm0
-                shl  word ptr [edi+{0x364:#x}], 0x2
-                shl  word ptr [edi+{0x366:#x}], 0x2
+                shl  word ptr [edi+{count_1_offset:#x}], 0x4
+                shl  word ptr [edi+{count_2_offset:#x}], 0x4
                 sub  esp, 0x4
                 ret
             '''),
         }).at({
             'th14': 0x41922c, 'th15': 0x41c646, 'th16': 0x414e26,
-            'th165': 0x412b16, 'th17': 0x418356,
+            'th165': 0x412b16, 'th17': 0x418356, 'th18': 0x4207e6,
         }[game])
 
         thc.binhack('ultra-decrease', {
-            'expected': thc.asm(f'   test byte ptr [edi+{0x36c:#x}], 0x20   '),
+            'expected': thc.asm(f'   test byte ptr [edi+{exflags_offset:#x}], 0x20   '),
             'call-codecave': thc.asm(f'''
-                shr  word ptr [edi+{0x364:#x}], 0x2
-                shr  word ptr [edi+{0x366:#x}], 0x2
-                test byte ptr [edi+{0x36c:#x}], 0x20
+                shr  word ptr [edi+{count_1_offset:#x}], 0x4
+                shr  word ptr [edi+{count_2_offset:#x}], 0x4
+                test byte ptr [edi+{exflags_offset:#x}], 0x20
                 ret
             '''),
         }).at({
             'th14': 0x419293, 'th15': 0x41c6b3, 'th16': 0x414e93,
-            'th165': 0x412b83, 'th17': 0x4183c3,
+            'th165': 0x412b83, 'th17': 0x4183c3, 'th18': 0x420853,
         }[game])
 
 

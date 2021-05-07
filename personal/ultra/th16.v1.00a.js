@@ -17,7 +17,7 @@
         }
     },
     "codecaves": {
-        "of(ExpHP.ultra.ultra-increase)": "83c404f30f1144241066c1a7640300000266c1a7660300000283ec04c3",
-        "of(ExpHP.ultra.ultra-decrease)": "66c1af640300000266c1af6603000002f6876c03000020c3"
+        "of(ExpHP.ultra.ultra-increase)": "83c404f30f1144241066c1a7640300000466c1a7660300000483ec04c3",
+        "of(ExpHP.ultra.ultra-decrease)": "66c1af640300000466c1af6603000004f6876c03000020c3"
     }
 }
