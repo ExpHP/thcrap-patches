@@ -67,7 +67,8 @@ TH15_VER = th15.v1.00b
 TH16_VER = th16.v1.00a
 TH165_VER = th165.v1.00a
 TH17_VER = th17.v1.00b
-TH18_VER = th18.v0.02a
+#TH18_VER = th18.v0.02a
+TH18_VER = th18.v1.00a
 
 #================================================
 
@@ -317,7 +318,10 @@ anm-leak: \
 $(DIR)/global.js: $(DIR)/global.asm.yaml
 	scripts/convert-yaml.py $^ >$@
 
-$(DIR)/th%.js: $(DIR)/binhacks.yaml
+$(DIR)/binhacks.th%.yaml: $(DIR)/binhacks.py $(BINHACK_HELPER_PY)
+	$(PYTHON) $< --game th$* >$@
+
+$(DIR)/th%.js: $(DIR)/binhacks.th%.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
 
 #================================================

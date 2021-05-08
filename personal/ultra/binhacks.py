@@ -63,6 +63,7 @@ def add_hacks(game, thc):
             'th16': (0x364, 0x366, 0x36c),
             'th165': (0x364, 0x366, 0x36c),
             'th17': (0x364, 0x366, 0x36c),
+            # 'th18.v0.02a': (0x46c, 0x46e, 0x474),
             'th18': (0x46c, 0x46e, 0x474),
         }[game]
 
@@ -78,7 +79,8 @@ def add_hacks(game, thc):
             '''),
         }).at({
             'th14': 0x41922c, 'th15': 0x41c646, 'th16': 0x414e26,
-            'th165': 0x412b16, 'th17': 0x418356, 'th18': 0x4207e6,
+            'th165': 0x412b16, 'th17': 0x418356,
+            'th18.v0.02a': 0x4207e6, 'th18': 0x427896,
         }[game])
 
         thc.binhack('ultra-decrease', {
@@ -91,7 +93,8 @@ def add_hacks(game, thc):
             '''),
         }).at({
             'th14': 0x419293, 'th15': 0x41c6b3, 'th16': 0x414e93,
-            'th165': 0x412b83, 'th17': 0x4183c3, 'th18': 0x420853,
+            'th165': 0x412b83, 'th17': 0x4183c3,
+            'th18.v0.02a': 0x420853, 'th18': 0x427903,
         }[game])
 
 
