@@ -104,6 +104,10 @@ search:  ; HEADER: AUTO
     abs_jmp_hack 0x47f4ea  ; TH18tr
     abs_jmp_hack 0x488baa  ; TH18
 
+; TH18:  0x475bc2  (8b86dc060000)
+optimized_draw_layer:
+    abs_jmp_hack 0x475c58  ; TH18
+
 new_alloc_vm:  ; DELETE
 new_dealloc_vm:  ; DELETE
 new_search:  ; DELETE

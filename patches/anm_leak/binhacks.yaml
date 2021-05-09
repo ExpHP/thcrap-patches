@@ -92,4 +92,5 @@ binhacks:
       - /item-if(th16):  "E800000000C7042403F04600C3" # abs_jmp_hack 0x46f003
       - /item-if(th165): "E800000000C704245A534700C3" # abs_jmp_hack 0x47535a
       - /item-if(th17):  "E800000000C70424DA644700C3" # abs_jmp_hack 0x4764da
+      # - /item-if(th18):  "E800000000C70424EAF44700C3" # abs_jmp_hack 0x47f4ea
       - /item-if(th18):  "E800000000C70424EAF44700C3" # abs_jmp_hack 0x47f4ea

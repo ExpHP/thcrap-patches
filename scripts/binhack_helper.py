@@ -167,9 +167,8 @@ class CodeHelper:
 
         prev_stop = 0
         hex_parts = []
-        # iterate locations in reverse
         sorted_locations = sorted(locations.items(), key=lambda tup: tup[1][0])
-        for symbol, (start, stop) in reversed(sorted_locations):
+        for symbol, (start, stop) in sorted_locations:
             replacement = self.replacements[symbol]
             if stop - start != 4:
                 raise RuntimeError(f'symbol {symbol} ({replacement}) occupies bytes {start}:{stop} which is not a dword!')

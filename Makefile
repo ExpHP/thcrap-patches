@@ -318,7 +318,9 @@ anm-leak: \
 $(DIR)/global.js: $(DIR)/global.asm.yaml
 	scripts/convert-yaml.py $^ >$@
 
-$(DIR)/binhacks.th%.yaml: $(DIR)/binhacks.py $(BINHACK_HELPER_PY)
+$(DIR)/global.asm.yaml: $(DIR)/common.asm
+
+$(DIR)/binhacks.th%.yaml: $(DIR)/binhacks.py $(BINHACK_HELPER_PY) $(DIR)/common.asm
 	$(PYTHON) $< --game th$* >$@
 
 $(DIR)/th%.js: $(DIR)/binhacks.th%.yaml

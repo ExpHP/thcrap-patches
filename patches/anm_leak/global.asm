@@ -6,11 +6,16 @@
 game_data:  ; HEADER: AUTO
     dd 0  ; default definition, overriden per-game
 
+layer_data:  ; HEADER: AUTO
+    dd 0  ; default definition, overriden per-game
+
 state:  ; HEADER: AUTO
 istruc State  ; DELETE
     at State.batches_ptr, dd 0
 iend  ; DELETE
 
+; Get the AnmBatches singleton, allocating it if it doesn't exist.
+;
 ; __stdcall AnmBatches* GetAnmBatches()
 get_batches:  ; HEADER: AUTO
     mov  eax, state  ; REWRITE: <codecave:AUTO>
@@ -32,6 +37,9 @@ get_batches:  ; HEADER: AUTO
     mov  dword [ecx+AnmBatches.active_batch], eax
     mov  dword [ecx+AnmBatches.last_batch], eax
     mov  dword [ecx+AnmBatches.free_count], BATCH_LEN
+    mov  dword [ecx+AnmBatches.draw_write_batch], 0xdeadbeef
+    mov  dword [ecx+AnmBatches.draw_write_index], 0xdeadbeef
+    mov  dword [ecx+AnmBatches.num_to_draw], 0xdeadbeef
     mov  eax, ecx
 .done:
     ret
@@ -221,6 +229,8 @@ new_dealloc_vm:  ; HEADER: AUTO
     inc  dword [eax+AnmBatches.free_count]
     ret 0x4
 
+; ==============================================================================
+
 ; An experimental optimized search-by-id function.
 ; After some more thorough playtesting with ultra patches I should have a better idea of whether
 ; this is worth the extra trouble. (that said, if you're killing 5000 enemies, this makes
@@ -294,10 +304,9 @@ search_batch_for_id:  ; HEADER: AUTO
 ;
 ; __stdcall AnmVm* SearchInactiveBatchForId(AnmBatchHeader*, int id)
 search_inactive_batch_for_id:  ; HEADER: AUTO
-    %push
-    prologue_sd
-    %define %$batch  ebp+0x08
-    %define %$id     ebp+0x0c
+    func_begin
+    func_arg %$batch, %$id
+    func_prologue edi, esi
     mov  edx, [%$batch]
 
     ; Fast path for empty batches.
@@ -340,5 +349,316 @@ search_inactive_batch_for_id:  ; HEADER: AUTO
 .fail:
     xor  eax, eax
 .done:
-    epilogue_sd
-    ret  0x8
+    func_epilogue
+    func_ret
+    func_end
+
+; ==============================================================================
+
+; An optimized draw-layer function for games that have a horribly inefficient one.
+;
+; (TH17 and beyond, though it's TH18 where it first becomes noticeable)
+
+
+; __stdcall void BuildFastLayerArray(AnmManager*)
+rebuild_layer_array:  ; HEADER: AUTO
+    func_begin
+    func_arg  %$anm_manager
+    func_local %$game_data, %$layer_data, %$batches
+    func_prologue esi, edi, ebx
+
+    %define %$reg_layer_data esi
+    mov  %$reg_layer_data, layer_data  ; REWRITE: <codecave:AUTO>
+
+    call get_batches  ; REWRITE: [codecave:AUTO]
+    mov  [%$batches], eax
+
+    push dword [%$batches]
+    call clear_draw_array  ; REWRITE: [codecave:AUTO]
+
+    mov  eax, [%$anm_manager]
+    add  eax, [%$reg_layer_data + GameLayerData.world_list_offset]
+    push dword [eax]
+    push dword 0  ; is_ui
+    push dword [%$batches]
+    call add_list_to_draw_array  ; REWRITE: [codecave:AUTO]
+
+    mov  eax, [%$anm_manager]
+    add  eax, [%$reg_layer_data + GameLayerData.ui_list_offset]
+    push dword [eax]
+    push dword 1  ; is_ui
+    push dword [%$batches]
+    call add_list_to_draw_array  ; REWRITE: [codecave:AUTO]
+
+    func_epilogue
+    func_ret
+    func_end
+
+; __stdcall void ClearDrawArray(AnmBatches*)
+clear_draw_array:  ; HEADER: AUTO
+    func_begin
+    func_arg  %$batches
+    func_prologue
+
+    mov  ecx, [%$batches]
+    mov  eax, [ecx + AnmBatches.active_batch]
+    mov  dword [ecx + AnmBatches.draw_write_batch], eax
+    mov  dword [ecx + AnmBatches.draw_write_index], 0
+    mov  dword [ecx + AnmBatches.num_to_draw], 0
+
+    func_epilogue
+    func_ret
+    func_end
+
+; __stdcall void AddToDrawArray(AnmBatches*, int is_ui, AnmVmList*)
+add_list_to_draw_array:  ; HEADER: AUTO
+    func_begin
+    func_arg  %$batches, %$is_ui, %$head
+    func_prologue esi, edi, ebx
+    %define %$reg_layer_data esi
+    %define %$reg_list_node ebx
+    mov  %$reg_layer_data, layer_data  ; REWRITE: <codecave:AUTO>
+    mov  %$reg_list_node, [%$head]
+
+.iter:
+    cmp  %$reg_list_node, 0
+    jz   .done
+
+    mov  eax, [%$reg_list_node+0x0]  ; vm*
+    mov  ecx, [%$reg_layer_data + GameLayerData.flags_hi_offset]
+    mov  ecx, [eax+ecx]  ; flags_hi
+    test ecx, [%$reg_layer_data + GameLayerData.flags_hi_hide]
+    jnz  .skip
+
+    push dword eax  ; vm
+    push dword [%$is_ui]
+    push dword [%$batches]
+    call add_vm_to_draw_array  ; REWRITE: [codecave:AUTO]
+
+.skip:
+    mov  %$reg_list_node, [%$reg_list_node+0x4]
+    jmp .iter
+.done:
+    func_epilogue
+    func_ret
+    func_end
+
+; __stdcall void AddToDrawArray(AnmBatches*, int is_ui, AnmVm*)
+add_vm_to_draw_array:  ; HEADER: AUTO
+    func_begin
+    func_arg  %$batches, %$is_ui, %$vm
+    func_local  %$effective_layer
+    func_prologue esi, edi
+    %define %$reg_layer_data esi
+    mov  %$reg_layer_data, layer_data  ; REWRITE: <codecave:AUTO>
+
+    mov  eax, [%$vm]
+    mov  ecx, [%$reg_layer_data + GameLayerData.layer_offset]
+    mov  eax, [eax+ecx]
+    push eax
+    push dword [%$is_ui]
+    call effective_layer  ; REWRITE: [codecave:AUTO]
+    mov  [%$effective_layer], eax
+
+    mov  ecx, [%$batches]
+    inc  dword [ecx + AnmBatches.num_to_draw]
+    cmp  dword [ecx + AnmBatches.draw_write_index], BATCH_LEN
+    jne  .no_new_batch
+
+    ; begin writing to a new batch
+    mov  eax, [ecx + AnmBatches.draw_write_batch]
+    mov  eax, [eax + AnmBatchHeader.next_batch]
+    mov  dword [ecx + AnmBatches.draw_write_batch], eax
+    mov  dword [ecx + AnmBatches.draw_write_index], 0
+
+.no_new_batch:
+    mov  edx, [ecx + AnmBatches.draw_write_index]
+    imul edx, DrawArrayItem_size
+    add  edx, AnmBatchHeader.draw_array
+    add  edx, [ecx + AnmBatches.draw_write_batch]
+
+    mov  eax, [%$vm]
+    mov  dword [edx+DrawArrayItem.vm], eax
+    mov  eax, [%$effective_layer]
+    mov  dword [edx+DrawArrayItem.layer], eax
+
+    inc  dword [ecx + AnmBatches.draw_write_index]
+
+    func_epilogue
+    func_ret
+    func_end
+
+; ----------------------------
+
+; __stdcall void FastDrawLayer(int is_ui, int layer)
+effective_layer:  ; HEADER: AUTO
+    func_begin
+    func_arg  %$is_ui, %$layer
+    func_local %$delta
+    func_prologue esi
+    %define %$reg_layer_data esi
+    mov  %$reg_layer_data, layer_data  ; REWRITE: <codecave:AUTO>
+
+    mov  eax, [%$reg_layer_data + GameLayerData.ui_layer_start]
+    sub  eax, [%$reg_layer_data + GameLayerData.world_ui_layer_start]
+    mov  [%$delta], eax
+
+    cmp  dword [%$is_ui], 0
+    jne  .ui
+
+.world:
+    mov  edx, [%$layer]
+    sub  edx, [%$reg_layer_data + GameLayerData.ui_layer_start]
+    cmp  edx, [%$reg_layer_data + GameLayerData.ui_layer_count]
+    jae  .keep_layer
+.world_ui:
+    mov  eax, [%$layer]
+    sub  eax, [%$delta]
+    jmp  .end
+
+; UI VMs:
+.ui:
+    ; If it's an effective UI world layer, remap to the corresponding UI layer
+    mov  edx, [%$layer]
+    sub  edx, [%$reg_layer_data + GameLayerData.world_ui_layer_start]
+    cmp  edx, [%$reg_layer_data + GameLayerData.ui_layer_count]
+    jae  .ui_other
+.ui_world:
+    mov  eax, [%$layer]
+    add  eax, [%$delta]
+    jmp  .end
+.ui_other:
+    ; If it's any other non-UI layer, remap to the default UI layer
+    mov  edx, [%$layer]
+    sub  edx, [%$reg_layer_data + GameLayerData.ui_layer_start]
+    cmp  edx, [%$reg_layer_data + GameLayerData.ui_layer_count]
+    jb   .keep_layer
+.ui_default:
+    mov  eax, [%$reg_layer_data + GameLayerData.ui_layer_default]
+    jmp  .end
+
+.keep_layer:
+    mov  eax, [%$layer]
+.end:
+    func_epilogue
+    func_ret
+    func_end
+
+; Generates arrays of values from EffectiveLayer so you can check that it's working correctly.
+;
+; __stdcall void DebugEffectiveLayer()
+debug_effective_layer:  ; HEADER: AUTO
+    func_begin
+    func_local
+    func_prologue esi, edi, ebx
+
+    sub  esp, 0x300
+    mov  edi, esp
+    mov  ecx, 0x300
+    xor  eax, eax
+    rep  stosb
+
+    lea  eax, [esp+0x100]
+    push dword 0  ; is_ui
+    push eax  ; dest
+    call debug_effective_layer_loop  ; REWRITE: [codecave:AUTO]
+
+    lea  eax, [esp+0x200]
+    push dword 1  ; is_ui
+    push eax  ; dest
+    call debug_effective_layer_loop  ; REWRITE: [codecave:AUTO]
+
+    int 3  ;  Now go check esp+0x100 and 0x200
+
+    add esp, 0x300
+    func_epilogue
+    func_ret
+    func_end
+
+; __stdcall void DebugEffectiveLayerLoop(int* dest, int is_ui)
+debug_effective_layer_loop:  ; HEADER: AUTO
+    func_begin
+    func_arg  %$dest, %$is_ui
+    func_local %$delta
+    func_prologue esi, edi, ebx
+
+    mov  esi, 0
+.iter:
+    push esi
+    push dword [%$is_ui]
+    call effective_layer  ; REWRITE: [codecave:AUTO]
+    mov  ecx, [%$dest]
+    mov  [ecx], eax
+    add  dword [%$dest], 4
+
+    inc  esi
+    cmp  esi, 50
+    jl   .iter
+.end:
+    func_epilogue
+    func_ret
+    func_end
+
+; ----------------------------
+
+; __stdcall void FastDrawLayer(AnmManager*, int layer)
+fast_draw_layer:  ; HEADER: AUTO
+    func_begin
+    func_arg  %$anm_manager, %$layer
+    func_local %$batches, %$remaining, %$cur_batch, %$index_in_batch, %$cur_entry
+    func_prologue edi, esi, ebx
+    %define %$reg_layer_data esi
+    mov  %$reg_layer_data, layer_data  ; REWRITE: <codecave:AUTO>
+
+    call get_batches  ; REWRITE: [codecave:AUTO]
+    mov  [%$batches], eax
+
+    mov  eax, [eax + AnmBatches.active_batch]
+    mov  dword [%$cur_batch], eax
+    mov  dword [%$index_in_batch], 0
+    lea  eax, [eax + AnmBatchHeader.draw_array]
+    mov  dword [%$cur_entry], eax
+
+    ; call debug_effective_layer  ; REWRITE: [codecave:AUTO]
+
+    mov  eax, [%$batches]
+    mov  eax, [eax + AnmBatches.num_to_draw]
+    mov  dword [%$remaining], eax
+.iter:
+    cmp  dword [%$remaining], 0
+    je   .end
+
+    cmp  dword [%$index_in_batch], BATCH_LEN
+    jne  .not_next_batch
+.next_batch:
+    mov  eax, [%$cur_batch]
+    mov  eax, [eax + AnmBatchHeader.next_batch]
+    mov  dword [%$cur_batch], eax
+    mov  dword [%$index_in_batch], 0
+    lea  eax, [eax + AnmBatchHeader.draw_array]
+    mov  dword [%$cur_entry], eax
+
+.not_next_batch:
+    ; Check if this VM is in the layer we're drawing
+    mov  eax, [%$cur_entry]
+    mov  eax, [eax + DrawArrayItem.layer]
+    cmp  dword [%$layer], eax
+    jnz  .nodraw
+.draw:
+    mov  eax, [%$cur_entry]
+    mov  eax, [eax + DrawArrayItem.vm]
+    push eax
+    mov  ecx, [%$anm_manager]
+    mov  eax, [%$reg_layer_data + GameLayerData.func_draw_vm]
+    call eax
+
+.nodraw:
+    dec  dword [%$remaining]
+    inc  dword [%$index_in_batch]
+    add  dword [%$cur_entry], DrawArrayItem_size
+    jmp  .iter
+
+.end:
+    func_epilogue
+    func_ret
+    func_end
