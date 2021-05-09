@@ -232,11 +232,15 @@ new_dealloc_vm:  ; HEADER: AUTO
 ; ==============================================================================
 
 ; An experimental optimized search-by-id function.
-; After some more thorough playtesting with ultra patches I should have a better idea of whether
-; this is worth the extra trouble. (that said, if you're killing 5000 enemies, this makes
-; the difference between several seconds and several minutes!)
 ;
-; (if only we could just throw a std::unordered_map at it and call it a day...)
+; Performance characteristics compared to vanilla:
+;
+; - Is SIGNIFICANTLY FASTER than vanilla for large numbers of VMs.  This is thanks to the drastic reduction
+;   in number of cache misses that occur while searching batches beyond the first batch.
+;
+; - Can be SIGNIFICANTLY SLOWER than vanilla for large numbers of calls per frame, in games where the
+;   patch must disable the game's own built-in "fast path".  This is because it is particularly slow
+;   to search through the batch that's currently being modified.
 ;
 ; __stdcall AnmVm* NewSearch(int id)
 new_search:  ; HEADER: AUTO
@@ -265,6 +269,15 @@ new_search:  ; HEADER: AUTO
     epilogue_sd
     ret  0x4
 
+; A slow search through the active batch.
+;
+; Why must this be so slow, you ask?  Well, unlike inactive batches, the active batch does not
+; have a cached array of IDs because we'd have to keep updating it.
+;
+; (why not simply update it in sync with the VMs as they are allocated? Because it'd require too
+;  many binhacks; the game doesn't assign an ID until LONG after it has allocated a VM, and there
+;  are several functions where it does this)
+;
 ; __stdcall AnmVm* SearchBatchForId(AnmBatchHeader*, int id)
 search_batch_for_id:  ; HEADER: AUTO
     prologue_sd
@@ -354,11 +367,21 @@ search_inactive_batch_for_id:  ; HEADER: AUTO
     func_end
 
 ; ==============================================================================
+; TH18 PERF FIXES
 
-; An optimized draw-layer function for games that have a horribly inefficient one.
+; After various profiling tests, the issue with performance in TH18 appears to be that the on_draw functions
+; for drawing each layer are incurring tons of cache misses as they iterate through the entire on_tick lists.
+; (While this doesn't come as much of a surprise, at this time it is not entirely understood why the same
+; problem isn't witnessed to this extent in TH17...)
 ;
-; (TH17 and beyond, though it's TH18 where it first becomes noticeable)
-
+; In any case, we optimize this by performing a SINGLE scan across the linked list each tick to build
+; a cache-friendly batched array of the data needed by the on_draws, and then we scan that array for each layer.
+;
+; In UM, this reduces the total number of linked list scans from 46 per tick (45 on_draws + 1 on_tick)
+; to just 2 per tick (1 on_draw + 1 on_tick).
+;
+; NOTE: Using this currently REQUIRES that the vanilla "fast path" for VM allocation is disabled
+;       to ensure that there is a sufficient number of batches to hold the array.
 
 ; __stdcall void BuildFastLayerArray(AnmManager*)
 rebuild_layer_array:  ; HEADER: AUTO
@@ -424,6 +447,8 @@ add_list_to_draw_array:  ; HEADER: AUTO
     cmp  %$reg_list_node, 0
     jz   .done
 
+    ; AnmManager::render_layer will skip VMs that have certain flags enabled.  We'll check this ahead
+    ; of time and simply leave those VMs out of the array, so that the array doesn't have to contain flags.
     mov  eax, [%$reg_list_node+0x0]  ; vm*
     mov  ecx, [%$reg_layer_data + GameLayerData.flags_hi_offset]
     mov  ecx, [eax+ecx]  ; flags_hi
@@ -455,6 +480,10 @@ add_vm_to_draw_array:  ; HEADER: AUTO
     mov  eax, [%$vm]
     mov  ecx, [%$reg_layer_data + GameLayerData.layer_offset]
     mov  eax, [eax+ecx]
+
+    ; The vanilla AnmManager::render_layer transforms each VM's layer number based on which list it is in.
+    ; We do this ahead of time, because (a) that's dumb, and (b) this lets us avoid having to record which
+    ; list each VM came from.
     push eax
     push dword [%$is_ui]
     call effective_layer  ; REWRITE: [codecave:AUTO]
@@ -639,7 +668,16 @@ fast_draw_layer:  ; HEADER: AUTO
     mov  dword [%$cur_entry], eax
 
 .not_next_batch:
-    ; Check if this VM is in the layer we're drawing
+    ; Check if this VM should be drawn by us.
+    ;
+    ; In the vanilla game, the logic in the layer-rendering function is a bit more complicated;
+    ; it checks some bitflags on the VM, and it also transforms the layer number of the VM based on which list
+    ; it is in before it compares to the expected layer.
+    ;
+    ; In our case, both of these things are already handled; We filtered based on flags when building the
+    ; array, and we already transformed the layer numbers.
+    ;
+    ; Therefore... simply compare the layer!
     mov  eax, [%$cur_entry]
     mov  eax, [eax + DrawArrayItem.layer]
     cmp  dword [%$layer], eax

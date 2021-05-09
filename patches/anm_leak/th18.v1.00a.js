@@ -21,14 +21,19 @@
             "code": "e800000000c704240f944800c3"
         },
         "ExpHP.anm-buffers.build-layer-list": {
-            "addr": "0x401423",
-            "expected": "51 803dbe17520000",
-            "code": "E9 [codecave:of(ExpHP.anm-buffers.build-layer-list)] // CCCCCC"
+            "addr": "0x401449",
+            "expected": "8b4840 53 33db",
+            "code": "E9 [codecave:of(ExpHP.anm-buffers.build-layer-list)] // CC"
         },
         "ExpHP.anm-buffers.optimized-draw-layer": {
             "addr": "0x488282",
             "expected": "8b86f0060000",
             "code": "E9 [codecave:of(ExpHP.anm-buffers.optimized-draw-layer)] // CC"
+        },
+        "ExpHP.anm-buffers.forgetful-effect-manager": {
+            "addr": "0x42af45",
+            "expected": "e8f6db0500",
+            "code": "5831c09090"
         }
     },
     "codecaves": {
@@ -37,7 +42,7 @@
         "of(ExpHP.anm-buffers.alloc)": "e8[codecave:ExpHP.anm-buffers.new-alloc-vm]e800000000c7042419944800c3",
         "of(ExpHP.anm-buffers.dealloc)": "56e8[codecave:ExpHP.anm-buffers.new-dealloc-vm]c3",
         "of(ExpHP.anm-buffers.search)": "50e8[codecave:ExpHP.anm-buffers.new-search]e800000000c70424aa8b4800c3",
-        "of(ExpHP.anm-buffers.build-layer-list)": "51ff355cf65100e8[codecave:ExpHP.anm-buffers.rebuild-layer-array]803dbe17520000e800000000c704242b144000c3",
+        "of(ExpHP.anm-buffers.build-layer-list)": "50ff355cf65100e8[codecave:ExpHP.anm-buffers.rebuild-layer-array]588b48405331dbe800000000c704244f144000c3",
         "of(ExpHP.anm-buffers.optimized-draw-layer)": "ff750856e8[codecave:ExpHP.anm-buffers.fast-draw-layer]e800000000c7042428834800c3"
     }
 }

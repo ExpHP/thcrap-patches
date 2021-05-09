@@ -12,12 +12,13 @@ def main():
     thc = binhack_helper.ThcrapGen('ExpHP.anm-buffers.')
     defs = binhack_helper.NasmDefs.from_file_rel('common.asm')
 
-    add_binhacks(game, thc, defs)
+    add_main_binhacks(game, thc, defs)
+    add_th18_perf_fixes(game, thc, defs)
 
     thc.print()
 
 
-def add_binhacks(game, thc: binhack_helper.ThcrapGen, defs):
+def add_main_binhacks(game, thc: binhack_helper.ThcrapGen, defs):
     thc.codecave('game-data', thc.data({
         'th15':  defs.GameData(vm_size=0x608, id_offset=0x544, func_malloc=0x49039f),
         'th16':  defs.GameData(vm_size=0x5fc, id_offset=0x538, func_malloc=0x4749ac),
@@ -25,35 +26,6 @@ def add_binhacks(game, thc: binhack_helper.ThcrapGen, defs):
         'th17':   defs.GameData(vm_size=0x600, id_offset=0x538, func_malloc=0x47b250),
         'th18.v0.02a': defs.GameData(vm_size=0x60c, id_offset=0x544, func_malloc=0x484851),
         'th18':   defs.GameData(vm_size=0x60c, id_offset=0x544, func_malloc=0x48dc71),
-    }[game]))
-
-    thc.codecave('layer-data', thc.data({
-        'th15': 0, 'th16': 0, 'th165': 0,
-        'th18.v0.02a': 0,
-        'th17': defs.GameLayerData(
-            func_draw_vm=0x46f8c0,
-            world_list_offset=0x6dc,
-            layer_offset=0x18,
-            ui_list_offset=0x6e4,
-            flags_hi_offset=0x534,
-            flags_hi_hide=0x60,
-            ui_layer_start=36,
-            ui_layer_count=7,  # note: WBaWC has a bug at 0x475c27 where it maps 8 layers into UI layers. We won't reproduce that
-            world_ui_layer_start=24,
-            ui_layer_default=38,
-        ),
-        'th18': defs.GameLayerData(
-            func_draw_vm=0x481210,
-            world_list_offset=0x6f0,
-            layer_offset=0x18,
-            ui_list_offset=0x6f8,
-            flags_hi_offset=0x538,
-            flags_hi_hide=0x180,
-            ui_layer_start=37,
-            ui_layer_count=9,
-            world_ui_layer_start=24,
-            ui_layer_default=39,
-        ),
     }[game]))
 
     # ===================================
@@ -133,32 +105,59 @@ def add_binhacks(game, thc: binhack_helper.ThcrapGen, defs):
     # the number of existing batches is adequate for the layer array.
     if game == 'th18': disable_fast_array(0x489339, 0x48940f)
 
-    # ===================================
 
-    # 
-    def build_layer_array(binhack_addr, jmp_addr, expected):
+def add_th18_perf_fixes(game, thc: binhack_helper.ThcrapGen, defs):
+    thc.codecave('layer-data', thc.data({
+        'th15': 0, 'th16': 0, 'th165': 0,
+        'th18.v0.02a': 0,
+        'th17': defs.GameLayerData(
+            func_draw_vm=0x46f8c0,
+            world_list_offset=0x6dc,
+            layer_offset=0x18,
+            ui_list_offset=0x6e4,
+            flags_hi_offset=0x534,
+            flags_hi_hide=0x60,
+            ui_layer_start=36,
+            ui_layer_count=7,  # note: WBaWC has a bug at 0x475c27 where it maps 8 layers into UI layers. We won't reproduce that
+            world_ui_layer_start=24,
+            ui_layer_default=38,
+        ),
+        'th18': defs.GameLayerData(
+            func_draw_vm=0x481210,
+            world_list_offset=0x6f0,
+            layer_offset=0x18,
+            ui_list_offset=0x6f8,
+            flags_hi_offset=0x538,
+            flags_hi_hide=0x180,
+            ui_layer_start=37,
+            ui_layer_count=9,
+            world_ui_layer_start=24,
+            ui_layer_default=39,
+        ),
+    }[game]))
+
+    def build_layer_array(binhack_addr, jmp_addr, anm_manager, expected):
         thc.binhack('build-layer-list', {
             'addr': binhack_addr,
             'expected': expected,
             'codecave': thc.asm(lambda c: f'''
-                # push ecx
-                # mov  ecx, dword ptr [0x51f65c]
-                # push ecx  # save
-                # push ecx
-                push ecx
-                push dword ptr [0x51f65c]
+                push eax  # save
+
+                push dword ptr [{anm_manager:#x}]
                 call {c.rel_auto('rebuild-layer-array')}
-                # pop  ecx
-                # push 0
-                # push ecx
-                # call {c.rel_auto('fast-draw-layer')}
-                cmp  byte ptr [0x5217be], 0
+
+                pop  eax  # recover
+                # original code
+                mov  ecx, dword ptr [eax+0x40]
+                push ebx
+                xor  ebx, ebx
                 {c.jmp(jmp_addr)}
             '''),
         })
-    # @@@@@@@@@@ FIXME AnmManager arg,  run_all_on_tick @@@@@@@@@@@@@@ Replace the entire part of the function inside the critical section.
-    #if game == 'th18': build_layer_array(0x487670, expected="6a00 e8e90b0000")
-    if game == 'th18': build_layer_array(0x401423, jmp_addr=0x40142b, expected="51 803dbe17520000")
+    # Finding a good place for this was tricky.  Oddly enough the on_draw that draws layer 0 does not always run,
+    # so I chose a spot inside UpdateFuncRegistry::run_all_on_draw.
+    # (AFTER aquiring the critical section)
+    if game == 'th18': build_layer_array(0x401449, jmp_addr=0x40144f, anm_manager=0x51f65c, expected='8b4840 53 33db')
 
     def optimize_draw_layer(binhack_addr, layer, anm_mgr_reg, jmp_addr, expected):
         thc.binhack('optimized-draw-layer', {
@@ -174,6 +173,31 @@ def add_binhacks(game, thc: binhack_helper.ThcrapGen, defs):
     # Replace the entire part of the function inside the critical section.
     if game == 'th18': optimize_draw_layer(0x488282, layer='ebp+0x8', anm_mgr_reg='esi', jmp_addr=0x488328, expected="8b86f0060000")
 
+    # ---------
+    # One last little hack:
+    #
+    # Because we were forced to disable the vanilla fast path for VMs, we actually deoptimized AnmManager::get_vm_with_id.
+    # A LOT.  Which is bad because EffectManager::on_tick calls it. A LOT.  Enough to slow us down to 20FPS.
+    #
+    # But here's the funny thing:
+    #
+    # As far as I can tell, these calls in EffectManager::on_tick currently serve NO PURPOSE.
+    # The array and these calls were added in LoLK.  To my understanding, having reversed the relevant parts of TH15 and TH16,
+    # all it's doing is keeping track of which effects are still alive, so that those VMs can be duplicated when a PointDevice
+    # snapshot is created.  Which will obviously never happen in TH18.
+    #
+    # So... we'll just make it unconditionally believe that all effect VMs are dead, and it shouldn't be a problem.
+    def no_effect_manager(binhack_addr, expected):
+        thc.binhack('forgetful-effect-manager', {
+            'addr': binhack_addr,
+            'expected': expected,
+            'code': thc.asm(lambda c: f'''
+                pop eax  # balance the stack
+                xor eax, eax
+                nop; nop
+            '''),
+        })
+    if game == 'th18': no_effect_manager(0x42af45, expected="e8f6db0500")
 
 if __name__ == '__main__':
     main()
