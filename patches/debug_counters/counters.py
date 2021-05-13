@@ -24,13 +24,12 @@ def main():
 
     main_binhack(game, thc, defs)
     aux_stuff(game, thc, defs)
-    if 'th06' <= game <= 'th17' and game != 'th09':
-        define_counters(game, thc, defs)
-        add_line_info(game, thc, defs)
-    elif game == 'th09':
+    if game == 'th09':
         define_counters_pofv(game, thc, defs)
         add_line_info_pofv(game, thc, defs)
-    else: assert False, game
+    else:
+        define_counters(game, thc, defs)
+        add_line_info(game, thc, defs)
 
     thc.print()
 
@@ -65,6 +64,7 @@ def main_binhack(game, thc, defs):
         'th16': binhack(0x426473, original="mov  eax, [0x4a6d98]", jmp_dest=0x426478),
         'th165': binhack(0x424267, original="mov  eax, [0x4b54f8]", jmp_dest=0x42426c),
         'th17': binhack(0x429fc3, original="mov  eax, [0x4b7678]", jmp_dest=0x429fc8),
+        'th18': binhack(0x43a3d3, original="mov  eax, [0x4cf2ac]", jmp_dest=0x43a3d8),
     }[game])
 
 def aux_stuff(game, thc, defs):
@@ -97,6 +97,7 @@ def aux_stuff(game, thc, defs):
         'th16': defs.ColorData(ascii_manager_ptr=0x4a6d98, color_offset=0x1920c),
         'th165': defs.ColorData(ascii_manager_ptr=0x4b54f8, color_offset=0x1c90c),
         'th17': defs.ColorData(ascii_manager_ptr=0x4b7678, color_offset=0x19214),
+        'th18': defs.ColorData(ascii_manager_ptr=0x4cf2ac, color_offset=0x19228),
     }[game]))
 
     DRAWF_DEBUG = {
@@ -119,11 +120,12 @@ def aux_stuff(game, thc, defs):
         'th15': 0x40c800,
         'th165': 0x408310,
         'th17': 0x408530,
+        'th18': 0x41a110,
     }[game]
 
     # Now wrap DRAWF_DEBUG to have the following ABI:
     # void __stdcall DrawfDebugInt(AsciiManager*, Float3*, char*, int current)
-    if 'th06' <= game <= 'th095' or 'th14' <= game <= 'th17' and game != 'th165':
+    if 'th06' <= game <= 'th095' or 'th14' <= game <= 'th18' and game != 'th165':
         # In these games drawf_debug WOULD be perfect except we that want callee-cleans-stack.
         drawf_debug_int = thc.asm(f'''
             enter 0x00, 0
@@ -139,7 +141,7 @@ def aux_stuff(game, thc, defs):
         ''')
 
     elif game == 'th165':
-        # In TH165 ONLY, the output pointer arg from TH125 returns. Strange.
+        # In this game, the function returns an "ASCII string ID".
         drawf_debug_int = thc.asm(f'''
             enter 0x00, 0
             sub  esp, 0x4
@@ -147,7 +149,7 @@ def aux_stuff(game, thc, defs):
             push [ebp+0x14]  # arg
             push [ebp+0x10]  # template
             push [ebp+0x0c]  # pos
-            push ecx  # the pesky output pointer from 128 is back
+            push ecx         # output pointer for AsciiStringId
             push [ebp+0x08]  # AsciiManager
             mov  eax, {DRAWF_DEBUG:#x}
             call eax
@@ -157,9 +159,8 @@ def aux_stuff(game, thc, defs):
             ret 0x10
         ''')
 
-    elif 'th10' <= game <= 'th12':
-        # Beginning of the bizarre-ABI era.
-        # The first three games only differ in the 'this' register.
+    elif 'th10' <= game <= 'th12' or game == 'th13':
+        # Standard bizarre-ABI era games.
         get_codecave = lambda this_reg: thc.asm(lambda c: f'''
             enter 0x00, 0
             {c.multipush('ebx', 'esi', 'edi')}
@@ -178,15 +179,16 @@ def aux_stuff(game, thc, defs):
             'th10': get_codecave(this_reg='esi'),
             'th11': get_codecave(this_reg='ecx'),
             'th12': get_codecave(this_reg='esi'),
+            'th13': get_codecave(this_reg='esi'),
         }[game]
 
     elif 'th125' <= game <= 'th128':
-        # pos is now on the stack, and some kind of output pointer arg was added.
+        # Bizarre-ABI era games that have AsciiStringIds.
         get_codecave = lambda this_reg: thc.asm(lambda c: f'''
             enter 0x00, 0
             {c.multipush('ebx', 'esi', 'edi')}
             sub  esp, 0x4
-            mov  edi, esp  # unknown output pointer added in DS
+            mov  edi, esp    # output pointer for AsciiStringId
             push [ebp+0x14]  # arg
             push [ebp+0x10]  # template
             push [ebp+0x0c]  # pos
@@ -204,28 +206,6 @@ def aux_stuff(game, thc, defs):
             'th128': get_codecave(this_reg='esi'),
         }[game]
 
-    elif game == 'th13':
-        # pos is back in ebx
-        get_codecave = lambda this_reg: thc.asm(lambda c: f'''
-            enter 0x00, 0
-            {c.multipush('ebx', 'esi', 'edi')}
-            sub  esp, 0x4
-            mov  edi, esp  # unknown output pointer added in DS
-            push [ebp+0x14]  # arg
-            push [ebp+0x10]  # template
-            mov  ebx, [ebp+0x0c]  # pos
-            mov  {this_reg}, [ebp+0x08]  # AsciiManager
-            mov  eax, {DRAWF_DEBUG:#x}
-            call eax
-            add  esp, 0x8  # caller cleans stack for varargs
-            add  esp, 0x4  # cleanup edi
-            {c.multipop('ebx', 'esi', 'edi')}
-            leave
-            ret 0x10
-        ''')
-        drawf_debug_int = {
-            'th13': get_codecave(this_reg='esi'),
-        }[game]
     else:
         assert False, game
 
@@ -277,7 +257,7 @@ def add_line_info(game, thc, defs):
         info.positioning(pos=(548.0, 460.0, 0.0), delta_y=-10.0)
     elif 'th11' <= game <= 'th13':
         info.positioning(pos=(546.0, 460.0, 0.0), delta_y=-10.0)
-    elif 'th14' <= game <= 'th17':
+    elif 'th14' <= game:
         info.positioning(pos=(552.0, 460.0, 0.0), delta_y=-10.0)
     else: assert False, game
 
@@ -289,9 +269,9 @@ def add_line_info(game, thc, defs):
         info.counter(b'%7d laser', 'laser-data')
         info.counter(b'%7d item ', 'normal-item-data')
         info.counter(b'%7d enemy', 'enemy-data')
-    elif 'th095' <= game <= 'th17':
+    elif 'th095' <= game:
         info.counter(b'%7d anmid', 'anmid-data')
-        if 'th15' <= game <= 'th17':
+        if 'th15' <= game:
             info.counter(b'%7d eff  ', 'effect-data')
         info.counter(b'%7d etama', 'bullet-data')
         info.counter(b'%7d laser', 'laser-data')
@@ -392,6 +372,7 @@ def define_counters(game, thc, defs):
         'th16': lambda: specs.array(0x4a6dac, limit_addr(0x4118b9-4, -1), array_offset=0x9c, field_offset=0xc72, stride=0x1478, struct_id=STRUCT_BULLET_MGR),
         'th165': lambda: specs.array(0x4b550c, limit_addr(0x40ebc7-4, -1), array_offset=0x9c, field_offset=0xe54, stride=0xe8c, struct_id=STRUCT_BULLET_MGR),
         'th17': lambda: specs.array(0x4b768c, limit_addr(0x414807-4, -1), array_offset=0xec, field_offset=0xe50, stride=0xe88, struct_id=STRUCT_BULLET_MGR),
+        'th18': lambda: specs.array(0x4cf2bc, limit_addr(0x423b37-4, -1), array_offset=0xec, field_offset=0xf68, stride=0xfa0, struct_id=STRUCT_BULLET_MGR),
     }[game]()))
 
     thc.codecave('normal-item-data', thc.data({
@@ -411,6 +392,7 @@ def define_counters(game, thc, defs):
         'th16': lambda: specs.array(0x4a6ddc, limit_value(600), array_offset=0x14, field_offset=0xc50, stride=0xc78, struct_id=STRUCT_ITEM_MGR),
         'th165': lambda: specs.zero(0x4b5634),
         'th17': lambda: specs.array(0x4b76b8, limit_value(600), array_offset=0x14, field_offset=0xc58, stride=0xc78, struct_id=STRUCT_ITEM_MGR),
+        'th18': lambda: specs.array(0x4cf2ec, limit_value(600), array_offset=0x14, field_offset=0xc74, stride=0xc94, struct_id=STRUCT_ITEM_MGR),
     }[game]()))
 
     thc.codecave('cancel-item-data', thc.data({
@@ -430,6 +412,7 @@ def define_counters(game, thc, defs):
         'th16': lambda: specs.array(0x4a6ddc, limit_addr(0x42f0ea-4, -600), array_offset=0x1d3954, field_offset=0xc50, stride=0xc78, struct_id=STRUCT_ITEM_MGR),
         'th165': lambda: specs.array(0x4b5634, limit_addr(0x42bb46-4, -0), array_offset=0x10, field_offset=0x630, stride=0x634, struct_id=STRUCT_ITEM_MGR),
         'th17': lambda: specs.array(0x4b76b8, limit_addr(0x4331f8-4, -600), array_offset=0x1d3954, field_offset=0xc58, stride=0xc78, struct_id=STRUCT_ITEM_MGR),
+        'th18': lambda: specs.array(0x4cf2ec, limit_addr(0x445868-4, -600), array_offset=0x1d7af4, field_offset=0xc74, stride=0xc94, struct_id=STRUCT_ITEM_MGR),
     }[game]()))
 
     thc.codecave('laser-data', thc.data({
@@ -449,6 +432,7 @@ def define_counters(game, thc, defs):
         'th16': lambda: specs.field(0x4a6ee0, limit_addr(0x431775-4), count_offset=0x5e4, struct_id=STRUCT_LASER_MGR),
         'th165': lambda: specs.field(0x4b5638, limit_addr(0x42cb65-4), count_offset=0x5e4, struct_id=STRUCT_LASER_MGR),
         'th17': lambda: specs.field(0x4b76bc, limit_addr(0x4355d5-4), count_offset=0x5e4, struct_id=STRUCT_LASER_MGR),
+        'th18': lambda: specs.field(0x4cf3f4, limit_addr(0x448935-4), count_offset=0x798, struct_id=STRUCT_LASER_MGR),
     }[game]()))
 
     if 'th095' <= game:
@@ -472,6 +456,7 @@ def define_counters(game, thc, defs):
             'th16': lambda: specs.anmid(0x4c0f48, limit_value(0x1fff), world_head_ptr_offset=0xdc, ui_head_ptr_offset=0xe4),
             'th165': lambda: specs.anmid(0x4ed88c, limit_value(0x1fff), world_head_ptr_offset=0xdc, ui_head_ptr_offset=0xe4),
             'th17': lambda: specs.anmid(0x509a20, limit_value(0x3fff), world_head_ptr_offset=0x6dc, ui_head_ptr_offset=0x6e4),
+            'th18': lambda: specs.anmid(0x51f65c, limit_value(0x7fff), world_head_ptr_offset=0x6f0, ui_head_ptr_offset=0x6f8),
         }[game]()))
     if game == 'th13':
         thc.codecave('spirit-data', thc.data(specs.field(0x4c22a4, limit_addr(0x438678-4), count_offset=0x8814, struct_id=STRUCT_SPIRIT_MGR)))
@@ -493,6 +478,7 @@ def define_counters(game, thc, defs):
         'th16': lambda: specs.field(0x4a6dc0, limit_none, count_offset=0x18c, struct_id=STRUCT_ENEMY_MGR),
         'th165': lambda: specs.field(0x4b551c, limit_none, count_offset=0x1b4, struct_id=STRUCT_ENEMY_MGR),
         'th17': lambda: specs.field(0x4b76a0, limit_none, count_offset=0x18c, struct_id=STRUCT_ENEMY_MGR),
+        'th18': lambda: specs.field(0x4cf2d0, limit_none, count_offset=0x198, struct_id=STRUCT_ENEMY_MGR),
     }[game]()))
 
     if 'th06' <= game <= 'th08':
@@ -512,12 +498,13 @@ def define_counters(game, thc, defs):
             'th08': specs.embedded(specs.array, 0x4ece60, limit_value(0xd), array_offset=0x8701c, field_offset=0x350, stride=0x360, struct_id=STRUCT_EFFECT_MGR),
         }[game]))
 
-    if 'th15' <= game <= 'th17':
+    if 'th15' <= game:
         thc.codecave('effect-data', thc.data({
             'th15': specs.dword_array(0x4e9a78, limit_addr(0x4228d1-4), array_offset=0x1c, struct_id=STRUCT_EFFECT_MGR),
             'th16': specs.dword_array(0x4a6db8, limit_addr(0x418ac1-4), array_offset=0x1c, struct_id=STRUCT_EFFECT_MGR),
             'th165': specs.dword_array(0x4b5518, limit_addr(0x415ef1-4), array_offset=0x1c, struct_id=STRUCT_EFFECT_MGR),
             'th17': specs.dword_array(0x4b7698, limit_addr(0x41b7e1-4), array_offset=0x1c, struct_id=STRUCT_EFFECT_MGR),
+            'th18': specs.dword_array(0x4cf2c8, limit_addr(0x42af41-4), array_offset=0x1c, struct_id=STRUCT_EFFECT_MGR),
         }[game]))
 
 def define_counters_pofv(game, thc, defs):

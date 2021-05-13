@@ -9,7 +9,7 @@
     },
     "codecaves": {
         "ExpHP.debug-counters.color-data": "60214c0060910100",
-        "ExpHP.debug-counters.drawf-debug-int": "c800000053565783ec0489e7ff7514ff75108b5d0c8b7508b8e0404000ffd083c40883c4045f5e5bc9c21000",
+        "ExpHP.debug-counters.drawf-debug-int": "c8000000535657ff7514ff75108b5d0c8b7508b8e0404000ffd083c4085f5e5bc9c21000",
         "ExpHP.debug-counters.bullet-data": "0100000074214c006cd94000ffffffff90000000be0b00005c13000000010000",
         "ExpHP.debug-counters.normal-item-data": "010000009c224c00000000005802000014000000a00b0000c80b000001010000",
         "ExpHP.debug-counters.cancel-item-data": "010000009c224c00bce24200a8fdffffd49c1b00a00b0000c80b000001010000",

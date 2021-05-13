@@ -229,6 +229,7 @@ debug-counters: \
 	$(DIR)/$(TH16_VER).js \
 	$(DIR)/$(TH165_VER).js \
 	$(DIR)/$(TH17_VER).js \
+	$(DIR)/$(TH18_VER).js \
 
 .INTERMEDIATE: $(DIR)/global.asm.yaml
 $(DIR)/global.js: $(DIR)/global.asm.yaml
