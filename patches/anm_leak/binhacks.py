@@ -101,6 +101,7 @@ def add_main_binhacks(game, thc: binhack_helper.ThcrapGen, defs):
     if game == 'th15': disable_fast_array(0x489479, 0x48954f)
     if game == 'th16': disable_fast_array(0x46f619, 0x46f6ef)
     if game == 'th165': disable_fast_array(0x475949, 0x475a1f)
+    if game == 'th17': disable_fast_array(0x476a79, 0x476b4f)
     # These games REQUIRE it because they use our layer-drawing optimizations and we need to make sure
     # the number of existing batches is adequate for the layer array.
     if game == 'th18': disable_fast_array(0x489339, 0x48940f)

@@ -1,18 +1,40 @@
 %define BATCH_LEN   0x1800
-; %define BATCH_LEN   0x100
+; %define BATCH_LEN   0x10
+
+; a very small nonzero discriminant is used in our numbering scheme used to identify when an ANM has died and a
+; new one has taken its location in the array before an ID search.
+%define DISCRIMINANT_BITS  5
+; mask used to simulate a modulus when incrementing the discriminant
+%define DISCRIMINANT_MOD_MASK  ((1 << DISCRIMINANT_BITS) - 1)
+%define DISCRIMINANT_SHIFT     (32 - DISCRIMINANT_BITS)
 
 ; %define BATCH_LEN   0x4  ; for testing
 
 struc BatchVmPrefix
     .batch: resd 1  ; pointer back to VM's batch
-    .in_use: resd 1  ; is this VM in use
+    .index: resd 1  ; index within this batch
+    ; The ID of the VM currently here in OUR numbering scheme. Zero if not in use.
+    ; In some games we will make the game use this as the VM's actual ID.
+    .our_id: resd 1
+    ; previously assigned discriminant, so we can assign them in increasing order.  (can be zero if this entry has never been used).
+    ; This is tracked per array item instead of globally so that fewer bits will suffice. (a value will not be reused for a long time)
+    .last_discriminant: resd 1
     .vm: resb 0
 endstruc
 
 struc AnmBatches
+    .batch_count: resd 1
     .free_count: resd 1  ; num free across all batches
-    .active_batch: resd 1  ; pointer to the first batch in the list, which is the one we are currently allocating from
-    .last_batch: resd 1  ; pointer to last batch for quickly appending to the tail
+    ; head and tail for the "active list."
+    ; In this list, the first batch is the one we're currently allocating from (the "active batch"),
+    ; and the rest is just a queue of inactive branches to try using again once this one fills.
+    .active_batch: resd 1
+    .last_batch: resd 1
+    ; head and tail for the "in creation order" list.
+    ; In games where we force the game to use our own ID numbering scheme, we can use this list
+    ; to optimize ID searches even further.
+    .first_batch_created: resd 1
+    .last_batch_created: resd 1
     ; stuff for the UM optimized draw loop
     .draw_write_batch: resd 1  ; pointer to batch whose draw_array is currently being populated
     .draw_write_index: resd 1  ; next index to write within a batch
@@ -25,11 +47,15 @@ struc DrawArrayItem
 endstruc
 
 struc AnmBatchHeader
-    .next_index: resd 1  ; next index to begin searching from in this page (helps speed up searches)
+    .creation_order_index: resd 1
+    .next_allocation_index: resd 1  ; next index to begin searching from in this page (helps speed up VM allocation)
     .free_count: resd 1  ; num free in batch
-    .next_batch: resd 1
+    .next_batch: resd 1  ; next batch in the active list (used for allocating VMs)
+    .next_batch_created: resd 1  ; next batch in order of creation
     ; More cache-friendly array of ids in an inactive batch.
     ; Each element corresponds to the matching item in the vms array.
+    ;
+    ; This is only used in games where we do not force the game to use our ID numbering system.
     .ids: resd BATCH_LEN
     ; An array used to optimize the draw loop for UM.
     ; There is actually *no correspondence* here with the items in the vms array.  The array is rewritten from scratch

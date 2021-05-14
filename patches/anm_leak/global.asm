@@ -31,11 +31,15 @@ get_batches:  ; HEADER: AUTO
     mov  ecx, state  ; REWRITE: <codecave:AUTO>
     mov  [ecx+State.batches_ptr], eax   ; (requires writable codecaves)
 
+    push 0
     call allocate_new_batch  ; REWRITE: [codecave:AUTO]
     mov  ecx, state  ; REWRITE: <codecave:AUTO>
     mov  ecx, [ecx+State.batches_ptr]
     mov  dword [ecx+AnmBatches.active_batch], eax
     mov  dword [ecx+AnmBatches.last_batch], eax
+    mov  dword [ecx+AnmBatches.first_batch_created], eax
+    mov  dword [ecx+AnmBatches.last_batch_created], eax
+    mov  dword [ecx+AnmBatches.batch_count], 1
     mov  dword [ecx+AnmBatches.free_count], BATCH_LEN
     mov  dword [ecx+AnmBatches.draw_write_batch], 0xdeadbeef
     mov  dword [ecx+AnmBatches.draw_write_index], 0xdeadbeef
@@ -58,17 +62,26 @@ new_alloc_vm:  ; HEADER: AUTO
     test eax, eax
     jnz  .noalloc
 
+.newbatch:
     ; deactivate this full batch now, because the new one we insert will be active.
     ; (scroll_to_free_batch doesn't handle this because it will see the new active one at front)
     push esi
     call deactivate_active_batch  ; REWRITE: [codecave:AUTO]
-    ; prepend a new batch
+
+    push dword [esi+AnmBatches.batch_count]
     call allocate_new_batch  ; REWRITE: [codecave:AUTO]
+    inc  dword [esi+AnmBatches.batch_count]
+    add  dword [esi+AnmBatches.free_count], BATCH_LEN
     mov  ecx, eax
+
+    ; prepend to the active list
     mov  eax, [esi+AnmBatches.active_batch]
     mov  [ecx+AnmBatchHeader.next_batch], eax
     mov  [esi+AnmBatches.active_batch], ecx
-    add  dword [esi+AnmBatches.free_count], BATCH_LEN
+    ; append to the creation order list
+    mov  eax, [esi+AnmBatches.last_batch_created]
+    mov  [eax+AnmBatchHeader.next_batch_created], ecx
+    mov  [esi+AnmBatches.last_batch_created], ecx
 .noalloc:
     dec  dword [esi+AnmBatches.free_count]
 
@@ -81,9 +94,12 @@ new_alloc_vm:  ; HEADER: AUTO
     epilogue_sd
     ret
 
-; __stdcall AnmBatchHeader* AllocateNewBatch()
+; __stdcall AnmBatchHeader* AllocateNewBatch(int creation_order_index)
 allocate_new_batch:  ; HEADER: AUTO
-    prologue_sd
+    func_begin
+    func_arg %$creation_order_index
+    func_local %$index
+    func_prologue esi, edi
     ; compute size of allocation
     mov  edi, game_data  ; REWRITE: <codecave:AUTO>
     mov  eax, [edi+GameData.vm_size]  ; vms...
@@ -95,26 +111,33 @@ allocate_new_batch:  ; HEADER: AUTO
     add  esp, 0x4
     mov  esi, eax
 
+    mov  eax, [%$creation_order_index]
+    mov  dword [esi+AnmBatchHeader.creation_order_index], eax
     mov  dword [esi+AnmBatchHeader.free_count], BATCH_LEN
     mov  dword [esi+AnmBatchHeader.next_batch], 0
-    mov  dword [esi+AnmBatchHeader.next_index], 0
+    mov  dword [esi+AnmBatchHeader.next_batch_created], 0
+    mov  dword [esi+AnmBatchHeader.next_allocation_index], 0
 
     ; initialize metadata for all array VMs.  (don't need to do anything for the VMs,
     ; the game will do that as each one is used)
     lea  eax, [esi+AnmBatchHeader.vms]
-    mov  ecx, BATCH_LEN
+    mov  ecx, 0
 .iter:
-    dec  ecx
-    js   .done
-    mov  dword [eax+BatchVmPrefix.in_use], 0
+    cmp  ecx, BATCH_LEN
+    jae  .done
+    mov  dword [eax+BatchVmPrefix.our_id], 0
+    mov  dword [eax+BatchVmPrefix.last_discriminant], 0
+    mov  dword [eax+BatchVmPrefix.index], ecx
     mov  dword [eax+BatchVmPrefix.batch], esi
     add  eax, [edi+GameData.vm_size]
     add  eax, BatchVmPrefix.vm
+    inc  ecx
     jmp  .iter
 .done:
     mov  eax, esi
-    epilogue_sd
-    ret
+    func_epilogue
+    func_ret
+    func_end
 
 ; Precondition: There exists at least one batch with at least one free VM.
 ; Postcondition: The first batch in the list has at least one free VM.
@@ -180,54 +203,154 @@ deactivate_active_batch:  ; HEADER: AUTO
 ; Given a batch with at least one free VM, select a VM to use from this batch
 ; and update any bookkeeping on the batch object and VM.
 ;
-; __stdcall AnmBatchHeader* ScrollToFreeBatch(AnmBatchHeader*)
+; __stdcall AnmVm* ScrollToFreeBatch(AnmBatchHeader*)
 take_free_vm_from_batch:  ; HEADER: AUTO
-    prologue_sd
-    mov  esi, [ebp+0x08]
-    mov  edx, game_data  ; REWRITE: <codecave:AUTO>
+    func_begin
+    func_arg %$batch
+    func_prologue esi, edi
+    %define %$reg_batch esi
+    %define %$reg_vm_prefix edi
 
-    dec  dword [esi+AnmBatchHeader.free_count]
-    jns  .no_ded
-    int 3  ; no free in this batch
-.no_ded:
+    mov  %$reg_batch, [%$batch]
+
+    dec  dword [%$reg_batch + AnmBatchHeader.free_count]
+    jns  .no_ded_1
+    die  ; no free in this batch; calling us was a bug!
+.no_ded_1:
+
+    push %$reg_batch
+    call locate_free_vm_in_batch  ; REWRITE: [codecave:AUTO]
+    mov  %$reg_vm_prefix, eax
+
+    ; Assign it an ID in our numbering scheme.  (note: in some games we end up not using this)
+    ;
+    ; For the most part, the ID is a flattened index into the concatenated array of all batches in creation order.
+    mov  eax, [%$reg_batch + AnmBatchHeader.creation_order_index]
+    imul eax, BATCH_LEN
+    add  eax, [%$reg_vm_prefix + BatchVmPrefix.index]
+    mov  [%$reg_vm_prefix + BatchVmPrefix.our_id], eax
+
+    shr  eax, DISCRIMINANT_SHIFT
+    and  eax, DISCRIMINANT_MOD_MASK
+    jz   .no_ded_2
+    ; if we're here, the "index" part of our ID ran into the discriminant.
+    ; Perhaps we should have fewer discriminant bits!
+    ; (it'd be nice to generate an alert box here, but...)
+    die
+.no_ded_2:
+
+    ; Similar to the vanilla game, some of the highest bits are used as a discriminant so that dead VMs are not
+    ; confused with new ones that have taken their place.
+    inc  dword [%$reg_vm_prefix + BatchVmPrefix.last_discriminant]
+    and  dword [%$reg_vm_prefix + BatchVmPrefix.last_discriminant], DISCRIMINANT_MOD_MASK
+    ; Ensure discriminant is nonzero so that IDs are nonzero.
+    jnz  .discriminant_is_nonzero
+    inc  dword [%$reg_vm_prefix + BatchVmPrefix.last_discriminant]
+.discriminant_is_nonzero:
+    mov  eax, [%$reg_vm_prefix + BatchVmPrefix.last_discriminant]
+    shl  eax, DISCRIMINANT_SHIFT
+    or   [%$reg_vm_prefix + BatchVmPrefix.our_id], eax
+
+    lea  eax, [%$reg_vm_prefix + BatchVmPrefix.vm]
+    func_epilogue
+    func_ret
+    func_end
+
+
+; Given a batch with at least one free VM, get a pointer to a free entry.
+;
+; __stdcall BatchVmPrefix* ScrollToFreeBatch(AnmBatchHeader*)
+locate_free_vm_in_batch:  ; HEADER: AUTO
+    func_begin
+    func_arg %$batch
+    func_prologue esi, edi
+    %define %$reg_game_data edi
+    %define %$reg_batch esi
+    mov  %$reg_game_data, game_data  ; REWRITE: <codecave:AUTO>
+    mov  %$reg_batch, [%$batch]
 
 .iter:
     ; get vm at index
-    mov  ecx, [edx+GameData.vm_size]
+    mov  ecx, [%$reg_game_data + GameData.vm_size]
     add  ecx, BatchVmPrefix.vm
-    imul ecx, [esi+AnmBatchHeader.next_index]
-    lea  ecx, [esi+AnmBatchHeader.vms + ecx]
+    imul ecx, [%$reg_batch + AnmBatchHeader.next_allocation_index]
+    lea  ecx, [%$reg_batch + AnmBatchHeader.vms + ecx]
     ; update next index
-    inc  dword [esi+AnmBatchHeader.next_index]
-    cmp  dword [esi+AnmBatchHeader.next_index], BATCH_LEN
-    jl   .nowrap
-    mov  dword [esi+AnmBatchHeader.next_index], 0
+    inc  dword [%$reg_batch + AnmBatchHeader.next_allocation_index]
+    cmp  dword [%$reg_batch + AnmBatchHeader.next_allocation_index], BATCH_LEN
+    jb   .nowrap
+    mov  dword [%$reg_batch + AnmBatchHeader.next_allocation_index], 0
 .nowrap:
     ; check if free
-    mov  eax, [ecx+BatchVmPrefix.in_use]
+    mov  eax, [ecx+BatchVmPrefix.our_id]
     test eax, eax
     jnz  .iter
 .done:
-    mov  dword [ecx+BatchVmPrefix.in_use], 1
-    lea  eax, [ecx+BatchVmPrefix.vm]
-    epilogue_sd
-    ret 0x4
+    mov  eax, ecx
+    func_epilogue
+    func_ret
+    func_end
+
+; ==============================================================================
 
 ; Replacement for the call to `free` that normally occurs when destroying a VM whose fast_id is -1.
 ;
 ; __stdcall void DeallocVm(AnmVm*)
 new_dealloc_vm:  ; HEADER: AUTO
+    call get_batches  ; REWRITE: [codecave:AUTO]
+    inc  dword [eax+AnmBatches.free_count]
+
     ; If this function is being called, the VM must be part of a batch, so let's access the metadata.
     mov  eax, [esp+0x04]
     lea  eax, [eax-BatchVmPrefix.vm]  ; metadata before the vm
 
-    mov  dword [eax+BatchVmPrefix.in_use], 0
-    mov  ecx, [eax+BatchVmPrefix.batch]
-    inc  dword [ecx+AnmBatchHeader.free_count]
+    mov  dword [eax+BatchVmPrefix.our_id], 0
 
-    call get_batches  ; REWRITE: [codecave:AUTO]
-    inc  dword [eax+AnmBatches.free_count]
+    mov  edx, [eax+BatchVmPrefix.batch]
+    mov  ecx, [eax+BatchVmPrefix.index]
+    inc  dword [edx+AnmBatchHeader.free_count]
+    lea  ecx, [edx + 4*ecx + AnmBatchHeader.ids]
+    mov  dword [ecx], 0
     ret 0x4
+
+; ==============================================================================
+
+; Implementation of a binhack that tells the game to use our IDs instead of its own.
+;
+; VM must be inside one of our batches.  (can't be in game's own fast array)
+;
+; __stdcall void AssignOurId(AnmVm*)
+assign_our_id:  ; HEADER: AUTO
+    func_begin
+    func_arg %$vm
+    func_prologue esi, edi
+    %define %$reg_vm_prefix esi
+    
+    ; Get our metadata for the VM.
+    mov  eax, [%$vm]
+    lea  %$reg_vm_prefix, [eax - BatchVmPrefix_size]
+
+    ; Sanity check to catch accidental use on VMs we don't own (where reg_vm_prefix will point to garbage)
+    mov  eax, [%$reg_vm_prefix + BatchVmPrefix.our_id]
+    shr  eax, DISCRIMINANT_SHIFT
+    and  eax, DISCRIMINANT_MOD_MASK
+    jz   .bad  ; discriminant is zero
+    cmp  eax, [%$reg_vm_prefix + BatchVmPrefix.last_discriminant]
+    jne  .bad  ; discriminant doesn't match
+    jmp  .good
+.bad:
+    die  ; invalid or inconsistent data.  This VM might not have a BatchVmPrefix!
+.good:
+    mov  edx, game_data  ; REWRITE: <codecave:AUTO>
+
+    mov  ecx, [%$vm]
+    add  ecx, [edx + GameData.id_offset]
+    mov  eax, [%$reg_vm_prefix + BatchVmPrefix.our_id]
+    mov  [ecx], eax
+
+    func_epilogue
+    func_ret
+    func_end
 
 ; ==============================================================================
 
