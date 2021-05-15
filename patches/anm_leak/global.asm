@@ -175,27 +175,6 @@ deactivate_active_batch:  ; HEADER: AUTO
     mov  [esi+AnmBatches.active_batch], ecx
     mov  [esi+AnmBatches.last_batch], edx
 
-    ; ...and gather its anm ids.  (it's now in edx)
-    lea  edi, [edx+AnmBatchHeader.ids]
-    lea  esi, [edx+AnmBatchHeader.vms]
-    lea  esi, [esi+BatchVmPrefix.vm]  ; point to first vm
-
-    mov  edx, game_data  ; REWRITE: <codecave:AUTO>
-    add  esi, [edx+GameData.id_offset]  ; point to first id field
-
-    ; stride in edx, count in ecx
-    mov  edx, [edx+GameData.vm_size]
-    add  edx, BatchVmPrefix_size
-    mov  ecx, BATCH_LEN
-.iter:
-    dec  ecx
-    js   .done
-    mov  ebx, [esi]
-    mov  [edi], ebx
-    add  esi, edx
-    add  edi, 0x4
-    jmp  .iter
-.done:
     pop ebx
     epilogue_sd
     ret 0x4
@@ -307,10 +286,7 @@ new_dealloc_vm:  ; HEADER: AUTO
     mov  dword [eax+BatchVmPrefix.our_id], 0
 
     mov  edx, [eax+BatchVmPrefix.batch]
-    mov  ecx, [eax+BatchVmPrefix.index]
     inc  dword [edx+AnmBatchHeader.free_count]
-    lea  ecx, [edx + 4*ecx + AnmBatchHeader.ids]
-    mov  dword [ecx], 0
     ret 0x4
 
 ; ==============================================================================
@@ -319,28 +295,17 @@ new_dealloc_vm:  ; HEADER: AUTO
 ;
 ; VM must be inside one of our batches.  (can't be in game's own fast array)
 ;
-; __stdcall void AssignOurId(AnmVm*)
+; __stdcall AnmId AssignOurId(AnmVm*)
 assign_our_id:  ; HEADER: AUTO
     func_begin
     func_arg %$vm
     func_prologue esi, edi
     %define %$reg_vm_prefix esi
-    
+
     ; Get our metadata for the VM.
     mov  eax, [%$vm]
-    lea  %$reg_vm_prefix, [eax - BatchVmPrefix_size]
+    lea  %$reg_vm_prefix, [eax-BatchVmPrefix.vm]
 
-    ; Sanity check to catch accidental use on VMs we don't own (where reg_vm_prefix will point to garbage)
-    mov  eax, [%$reg_vm_prefix + BatchVmPrefix.our_id]
-    shr  eax, DISCRIMINANT_SHIFT
-    and  eax, DISCRIMINANT_MOD_MASK
-    jz   .bad  ; discriminant is zero
-    cmp  eax, [%$reg_vm_prefix + BatchVmPrefix.last_discriminant]
-    jne  .bad  ; discriminant doesn't match
-    jmp  .good
-.bad:
-    die  ; invalid or inconsistent data.  This VM might not have a BatchVmPrefix!
-.good:
     mov  edx, game_data  ; REWRITE: <codecave:AUTO>
 
     mov  ecx, [%$vm]
@@ -354,137 +319,50 @@ assign_our_id:  ; HEADER: AUTO
 
 ; ==============================================================================
 
-; An experimental optimized search-by-id function.
-;
-; Performance characteristics compared to vanilla:
-;
-; - Is SIGNIFICANTLY FASTER than vanilla for large numbers of VMs.  This is thanks to the drastic reduction
-;   in number of cache misses that occur while searching batches beyond the first batch.
-;
-; - Can be SIGNIFICANTLY SLOWER than vanilla for large numbers of calls per frame, in games where the
-;   patch must disable the game's own built-in "fast path".  This is because it is particularly slow
-;   to search through the batch that's currently being modified.
-;
 ; __stdcall AnmVm* NewSearch(int id)
 new_search:  ; HEADER: AUTO
-    prologue_sd
-    mov  edi, search_batch_for_id  ; REWRITE: <codecave:AUTO>
-
-    call get_batches  ; REWRITE: [codecave:AUTO]
-    mov  esi, [eax+AnmBatches.active_batch]
-.iter:
-    test esi, esi
-    jz   .fail
-
-    push dword [ebp+0x08]
-    push esi
-    call edi
-    test eax, eax
-    jnz  .succeed
-
-    ; batches after the first can use this much faster function
-    mov  edi, search_inactive_batch_for_id  ; REWRITE: <codecave:AUTO>
-    mov  esi, [esi+AnmBatchHeader.next_batch]
-    jmp  .iter
-.fail:
-    xor  eax, eax
-.succeed:
-    epilogue_sd
-    ret  0x4
-
-; A slow search through the active batch.
-;
-; Why must this be so slow, you ask?  Well, unlike inactive batches, the active batch does not
-; have a cached array of IDs because we'd have to keep updating it.
-;
-; (why not simply update it in sync with the VMs as they are allocated? Because it'd require too
-;  many binhacks; the game doesn't assign an ID until LONG after it has allocated a VM, and there
-;  are several functions where it does this)
-;
-; __stdcall AnmVm* SearchBatchForId(AnmBatchHeader*, int id)
-search_batch_for_id:  ; HEADER: AUTO
-    prologue_sd
-    mov  edx, [ebp+0x08]  ; batch
-
-    lea  esi, [edx+AnmBatchHeader.vms]
-    lea  esi, [esi+BatchVmPrefix.vm]  ; point to first vm
-    mov  edx, game_data  ; REWRITE: <codecave:AUTO>
-    add  esi, [edx+GameData.id_offset]  ; point to first id field
-
-    ; stride in edx, count in ecx, target in eax
-    mov  edx, [edx+GameData.vm_size]
-    add  edx, BatchVmPrefix_size
-    mov  ecx, BATCH_LEN
-    mov  eax, [ebp+0x0c]
-
-.iter:
-    dec  ecx
-    js   .fail
-    cmp  [esi], eax
-    je   .succeed
-    add  esi, edx
-    jmp  .iter
-.succeed:
-    mov  eax, esi
-    mov  edx, game_data  ; REWRITE: <codecave:AUTO>
-    sub  eax, [edx+GameData.id_offset]
-    jmp  .done
-.fail:
-    xor  eax, eax
-.done:
-    epilogue_sd
-    ret  0x8
-
-; Searches an inactive batch for an ID.  Inactive batches have saved arrays of IDs,
-; leading to far better cache locality and thereby performance.
-;
-; __stdcall AnmVm* SearchInactiveBatchForId(AnmBatchHeader*, int id)
-search_inactive_batch_for_id:  ; HEADER: AUTO
     func_begin
-    func_arg %$batch, %$id
-    func_prologue edi, esi
-    mov  edx, [%$batch]
+    func_arg  %$id
+    func_local  %$index_in_batch, %$batch_num
+    func_prologue esi, edi
 
-    ; Fast path for empty batches.
-    mov  eax, [edx+AnmBatchHeader.free_count]
-    cmp  eax, BATCH_LEN
+    cmp  dword [%$id], 0
     je   .fail
 
-    ; We search the array of ids, and just track the VM pointer for convenience.
-    lea  edi, [edx+AnmBatchHeader.ids]
-    lea  esi, [edx+AnmBatchHeader.vms]
-    lea  esi, [esi+BatchVmPrefix.vm]  ; point to first vm
-
-    ; stride in edx, count in ecx, target in eax
-    mov  edx, game_data  ; REWRITE: <codecave:AUTO>
-    mov  edx, [edx+GameData.vm_size]
-    add  edx, BatchVmPrefix.vm
-    mov  ecx, BATCH_LEN
+    ; Part without the discriminant is `(batch * BATCH_LEN) + index_in_batch`
+    xor  edx, edx
     mov  eax, [%$id]
+    and  eax, ~(DISCRIMINANT_MOD_MASK << DISCRIMINANT_SHIFT)  ; zero out the discriminant
+    mov  ecx, BATCH_LEN
+    div  ecx
+    mov  dword [%$batch_num], eax
+    mov  dword [%$index_in_batch], edx
 
+    call get_batches  ; REWRITE: [codecave:AUTO]
+    mov  eax, [eax + AnmBatches.first_batch_created]
+    mov  ecx, [%$batch_num]
 .iter:
     dec  ecx
-    js   .fail
-    cmp  [edi], eax
-    je   .succeed
-    add  edi, 0x4
-    add  esi, edx
+    js   .done
+    mov  eax, [eax + AnmBatchHeader.next_batch_created]
     jmp  .iter
-.succeed:
-    ; One last thing!  Verify that the VM is still alive.
-    ; It would have cleared its id field on death.
-    mov  eax, esi
-    mov  edx, game_data  ; REWRITE: <codecave:AUTO>
-    add  eax, [edx+GameData.id_offset]
-    mov  eax, [eax]
-    cmp  eax, [%$id]
-    jnz  .fail
-    ; True success!
-    mov  eax, esi
-    jmp  .done
+.done:
+
+    mov  edi, game_data  ; REWRITE: <codecave:AUTO>
+    mov  edx, [edi + GameData.vm_size]
+    add  edx, BatchVmPrefix_size
+    imul edx, [%$index_in_batch]
+    lea  eax, [eax + AnmBatchHeader.vms + edx]
+
+    ; now check to see if the VM is still allocated and the discriminator still matches
+    mov  edx, [eax + BatchVmPrefix.our_id]
+    cmp  edx, [%$id]
+    jne  .fail
+    lea  eax, [eax + BatchVmPrefix.vm]
+    jmp  .succeed
 .fail:
     xor  eax, eax
-.done:
+.succeed:
     func_epilogue
     func_ret
     func_end

@@ -12,21 +12,24 @@ def main():
     thc = binhack_helper.ThcrapGen('ExpHP.anm-buffers.')
     defs = binhack_helper.NasmDefs.from_file_rel('common.asm')
 
-    add_main_binhacks(game, thc, defs)
-    add_th18_perf_fixes(game, thc, defs)
+    if game == 'th17':  # FIXME:  migrate other games to new binhacks
+        add_main_binhacks(game, thc, defs)
+        add_th18_perf_fixes(game, thc, defs)
 
     thc.print()
 
 
 def add_main_binhacks(game, thc: binhack_helper.ThcrapGen, defs):
-    thc.codecave('game-data', thc.data({
+    game_data = {
         'th15':  defs.GameData(vm_size=0x608, id_offset=0x544, func_malloc=0x49039f),
         'th16':  defs.GameData(vm_size=0x5fc, id_offset=0x538, func_malloc=0x4749ac),
         'th165':  defs.GameData(vm_size=0x5fc, id_offset=0x538, func_malloc=0x47a78d),
         'th17':   defs.GameData(vm_size=0x600, id_offset=0x538, func_malloc=0x47b250),
         'th18.v0.02a': defs.GameData(vm_size=0x60c, id_offset=0x544, func_malloc=0x484851),
         'th18':   defs.GameData(vm_size=0x60c, id_offset=0x544, func_malloc=0x48dc71),
-    }[game]))
+    }[game]
+
+    thc.codecave('game-data', thc.data(game_data))
 
     # ===================================
 
@@ -71,24 +74,19 @@ def add_main_binhacks(game, thc: binhack_helper.ThcrapGen, defs):
 
     # ===================================
 
-    def hook_search(binhack_addr, id_reg, jmp_addr, expected):
+    def hook_search(binhack_addr):
         thc.binhack('search', {
             'addr': binhack_addr,
-            'expected': expected,
-            'codecave': thc.asm(lambda c: f'''
-                push {id_reg}
-                call {c.rel_auto('new-search')}
-                {c.jmp(jmp_addr)}
-            '''),
+            'code': thc.asm(lambda c: f''' jmp {c.rel_auto('new-search')} '''),
         })
     # Hook the line that reads world_list_head.
     # Jump to function cleanup.
-    if game == 'th15':   hook_search(0x488534, id_reg='eax', jmp_addr=0x488573, expected='8b96dc000000')
-    if game == 'th16':   hook_search(0x46efc4, id_reg='eax', jmp_addr=0x46f003, expected='8b96dc000000')
-    if game == 'th165':  hook_search(0x47530d, id_reg='eax', jmp_addr=0x47535a, expected='8b96dc000000')
-    if game == 'th17':   hook_search(0x47648d, id_reg='eax', jmp_addr=0x4764da, expected='8b8edc060000')
+    # if game == 'th15':   hook_search(0x488534, id_reg='eax', jmp_addr=0x488573, expected='8b96dc000000')
+    # if game == 'th16':   hook_search(0x46efc4, id_reg='eax', jmp_addr=0x46f003, expected='8b96dc000000')
+    # if game == 'th165':  hook_search(0x47530d, id_reg='eax', jmp_addr=0x47535a, expected='8b96dc000000')
+    if game == 'th17':   hook_search(0x476470)
     # if game == 'th18.v0.02a': hook_search(0x47f49d, id_reg='eax', jmp_addr=0x47f4ea, expected='8b8ef0060000')
-    if game == 'th18':   hook_search(0x488b5d, id_reg='eax', jmp_addr=0x488baa, expected='8b8ef0060000')
+    # if game == 'th18':   hook_search(0x488b5d, id_reg='eax', jmp_addr=0x488baa, expected='8b8ef0060000')
 
     # This binhack disables the 'fast' case of AnmManager::allocate_vm so that ALL VMs use our code.
     #
@@ -99,12 +97,39 @@ def add_main_binhacks(game, thc: binhack_helper.ThcrapGen, defs):
             'code': thc.asm(lambda c: c.jmp(jmp_addr)),
         })
     if game == 'th15': disable_fast_array(0x489479, 0x48954f)
-    if game == 'th16': disable_fast_array(0x46f619, 0x46f6ef)
-    if game == 'th165': disable_fast_array(0x475949, 0x475a1f)
-    if game == 'th17': disable_fast_array(0x476a79, 0x476b4f)
+    elif game == 'th16': disable_fast_array(0x46f619, 0x46f6ef)
+    elif game == 'th165': disable_fast_array(0x475949, 0x475a1f)
+    elif game == 'th17': disable_fast_array(0x476a79, 0x476b4f)
     # These games REQUIRE it because they use our layer-drawing optimizations and we need to make sure
     # the number of existing batches is adequate for the layer array.
-    if game == 'th18': disable_fast_array(0x489339, 0x48940f)
+    elif game == 'th18': disable_fast_array(0x489339, 0x48940f)
+    else:
+        assert False, game
+
+    hack_id = thc.binhack_collection('set-id', lambda vm_reg, id_reg: {
+        'expected': thc.asm(f'mov dword ptr [{vm_reg} + {game_data.id_offset:#x}], {id_reg}'),
+        'call-codecave': thc.asm(lambda c: f'''
+            push eax
+            push ecx
+            push edx  # save
+
+            push {vm_reg}
+            call {c.rel_auto('assign-our-id')}
+
+            pop  edx  # restore
+            pop  ecx
+            mov  {id_reg}, eax
+            pop  eax
+            ret
+        '''),
+    })
+    if game == 'th17':
+        hack_id.at(0x475d18, vm_reg='edi', id_reg='ecx')
+        hack_id.at(0x475da9, vm_reg='edx', id_reg='ecx')
+        hack_id.at(0x475e58, vm_reg='edi', id_reg='ecx')
+        hack_id.at(0x475ee9, vm_reg='edx', id_reg='ecx')
+    else:
+        assert False, game
 
 
 def add_th18_perf_fixes(game, thc: binhack_helper.ThcrapGen, defs):
