@@ -183,6 +183,7 @@ def add_th18_perf_fixes(game, thc: binhack_helper.ThcrapGen, defs):
     # Finding a good place for this was tricky.  Oddly enough the on_draw that draws layer 0 does not always run,
     # so I chose a spot inside UpdateFuncRegistry::run_all_on_draw.
     # (AFTER aquiring the critical section)
+    if game == 'th17': build_layer_array(0x401409, jmp_addr=0x40140f, anm_manager=0x509a20, expected='8b4840 53 33db')
     if game == 'th18': build_layer_array(0x401449, jmp_addr=0x40144f, anm_manager=0x51f65c, expected='8b4840 53 33db')
 
     def optimize_draw_layer(binhack_addr, layer, anm_mgr_reg, jmp_addr, expected):
@@ -197,6 +198,7 @@ def add_th18_perf_fixes(game, thc: binhack_helper.ThcrapGen, defs):
             '''),
         })
     # Replace the entire part of the function inside the critical section.
+    if game == 'th17': optimize_draw_layer(0x475bc2, layer='ebp+0x8', anm_mgr_reg='esi', jmp_addr=0x475c58, expected="8b86dc060000")
     if game == 'th18': optimize_draw_layer(0x488282, layer='ebp+0x8', anm_mgr_reg='esi', jmp_addr=0x488328, expected="8b86f0060000")
 
     # ---------
