@@ -73,6 +73,11 @@ struc GameData
     .vm_size: resd 1
     .id_offset: resd 1
     .func_malloc: resd 1
+    ; - If 0, this is a game where we override how the game assigns IDs,
+    ;   and thus do not need to care about the vanilla game's own (inferior) fast array.
+    ; - If nonzero, this is a game where we are forced to let the game use its fast array;
+    ;   the value will be the number of bits in a Fast ID.
+    .fast_array_bits: resd 1
 endstruc
 
 struc GameLayerData

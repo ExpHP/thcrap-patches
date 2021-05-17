@@ -60,7 +60,7 @@ new_alloc_vm:  ; HEADER: AUTO
     ; if absolutely everything is used up, allocate a new batch
     mov  eax, [esi+AnmBatches.free_count]
     test eax, eax
-    jnz  .noalloc
+    jnz  .nonewbatch
 
 .newbatch:
     ; deactivate this full batch now, because the new one we insert will be active.
@@ -68,21 +68,10 @@ new_alloc_vm:  ; HEADER: AUTO
     push esi
     call deactivate_active_batch  ; REWRITE: [codecave:AUTO]
 
-    push dword [esi+AnmBatches.batch_count]
-    call allocate_new_batch  ; REWRITE: [codecave:AUTO]
-    inc  dword [esi+AnmBatches.batch_count]
-    add  dword [esi+AnmBatches.free_count], BATCH_LEN
-    mov  ecx, eax
+    push esi
+    call prepend_new_batch  ; REWRITE: [codecave:AUTO]
 
-    ; prepend to the active list
-    mov  eax, [esi+AnmBatches.active_batch]
-    mov  [ecx+AnmBatchHeader.next_batch], eax
-    mov  [esi+AnmBatches.active_batch], ecx
-    ; append to the creation order list
-    mov  eax, [esi+AnmBatches.last_batch_created]
-    mov  [eax+AnmBatchHeader.next_batch_created], ecx
-    mov  [esi+AnmBatches.last_batch_created], ecx
-.noalloc:
+.nonewbatch:
     dec  dword [esi+AnmBatches.free_count]
 
     push esi
@@ -93,6 +82,39 @@ new_alloc_vm:  ; HEADER: AUTO
 
     epilogue_sd
     ret
+
+; __stdcall AnmBatchHeader* PrependNewBatch(AnmBatches*)
+;
+; Prepends a new batch and updates all bookkeeping on AnmBatches (but at least
+; one batch must already exist).
+prepend_new_batch:  ; HEADER: AUTO
+    func_begin
+    func_arg  %$batches
+    func_prologue esi, edi
+    %define %$reg_batches esi
+
+    mov %$reg_batches, [%$batches]
+
+    push dword [%$reg_batches + AnmBatches.batch_count]
+    call allocate_new_batch  ; REWRITE: [codecave:AUTO]
+
+    inc  dword [%$reg_batches + AnmBatches.batch_count]
+    add  dword [%$reg_batches + AnmBatches.free_count], BATCH_LEN
+    mov  ecx, eax
+
+    ; prepend to the active list
+    mov  eax, [%$reg_batches + AnmBatches.active_batch]
+    mov  [ecx + AnmBatchHeader.next_batch], eax
+    mov  [%$reg_batches + AnmBatches.active_batch], ecx
+    ; append to the creation order list
+    mov  eax, [%$reg_batches + AnmBatches.last_batch_created]
+    mov  [eax+AnmBatchHeader.next_batch_created], ecx
+    mov  [%$reg_batches + AnmBatches.last_batch_created], ecx
+
+    mov  eax, ecx
+    func_epilogue
+    func_ret
+    func_end
 
 ; __stdcall AnmBatchHeader* AllocateNewBatch(int creation_order_index)
 allocate_new_batch:  ; HEADER: AUTO
@@ -388,7 +410,7 @@ new_search:  ; HEADER: AUTO
 rebuild_layer_array:  ; HEADER: AUTO
     func_begin
     func_arg  %$anm_manager
-    func_local %$game_data, %$layer_data, %$batches
+    func_local %$layer_data, %$batches
     func_prologue esi, edi, ebx
 
     %define %$reg_layer_data esi
@@ -396,6 +418,9 @@ rebuild_layer_array:  ; HEADER: AUTO
 
     call get_batches  ; REWRITE: [codecave:AUTO]
     mov  [%$batches], eax
+
+    push dword [%$batches]
+    call ensure_enough_batches_for_draw_array  ; REWRITE: [codecave:AUTO]
 
     push dword [%$batches]
     call clear_draw_array  ; REWRITE: [codecave:AUTO]
@@ -414,6 +439,41 @@ rebuild_layer_array:  ; HEADER: AUTO
     push dword [%$batches]
     call add_list_to_draw_array  ; REWRITE: [codecave:AUTO]
 
+    func_epilogue
+    func_ret
+    func_end
+
+; void EnsureEnoughBatchesForDrawArray(AnmBatches*)
+ensure_enough_batches_for_draw_array:  ; HEADER: AUTO
+    func_begin
+    func_arg  %$batches
+    func_local  %$fast_count
+    func_prologue esi, edi, ebx
+    %define %$reg_batches esi
+
+    mov  %$reg_batches, [%$batches]
+
+    mov  ecx, game_data  ; REWRITE: <codecave:AUTO>
+    mov  ecx, [ecx+GameData.fast_array_bits]
+    test ecx, ecx
+    jz   .done  ; we're using our own IDs, so all VMs are in batches and therefore we must have enough batches
+
+    ; If we're keeping vanilla IDs (and thus the fast array), then to have enough room in the layer array we'll
+    ; need additional batches (enough to fit all batched VMs PLUS all fast VMs).
+    mov  eax, 1
+    shl  eax, cl
+    mov  [%$fast_count], eax  ; actually a slight overestimate
+.iter:
+    ; basically, keep allocating batches until free_count >= length of the vanilla fast array
+    mov  eax, [%$reg_batches + AnmBatches.free_count]
+    cmp  eax, [%$fast_count]
+    jae  .done
+
+    push %$reg_batches
+    call prepend_new_batch  ; REWRITE: [codecave:AUTO]
+    jmp .iter
+
+.done:
     func_epilogue
     func_ret
     func_end

@@ -12,8 +12,9 @@ def main():
     thc = binhack_helper.ThcrapGen('ExpHP.anm-buffers.')
     defs = binhack_helper.NasmDefs.from_file_rel('common.asm')
 
-    if 'th15' <= game:
-        add_main_binhacks(game, thc, defs)
+    game_data = add_main_binhacks(game, thc, defs)
+    if game <= 'th17':
+        use_optimized_id_system(game, thc, defs, game_data)
     if 'th17' <= game <= 'th18':
         add_th17_perf_fixes(game, thc, defs)
 
@@ -22,12 +23,12 @@ def main():
 
 def add_main_binhacks(game, thc: binhack_helper.ThcrapGen, defs):
     game_data = {
-        'th15':  defs.GameData(vm_size=0x608, id_offset=0x544, func_malloc=0x49039f),
-        'th16':  defs.GameData(vm_size=0x5fc, id_offset=0x538, func_malloc=0x4749ac),
-        'th165': defs.GameData(vm_size=0x5fc, id_offset=0x538, func_malloc=0x47a78d),
-        'th17':  defs.GameData(vm_size=0x600, id_offset=0x538, func_malloc=0x47b250),
-        'th18.v0.02a': defs.GameData(vm_size=0x60c, id_offset=0x544, func_malloc=0x484851),
-        'th18': defs.GameData(vm_size=0x60c, id_offset=0x544, func_malloc=0x48dc71),
+        'th15':  defs.GameData(vm_size=0x608, id_offset=0x544, func_malloc=0x49039f, fast_array_bits=0),
+        'th16':  defs.GameData(vm_size=0x5fc, id_offset=0x538, func_malloc=0x4749ac, fast_array_bits=0),
+        'th165': defs.GameData(vm_size=0x5fc, id_offset=0x538, func_malloc=0x47a78d, fast_array_bits=0),
+        'th17':  defs.GameData(vm_size=0x600, id_offset=0x538, func_malloc=0x47b250, fast_array_bits=0),
+        'th18.v0.02a': defs.GameData(vm_size=0x60c, id_offset=0x544, func_malloc=0x484851, fast_array_bits=0),
+        'th18': defs.GameData(vm_size=0x60c, id_offset=0x544, func_malloc=0x48dc71, fast_array_bits=15),
     }[game]
 
     thc.codecave('game-data', thc.data(game_data))
@@ -55,6 +56,11 @@ def add_main_binhacks(game, thc: binhack_helper.ThcrapGen, defs):
     else:
         assert False, game
 
+    # We need to do some cleanup and mark a VM as unused when it would normally be deallocated.
+    #
+    # Thankfully, the game's check for when to deallocate is based on comparing the address of the VM
+    # to the beginning and end addresses of the fast array, so as long as we hack the right conditional
+    # branch, this will work regardless of whether we force the game to use our ID system.
     def hook_dealloc(binhack_addr, vm_reg, expected):
         thc.binhack('dealloc', {
             'addr': binhack_addr,
@@ -77,8 +83,9 @@ def add_main_binhacks(game, thc: binhack_helper.ThcrapGen, defs):
     else:
         assert False, game
 
-    # ===================================
+    return game_data
 
+def use_optimized_id_system(game, thc: binhack_helper.ThcrapGen, defs, game_data):
     def hook_search(binhack_addr):
         thc.binhack('search', {
             'addr': binhack_addr,
@@ -89,15 +96,15 @@ def add_main_binhacks(game, thc: binhack_helper.ThcrapGen, defs):
     elif game == 'th16':  hook_search(0x46efa0)
     elif game == 'th165': hook_search(0x4752f0)
     elif game == 'th17':  hook_search(0x476470)
-    elif game == 'th18.v1.00a':  hook_search(0x488b40)
+    # XXX: This hack would have to be updated to be aware of the fast array to work in UM.
+    #      (even then, we won't be able to optimize the inlined callsites, but thankfully not all were inlined)
+    # elif game == 'th18.v1.00a':  hook_search(0x488b40)
     else:
         assert False, game
-    # if game == 'th18.v0.02a': hook_search(0x47f49d, id_reg='eax', jmp_addr=0x47f4ea, expected='8b8ef0060000')
-    # if game == 'th18':   hook_search(0x488b5d, id_reg='eax', jmp_addr=0x488baa, expected='8b8ef0060000')
 
     # This binhack disables the 'fast' case of AnmManager::allocate_vm so that ALL VMs use our code.
     #
-    # I think it was to help stress test our changes...
+    # Our new search requires this.
     def disable_fast_array(binhack_addr, jmp_addr):
         thc.binhack('no-fast-alloc', {
             'addr': binhack_addr,
@@ -107,9 +114,9 @@ def add_main_binhacks(game, thc: binhack_helper.ThcrapGen, defs):
     elif game == 'th16': disable_fast_array(0x46f619, 0x46f6ef)
     elif game == 'th165': disable_fast_array(0x475949, 0x475a1f)
     elif game == 'th17': disable_fast_array(0x476a79, 0x476b4f)
-    # These games REQUIRE it because they use our layer-drawing optimizations and we need to make sure
-    # the number of existing batches is adequate for the layer array.
-    elif game == 'th18.v1.00a': disable_fast_array(0x489339, 0x48940f)
+    # NOTE: As of th18.v1.00a the code that uses the fast array is now inlined in a ton of places.
+    #       Disabling it is no longer an option.
+    # elif game == 'th18.v1.00a': disable_fast_array(0x489339, 0x48940f)
     else:
         assert False, game
 
@@ -150,11 +157,12 @@ def add_main_binhacks(game, thc: binhack_helper.ThcrapGen, defs):
         hack_id.at(0x475da9, vm_reg='edx', id_reg='ecx')
         hack_id.at(0x475e58, vm_reg='edi', id_reg='ecx')
         hack_id.at(0x475ee9, vm_reg='edx', id_reg='ecx')
-    elif game == 'th18':
-        hack_id.at(0x4883e8, vm_reg='edi', id_reg='ecx')
-        hack_id.at(0x488479, vm_reg='edx', id_reg='ecx')
-        hack_id.at(0x488528, vm_reg='edi', id_reg='ecx')
-        hack_id.at(0x4885b9, vm_reg='edx', id_reg='ecx')
+    # XXX: This hack would have to be updated to be aware of the fast array to work in UM.
+    # elif game == 'th18':
+    #     hack_id.at(0x4883e8, vm_reg='edi', id_reg='ecx')
+    #     hack_id.at(0x488479, vm_reg='edx', id_reg='ecx')
+    #     hack_id.at(0x488528, vm_reg='edi', id_reg='ecx')
+    #     hack_id.at(0x4885b9, vm_reg='edx', id_reg='ecx')
     else:
         assert False, game
 
