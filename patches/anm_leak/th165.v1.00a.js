@@ -7,25 +7,40 @@
             "code": "E9 [codecave:of(ExpHP.anm-buffers.alloc)]"
         },
         "ExpHP.anm-buffers.dealloc": {
-            "addr": "0x438bfe",
-            "expected": "e85c570400",
+            "addr": "0x438c31",
+            "expected": "e8871b0400",
             "code": "E8 [codecave:of(ExpHP.anm-buffers.dealloc)]"
         },
         "ExpHP.anm-buffers.search": {
-            "addr": "0x47530d",
-            "expected": "8b96dc000000",
-            "code": "E9 [codecave:of(ExpHP.anm-buffers.search)] // CC"
+            "addr": "0x4752f0",
+            "code": "e9[codecave:ExpHP.anm-buffers.new-search]"
         },
         "ExpHP.anm-buffers.no-fast-alloc": {
             "addr": "0x475949",
             "code": "e800000000c704241f5a4700c3"
+        },
+        "ExpHP.anm-buffers.set-id(edi, ecx)": {
+            "expected": "898f38050000",
+            "addr": [
+                "0x474a7d",
+                "0x474bbd"
+            ],
+            "code": "E8 [codecave:of(ExpHP.anm-buffers.set-id(edi, ecx))] // 90"
+        },
+        "ExpHP.anm-buffers.set-id(edx, ecx)": {
+            "expected": "898a38050000",
+            "addr": [
+                "0x474b0e",
+                "0x474c4e"
+            ],
+            "code": "E8 [codecave:of(ExpHP.anm-buffers.set-id(edx, ecx))] // 90"
         }
     },
     "codecaves": {
-        "ExpHP.anm-buffers.game-data": "fc050000380500008da74700",
-        "ExpHP.anm-buffers.layer-data": "00000000",
+        "ExpHP.anm-buffers.game-data": "fc050000380500008da7470000000000",
         "of(ExpHP.anm-buffers.alloc)": "e8[codecave:ExpHP.anm-buffers.new-alloc-vm]e800000000c704242c5a4700c3",
         "of(ExpHP.anm-buffers.dealloc)": "56e8[codecave:ExpHP.anm-buffers.new-dealloc-vm]c3",
-        "of(ExpHP.anm-buffers.search)": "50e8[codecave:ExpHP.anm-buffers.new-search]e800000000c704245a534700c3"
+        "of(ExpHP.anm-buffers.set-id(edi, ecx))": "50515257e8[codecave:ExpHP.anm-buffers.assign-our-id]5a5989c158c3",
+        "of(ExpHP.anm-buffers.set-id(edx, ecx))": "50515252e8[codecave:ExpHP.anm-buffers.assign-our-id]5a5989c158c3"
     }
 }
