@@ -2,7 +2,7 @@
 	"contact": "diagonaldevice@gmail.com",
 	"id": "ExpHP",
 	"patches": {
-		"anm_leak": "(15-18) Fixes TH16's crashes and TH18's performance on juicy cancels, and just optimizes the graphics code in general.\n   WARNING: UM modifications are still in beta! Please report crashes on Discord!!",
+		"anm_leak": "(15-18) Fixes TH16's crashes on large releases. Improves performance when pushing certain games to their limit (e.g. with bullet_cap).",
 		"base_exphp": "Provides functions that help other patches support patches like bullet_cap without directly depending on them.",
 		"bullet_cap": "(06-09, 10-17 STGs) Makes the bullet cap, laser cap, and cancel cap configurable.\nDefaults to 16x everything. To configure, see http://exphp.github.io/thpages/#/mods/bullet-cap",
 		"c_key": "(17) Make Ctrl and C behave as separate keys internally, for use by other patches. (C maps to 0x4)",
