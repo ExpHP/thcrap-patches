@@ -1,5 +1,9 @@
 ; AUTO_PREFIX: ExpHP.sprite-death-fix.
 
+; This ASM file has not been migrated to the fully automated python scripts.
+;
+; You need to use 'scripts/list-asm' and copy any new lines into 'binhacks.yaml'
+
 %include "util.asm"
 
 ; ============================================
@@ -162,6 +166,15 @@ istruc Data  ; DELETE
     at Data.cursor_offset, dd 0x1be0830
 iend  ; DELETE
 
+data_18:  ; HEADER: AUTO
+istruc Data  ; DELETE
+    at Data.anm_manager_ptr, dd 0x51f65c
+    at Data.flush_sprites_abi, dd wrapper_thiscall  ; REWRITE: <codecave:AUTO>
+    at Data.flush_sprites, dd 0x47e730
+    at Data.buffer_offset, dd 0x3120e70
+    at Data.cursor_offset, dd 0x3820e70
+iend  ; DELETE
+
 ; ============================================
 ; Binhacks
 
@@ -195,6 +208,7 @@ binhack_09:  ; HEADER: AUTO
 ; TH16:  0x465b60 (8d87a8000000)
 ; TH165: 0x46bf90 (8d87a8000000)
 ; TH17:  0x46d180 (8d87a8000000)
+; TH18:  0x47e810 (8d87a8000000)
 binhack_modern:  ; HEADER: AUTO
     call fix  ; REWRITE: [codecave:AUTO]
     mov  edi, [esi]
@@ -204,6 +218,7 @@ binhack_modern:  ; HEADER: AUTO
     abs_jmp_hack 0x465b76  ; TH16
     abs_jmp_hack 0x46bfa6  ; TH165
     abs_jmp_hack 0x46d196  ; TH17
+    abs_jmp_hack 0x47e826  ; TH18
 
 ; Astonishingly, AnmManager::write_sprite has the exact same ABI in all
 ; six of the "bizarre ABI era" games, which almost never happens.

@@ -58,7 +58,7 @@ iend
     dd 0x43b822   ; BulletManager::store_snapshot
     dd WHITELIST_END
 
-    dd 0xa0d8d4  ; size of bullet array
+    dd 0xa0d8d4  ; size of bullet array (including dummy)
     dd SCALE_SIZE
     dd WHITELIST_BEGIN
     dd 0x418f5f  ; BulletManager::destroy_all

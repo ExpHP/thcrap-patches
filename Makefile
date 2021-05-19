@@ -264,6 +264,7 @@ sprite-death-fix: \
 	$(DIR)/$(TH16_VER).js \
 	$(DIR)/$(TH165_VER).js \
 	$(DIR)/$(TH17_VER).js \
+	$(DIR)/$(TH18_VER).js \
 
 $(DIR)/th%.js: $(DIR)/binhacks.yaml
 	scripts/convert-yaml.py $^ >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)

@@ -28,7 +28,7 @@ iend
     dd 0x0041655c  ; BulletManager::operator new
     dd WHITELIST_END
 
-    dd 0x9bf634  ; size of bullet array
+    dd 0x9bf634  ; size of bullet array (including dummy)
     dd SCALE_SIZE
     dd WHITELIST_BEGIN
     dd 0x416296

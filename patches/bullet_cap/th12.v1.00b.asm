@@ -75,7 +75,7 @@ iend
 .replacements:
     dd REP_OFFSET(0x4de716), REPLACE_ALL  ; offset of dummy bullet state
     dd REP_OFFSET(0x4debdc), REPLACE_ALL  ; offset of bullet.anm
-    dd REP_OFFSET(0x4deb78), REPLACE_ALL  ; size of bullet array
+    dd REP_OFFSET(0x4deb78), REPLACE_ALL  ; size of bullet array (including dummy)
     dd REP_OFFSET(0x4debe0), REPLACE_ALL  ; size
     dd LIST_END
 

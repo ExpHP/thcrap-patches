@@ -30,7 +30,7 @@ iend
     dd 0x414a90  ; BulletManager::operator delete
     dd WHITELIST_END
 
-    dd 0x719508  ; size of bullet array
+    dd 0x719508  ; size of bullet array (including dummy)
     dd SCALE_SIZE
     dd WHITELIST_BEGIN
     dd 0x41467f  ; BulletManager::destroy_all
@@ -158,7 +158,7 @@ iend
     dd WHITELIST_END
 
     dd REP_OFFSET(0x71b548)  ; bullet.anm
-    dd REPLACE_ALL  ; 8 usages
+    dd REPLACE_ALL  ; 36 usages
 
     dd REP_OFFSET(0x71b54c)  ; size of BulletManager
     dd WHITELIST_BEGIN

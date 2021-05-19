@@ -24,7 +24,7 @@ iend
     dd SCALE_1
     dd REPLACE_ALL
 
-    dd 0x97521c  ; size of bullet array
+    dd 0x97521c  ; size of bullet array (including dummy)
     dd SCALE_SIZE
     dd REPLACE_ALL
 

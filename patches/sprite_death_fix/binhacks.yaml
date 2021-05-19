@@ -56,7 +56,7 @@ binhacks:
         - "5A                " # pop  edx
         - "C3                " # ret
 
-  /fields-if(th14..th17):
+  /fields-if(th14..th18):
     ExpHP.sprite-death-fix.hack:
       addr:
         /value-if(th14):  "0x475f90"
@@ -65,6 +65,7 @@ binhacks:
         /value-if(th16):  "0x465b60"
         /value-if(th165): "0x46bf90"
         /value-if(th17):  "0x46d180"
+        /value-if(th18):  "0x47e810"
       expected: "8d87a8000000"
       codecave:
         - "E8[codecave:ExpHP.sprite-death-fix.fix]" # call fix
@@ -75,6 +76,7 @@ binhacks:
         - /item-if(th16):  "E800000000C70424765B4600C3" # abs_jmp_hack 0x465b76  ; TH16
         - /item-if(th165): "E800000000C70424A6BF4600C3" # abs_jmp_hack 0x46bfa6  ; TH165
         - /item-if(th17):  "E800000000C7042496D14600C3" # abs_jmp_hack 0x46d196  ; TH17
+        - /item-if(th18):  "E800000000C7042426E84700C3" # abs_jmp_hack 0x47e826  ; TH18
 
 codecaves:
   ExpHP.sprite-death-fix.data:
@@ -189,6 +191,13 @@ codecaves:
       - "A0D04600          " # at Data.flush_sprites, dd 0x46d0a0
       - "30088601          " # at Data.buffer_offset, dd 0x1860830
       - "3008BE01          " # at Data.cursor_offset, dd 0x1be0830
+
+    /value-if(th18):
+      - "5CF65100          " # at Data.anm_manager_ptr, dd 0x51f65c
+      - "<codecave:ExpHP.sprite-death-fix.wrapper-thiscall>" # at Data.flush_sprites_abi, dd wrapper_thiscall
+      - "30E74700          " # at Data.flush_sprites, dd 0x47e730
+      - "700E1203          " # at Data.buffer_offset, dd 0x3120e70
+      - "700E8203          " # at Data.cursor_offset, dd 0x3820e70
 
   # Calls a 1-arg function with 'thiscall' convention.
   # __stdcall WrapperThiscall(func, arg)

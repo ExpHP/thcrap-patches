@@ -70,7 +70,7 @@ def add_initializing_binhack(game, thc, defs):
             '''),
         })
 
-    elif 'th10' <= game <= 'th17':
+    elif 'th10' <= game:
         # MoF onwards:  Do it right before spawning the game thread
         start_addr, end_addr, orig_call_addr, expected = {
             'th10':  (0x420ec8, 0x420ecd, 0x44c150, 'e883b20200'),
@@ -85,6 +85,7 @@ def add_initializing_binhack(game, thc, defs):
             'th16':  (0x42d76e, 0x42d773, 0x43c5b0, 'e83dee0000'),
             'th165': (0x429719, 0x42971e, 0x4397b0, 'e892000100'),
             'th17':  (0x4312ff, 0x431304, 0x442280, 'e87c0f0100'),
+            'th18':  (0x443814, 0x443819, 0x454860, 'e847100100'),
         }[game]
         thc.binhack('install', {
             'addr': start_addr,

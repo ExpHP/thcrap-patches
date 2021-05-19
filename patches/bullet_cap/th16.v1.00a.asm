@@ -34,7 +34,7 @@ iend
     dd 0x48a506  ; BulletManager::sub_48a500_destructor_related
     dd WHITELIST_END
 
-    dd 0x9ffdf8  ; size of bullet array
+    dd 0x9ffdf8  ; size of bullet array (including dummy)
     dd SCALE_SIZE
     dd WHITELIST_BEGIN
     dd 0x411b8f

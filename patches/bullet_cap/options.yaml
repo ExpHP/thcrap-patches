@@ -6,7 +6,7 @@ options:
       /value-if(th07): 0x4000
       /value-if(th08): 0x6000
       /value-if(th09): -1
-      /value-if(any(th10..th17)): 0x7d00
+      /value-if(any(th10..th18)): 0x7d00
 
   bullet-cap.laser-cap:
     type: "i32"
@@ -14,7 +14,7 @@ options:
       /value-if(th06..th07): 0x400
       /value-if(any(th08, th10..th143)): 0x1000
       /value-if(th09): 0x300
-      /value-if(th15..th17): 0x2000
+      /value-if(th15..th18): 0x2000
 
   bullet-cap.cancel-cap:
     type: "i32"
@@ -23,7 +23,7 @@ options:
       /value-if(th07):  0x44c0
       /value-if(th08):  0x8300
       /value-if(all(integer, th10..th13)): 0x8000
-      /value-if(all(not(th165), th14..th17)): 0x10000
+      /value-if(all(not(th165), th14..th18)): 0x10000
       /value-if(any(th125, th165)): 0xc80
       /value-if(th128): 0x640
       /value-if(th09):  -1
@@ -32,13 +32,13 @@ options:
     type: "i32"
     val:
       /value-if(th09): 0xaf0  # 175 * 16
-      /value-if(all(th06..th17, not(th09))): -1
+      /value-if(all(th06..th18, not(th09))): -1
 
   bullet-cap.rival-bullet-cap:
     type: "i32"
     val:
       /value-if(th09): 0x1680  # 360 * 16
-      /value-if(all(th06..th17, not(th09))): -1
+      /value-if(all(th06..th18, not(th09))): -1
 
   # Lag spike "softening" constant for big cancels in MoF and SA.
   # Bigger number = more lag.
