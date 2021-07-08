@@ -1,12 +1,23 @@
 %define BATCH_LEN   0x1800
 ; %define BATCH_LEN   0x10
 
+; Format of our IDs:
+;
+;  0 b 0 d d d d x x x x ... x x x
+;      │ ├─────┘ ├───────────────┘
+;      │ │       └ (31 - D) bits for flat index  (= block * blocksize + index)
+;      │ └ D bits for discriminant
+;      └ sign bit always 0, used to identify snapshot VMs in LoLK (whose IDs we don't control)
+
+%define SNAPSHOT_MASK  0x8000_0000
+%define SNAPSHOT_BITS  1
+%define DISCRIMINANT_BITS  4
+%define ID_BITS   (32 - SNAPSHOT_BITS - DISCRIMINANT_BITS)
 ; a very small nonzero discriminant is used in our numbering scheme used to identify when an ANM has died and a
 ; new one has taken its location in the array before an ID search.
-%define DISCRIMINANT_BITS  5
+%define DISCRIMINANT_SHIFT     ID_BITS
 ; mask used to simulate a modulus when incrementing the discriminant
 %define DISCRIMINANT_MOD_MASK  ((1 << DISCRIMINANT_BITS) - 1)
-%define DISCRIMINANT_SHIFT     (32 - DISCRIMINANT_BITS)
 
 ; %define BATCH_LEN   0x4  ; for testing
 
@@ -65,14 +76,16 @@ struc AnmBatchHeader
     .vms: resb 0
 endstruc
 
-struc State 
+struc State
     .batches_ptr: resd 1  ; pointer to AnmBatches
-endstruc 
+endstruc
 
 struc GameData
     .vm_size: resd 1
     .id_offset: resd 1
     .func_malloc: resd 1
+    ; Most games do not need this.  TH15 needs it to free snapshot slow VMs.
+    .func_free_unsized: resd 1
     ; - If 0, this is a game where we override how the game assigns IDs,
     ;   and thus do not need to care about the vanilla game's own (inferior) fast array.
     ; - If nonzero, this is a game where we are forced to let the game use its fast array;

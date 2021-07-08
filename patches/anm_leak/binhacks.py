@@ -23,12 +23,13 @@ def main():
 
 def add_main_binhacks(game, thc: binhack_helper.ThcrapGen, defs):
     game_data = {
-        'th15':  defs.GameData(vm_size=0x608, id_offset=0x544, func_malloc=0x49039f, fast_array_bits=0),
-        'th16':  defs.GameData(vm_size=0x5fc, id_offset=0x538, func_malloc=0x4749ac, fast_array_bits=0),
-        'th165': defs.GameData(vm_size=0x5fc, id_offset=0x538, func_malloc=0x47a78d, fast_array_bits=0),
-        'th17':  defs.GameData(vm_size=0x600, id_offset=0x538, func_malloc=0x47b250, fast_array_bits=0),
-        'th18.v0.02a': defs.GameData(vm_size=0x60c, id_offset=0x544, func_malloc=0x484851, fast_array_bits=0),
-        'th18': defs.GameData(vm_size=0x60c, id_offset=0x544, func_malloc=0x48dc71, fast_array_bits=15),
+        'th15':  defs.GameData(vm_size=0x608, id_offset=0x544, func_malloc=0x49039f, fast_array_bits=0, func_free_unsized=0x4903f0),
+        'th16':  defs.GameData(vm_size=0x5fc, id_offset=0x538, func_malloc=0x4749ac, fast_array_bits=0, func_free_unsized=0xDEADBEEF),
+        'th165': defs.GameData(vm_size=0x5fc, id_offset=0x538, func_malloc=0x47a78d, fast_array_bits=0, func_free_unsized=0xDEADBEEF),
+        'th17':  defs.GameData(vm_size=0x600, id_offset=0x538, func_malloc=0x47b250, fast_array_bits=0, func_free_unsized=0xDEADBEEF),
+        # FIXME: This entry is at present unused, we still don't have proper support for multiple versions of a game
+        'th18.v0.02a': defs.GameData(vm_size=0x60c, id_offset=0x544, func_malloc=0x484851, fast_array_bits=0, func_free_unsized=0xDEADBEEF),
+        'th18': defs.GameData(vm_size=0x60c, id_offset=0x544, func_malloc=0x48dc71, fast_array_bits=15, func_free_unsized=0xDEADBEEF),
     }[game]
 
     thc.codecave('game-data', thc.data(game_data))
@@ -82,6 +83,17 @@ def add_main_binhacks(game, thc: binhack_helper.ThcrapGen, defs):
     elif game == 'th18.v1.00a':   hook_dealloc(0x488753, vm_reg='esi', expected='e849550000')
     else:
         assert False, game
+
+    # The game zeros out the ID before it calls 'free'.
+    # In TH15 this is a nuisance because we need that ID to tell if it's a snapshot VM.
+    if game == 'th15':
+        expected = 'c7864405000000000000'
+        assert len(expected) % 2 == 0
+        thc.binhack('dealloc-no-stupid-zero', {
+            'addr': 0x44c96b,
+            'expected': expected,
+            'code': '90' * (len(expected) // 2),
+        })
 
     return game_data
 

@@ -11,6 +11,11 @@
             "expected": "e86f3a0400",
             "code": "E8 [codecave:of(ExpHP.anm-buffers.dealloc)]"
         },
+        "ExpHP.anm-buffers.dealloc-no-stupid-zero": {
+            "addr": "0x44c96b",
+            "expected": "c7864405000000000000",
+            "code": "90909090909090909090"
+        },
         "ExpHP.anm-buffers.search": {
             "addr": "0x488510",
             "code": "e9[codecave:ExpHP.anm-buffers.new-search]"
@@ -31,7 +36,7 @@
         }
     },
     "codecaves": {
-        "ExpHP.anm-buffers.game-data": "08060000440500009f03490000000000",
+        "ExpHP.anm-buffers.game-data": "08060000440500009f034900f003490000000000",
         "of(ExpHP.anm-buffers.alloc)": "e8[codecave:ExpHP.anm-buffers.new-alloc-vm]e800000000c704245c954800c3",
         "of(ExpHP.anm-buffers.dealloc)": "56e8[codecave:ExpHP.anm-buffers.new-dealloc-vm]c3",
         "of(ExpHP.anm-buffers.set-id(edi, ecx))": "50515257e8[codecave:ExpHP.anm-buffers.assign-our-id]5a5989c158c3"

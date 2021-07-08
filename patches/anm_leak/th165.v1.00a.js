@@ -37,7 +37,7 @@
         }
     },
     "codecaves": {
-        "ExpHP.anm-buffers.game-data": "fc050000380500008da7470000000000",
+        "ExpHP.anm-buffers.game-data": "fc050000380500008da74700efbeadde00000000",
         "of(ExpHP.anm-buffers.alloc)": "e8[codecave:ExpHP.anm-buffers.new-alloc-vm]e800000000c704242c5a4700c3",
         "of(ExpHP.anm-buffers.dealloc)": "56e8[codecave:ExpHP.anm-buffers.new-dealloc-vm]c3",
         "of(ExpHP.anm-buffers.set-id(edi, ecx))": "50515257e8[codecave:ExpHP.anm-buffers.assign-our-id]5a5989c158c3",

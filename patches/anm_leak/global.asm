@@ -252,6 +252,12 @@ take_free_vm_from_batch:  ; HEADER: AUTO
     shl  eax, DISCRIMINANT_SHIFT
     or   [%$reg_vm_prefix + BatchVmPrefix.our_id], eax
 
+    ; double check that the sign bit is zero, else we have a bug.
+    and  eax, SNAPSHOT_MASK
+    jz   .no_sign_bug
+    die  ; sign bit is nonzero so the ID could be mistaken for a PointDevice snapshot VM!
+
+.no_sign_bug:
     lea  eax, [%$reg_vm_prefix + BatchVmPrefix.vm]
     func_epilogue
     func_ret
@@ -298,18 +304,43 @@ locate_free_vm_in_batch:  ; HEADER: AUTO
 ;
 ; __stdcall void DeallocVm(AnmVm*)
 new_dealloc_vm:  ; HEADER: AUTO
+    func_begin
+    func_arg %$vm
+    func_prologue
+
+    push dword [%$vm]
+    call read_id_field  ; REWRITE: [codecave:AUTO]
+    push eax
+    call is_snapshot_id  ; REWRITE: [codecave:AUTO]
+    test eax, eax
+    jz   .not_snapshot
+
+.is_snapshot:
+    ; It's a (non-fast) PointDevice VM!  Do what the game normally would have done.
+    push dword [%$vm]
+    mov  eax, game_data  ; REWRITE: <codecave:AUTO>
+    call [eax+GameData.func_free_unsized]
+    add  esp, 0x4
+    jmp .end
+
+.not_snapshot:
     call get_batches  ; REWRITE: [codecave:AUTO]
     inc  dword [eax+AnmBatches.free_count]
 
-    ; If this function is being called, the VM must be part of a batch, so let's access the metadata.
-    mov  eax, [esp+0x04]
+    ; The game doesn't call this func if the VM's address is inside the fast array (or the PD fast array).
+    ; We also know that the VM isn't a snapshot VM.
+    ; Therefore, the VM must come from our batches. Let's access the metadata.
+    mov  eax, [%$vm]
     lea  eax, [eax-BatchVmPrefix.vm]  ; metadata before the vm
 
     mov  dword [eax+BatchVmPrefix.our_id], 0
 
     mov  edx, [eax+BatchVmPrefix.batch]
     inc  dword [edx+AnmBatchHeader.free_count]
-    ret 0x4
+.end:
+    func_epilogue
+    func_ret
+    func_end
 
 ; ==============================================================================
 
@@ -339,6 +370,36 @@ assign_our_id:  ; HEADER: AUTO
     func_ret
     func_end
 
+; __stdcall int ReadIdField(AnmVm*)   // equivalent to vm->id
+read_id_field:  ; HEADER: AUTO
+    func_begin
+    func_arg %$vm
+    func_prologue
+
+    mov  edx, game_data  ; REWRITE: <codecave:AUTO>
+    mov  ecx, [%$vm]
+    add  ecx, [edx + GameData.id_offset]
+    mov  eax, [ecx]
+.end:
+    func_epilogue
+    func_ret
+    func_end
+
+; __stdcall bool IsSnapshotId(id)
+is_snapshot_id:  ; HEADER: AUTO
+    func_begin
+    func_arg %$id
+    func_prologue
+
+    mov  eax, [%$id]
+    and  eax, SNAPSHOT_MASK
+    jz   .end
+    mov  eax, 1
+.end:
+    func_epilogue
+    func_ret
+    func_end
+
 ; ==============================================================================
 
 ; __stdcall AnmVm* NewSearch(int id)
@@ -348,6 +409,13 @@ new_search:  ; HEADER: AUTO
     func_local  %$index_in_batch, %$batch_num
     func_prologue esi, edi
 
+    ; If the ID is a LoLK snapshot ID, then it is unsearchable.
+    push dword [%$id]
+    call is_snapshot_id  ; REWRITE: [codecave:AUTO]
+    test eax, eax
+    jnz  .fail
+
+    ; Zero is not a valid ANM ID.
     cmp  dword [%$id], 0
     je   .fail
 
