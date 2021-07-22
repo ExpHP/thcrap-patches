@@ -9,6 +9,8 @@
 ; some manual fixes like inserting [codecave:yadda-yadda-yadda] and deleting
 ; dummy labels.
 
+; AUTO_PREFIX: ExpHP.continue.
+
 %include "util.asm"
 
 %define CURRENT_LIVES     0x4a5718
@@ -35,13 +37,15 @@
 
 %define pmenu_state  0x4
 
+ADDRESS:  ; dummy label for absolute jumps
+
 bgm_pause_cave: ; 0x42d630
     ; a line of important code embedded in the block we're skipping
     mov     dword [ebp+0x2dc], edx
 
-    call pause_bgm ; FIXUP
+    call pause_bgm  ; REWRITE: [codecave:AUTO]
 
-    abs_jmp_hack 0x42d66e
+    jmp near ADDRESS  ; REWRITE: [0x42d66e]
 
 continue_cave: ; 0x42e5a5
     cmp    dword [CURRENT_STAGE], 0x7
@@ -52,17 +56,17 @@ continue_cave: ; 0x42e5a5
     ; original code
     xor     edx, edx
     cmp     dword [ebp+0x1f4], eax
-    abs_jmp_hack 0x42e5ad
+    jmp near ADDRESS  ; REWRITE: [0x42e5ad]
 
 .continue:
     push   ebp ; PauseMenu*
-    call   do_continue ; FIXUP
+    call   do_continue  ; REWRITE: [codecave:AUTO]
     ; original code, skipping stuff related to restarting stage
     pop    edi
     pop    esi
     pop    ebx
     pop    ebp
-    abs_jmp_hack 0x42e5c1
+    jmp near ADDRESS  ; REWRITE: [0x42e5c1]
 
 ; void __stdcall DoContinue(PauseMenu*)
 do_continue:
@@ -85,7 +89,7 @@ do_continue:
     mov    eax, dword [MAXIMUM_POWER]
     mov    ecx, FUNC_COLLECT_POWER
     call   ecx
-    
+
     mov    ebx, dword [PLAYER_PTR]
     mov    eax, FUNC_PLAYER_REGEN_OPTIONS
     call   eax

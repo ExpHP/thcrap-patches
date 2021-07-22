@@ -9,16 +9,13 @@ binhacks:
       # a line of important ANM code embedded in the block we're skipping
       - "8987D4010000      " # mov     dword [edi+0x1d4], eax
 
-      - "E8 [codecave:ExpHP.continue.pause-bgm]" # call
+      - "E8[codecave:ExpHP.continue.pause-bgm]" # call pause_bgm
 
       # cleanup that's awkwardly embedded in the block we're skipping
       - "5E                " # pop    esi
       - "5D                " # pop    ebp
       - "5B                " # pop    ebx
-      # abs_jmp_hack 0x42333c
-      - "E800000000        " # <1>  call %%next
-      - "C704243C334200    " # <1>  mov dword [esp], %1
-      - "C3                " # <1>  ret
+      - "E9[0x42333c]" # jmp near ADDRESS
 
   continue patch::Fix the continue option:
     addr: "0x424360"
@@ -27,23 +24,17 @@ binhacks:
     codecave:
       - "833D7C4C470007    " # cmp    dword [CURRENT_STAGE], 0x7
       - "7402              " # je     .retry
-      - "EB13              " # jmp    .continue
+      - "EB0B              " # jmp    .continue
 
       # .retry:
       # original code
       - "8B95E4010000      " # mov    edx, dword [ebp+0x1e4]
-      # abs_jmp_hack 0x424366
-      - "E800000000        " # <1>  call %%next
-      - "C7042466434200    " # <1>  mov dword [esp], %1
-      - "C3                " # <1>  ret
+      - "E9[0x424366]" # jmp near ADDRESS
 
       # .continue:
-      - "55                " # push   ebp
-      - "E8 [codecave:ExpHP.continue.do-continue]" # call
-      # abs_jmp_hack 0x424376
-      - "E800000000        " # <1>  call %%next
-      - "C7042476434200    " # <1>  mov dword [esp], %1
-      - "C3                " # <1>  ret
+      - "55                " # push   ebp ; PauseMenu*
+      - "E8[codecave:ExpHP.continue.do-continue]" # call   do_continue
+      - "E9[0x424376]" # jmp near ADDRESS
 
 codecaves:
   # void __stdcall PauseBgm()

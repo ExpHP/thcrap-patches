@@ -9,6 +9,8 @@
 ; some manual fixes like inserting [codecave:yadda-yadda-yadda] and deleting
 ; dummy labels.
 
+; AUTO_PREFIX: ExpHP.continue.
+
 %include "util.asm"
 
 %define CURRENT_LIVES     0x474c70
@@ -32,17 +34,19 @@
 
 %define pmenu_state  0x4
 
+ADDRESS:  ; dummy label for absolute jumps
+
 bgm_pause_cave: ; 0x4232f8
     ; a line of important ANM code embedded in the block we're skipping
     mov     dword [edi+0x1d4], eax
 
-    call pause_bgm ; FIXUP
+    call pause_bgm  ; REWRITE: [codecave:AUTO]
 
     ; cleanup that's awkwardly embedded in the block we're skipping
     pop    esi
     pop    ebp
     pop    ebx
-    abs_jmp_hack 0x42333c
+    jmp near ADDRESS  ; REWRITE: [0x42333c]
 
 continue_cave: ; 0x424360
     cmp    dword [CURRENT_STAGE], 0x7
@@ -52,15 +56,15 @@ continue_cave: ; 0x424360
 .retry:
     ; original code
     mov    edx, dword [ebp+0x1e4]
-    abs_jmp_hack 0x424366
+    jmp near ADDRESS  ; REWRITE: [0x424366]
 
 .continue:
     push   ebp ; PauseMenu*
-    call   do_continue ; FIXUP
-    abs_jmp_hack 0x424376
+    call   do_continue  ; REWRITE: [codecave:AUTO]
+    jmp near ADDRESS  ; REWRITE: [0x424376]
 
 ; void __stdcall DoContinue(PauseMenu*)
-do_continue:
+do_continue:  ; HEADER: AUTO
     prologue_sd
 
     mov    dword [CURRENT_LIVES], 2
@@ -95,7 +99,7 @@ do_continue:
     ret    0x4
 
 ; void __stdcall PauseBgm()
-pause_bgm:
+pause_bgm:  ; HEADER: AUTO
     prologue_sd
 
     push    0

@@ -15,7 +15,7 @@
     "codecaves": {
         "ExpHP.continue.pause-bgm": "55 89E5 56 57 // 6A00 // 6A06 // BAC0E04600 // B890254900 // B960E44300 // FFD1 // 5F 5E 89EC 5D // C3",
         "ExpHP.continue.do-continue": "55 89E5 56 57 // C705704C470002000000 // 8B0D704C4700 // A10C774700 // BA90374100 // FFD2 // C705444C470000000000 // FF3534784700 // B8706F4200 // FFD0 // B8404C4700 // B9908A4100 // FFD1 // 8B7508 // C7460400000000 // 8B7508 // B8302C4200 // FFD0 // 5F 5E 89EC 5D // C20400",
-        "of(continue patch::Remove game over music)": "8987D4010000 // E8 [codecave:ExpHP.continue.pause-bgm] // 5E // 5D // 5B // E800000000 // C704243C334200 // C3",
-        "of(continue patch::Fix the continue option)": "833D7C4C470007 // 7402 // EB13 // 8B95E4010000 // E800000000 // C7042466434200 // C3 // 55 // E8 [codecave:ExpHP.continue.do-continue] // E800000000 // C7042476434200 // C3"
+        "of(continue patch::Remove game over music)": "8987D4010000 // E8[codecave:ExpHP.continue.pause-bgm] // 5E // 5D // 5B // E9[0x42333c]",
+        "of(continue patch::Fix the continue option)": "833D7C4C470007 // 7402 // EB0B // 8B95E4010000 // E9[0x424366] // 55 // E8[codecave:ExpHP.continue.do-continue] // E9[0x424376]"
     }
 }

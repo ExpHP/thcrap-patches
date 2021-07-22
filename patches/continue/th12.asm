@@ -9,6 +9,8 @@
 ; some manual fixes like inserting [codecave:yadda-yadda-yadda] and deleting
 ; dummy labels.
 
+; AUTO_PREFIX: ExpHP.continue.
+
 %include "util.asm"
 
 %define CURRENT_LIVES     0x4b0c98
@@ -38,9 +40,11 @@
 
 %define pmenu_state  0x4
 
+ADDRESS:  ; dummy label for absolute jumps
+
 bgm_pause_cave: ; 0x4337f4
-    call pause_bgm ; FIXUP
-    abs_jmp_hack 0x43382c
+    call pause_bgm  ; REWRITE: [codecave:AUTO]
+    jmp near ADDRESS  ; REWRITE: [0x43382c]
 
 continue_cave: ; 0x4347e5
     cmp    dword [CURRENT_STAGE], 0x7
@@ -51,20 +55,20 @@ continue_cave: ; 0x4347e5
     ; original code
     xor     eax, eax
     cmp     dword [ebp+0x1f4], eax
-    abs_jmp_hack 0x4347ed
+    jmp near ADDRESS  ; REWRITE: [0x4347ed]
 
 .continue:
     push   ebp ; PauseMenu*
-    call   do_continue ; FIXUP
+    call   do_continue  ; REWRITE: [codecave:AUTO]
     ; original code, skipping stuff related to restarting stage
     pop    edi
     pop    esi
     pop    ebx
     pop    ebp
-    abs_jmp_hack 0x434800
+    jmp near ADDRESS  ; REWRITE: [0x434800]
 
 ; void __stdcall DoContinue(PauseMenu*)
-do_continue:
+do_continue:  ; HEADER: AUTO
     prologue_sd
 
     mov    dword [CURRENT_LIVES], 2
@@ -91,7 +95,7 @@ do_continue:
     mov    eax, GLOBALS_START
     mov    ecx, FUNC_COLLECT_BIG_POWER
     call   ecx
-    
+
     push   dword [PLAYER_PTR]
     mov    eax, FUNC_PLAYER_REGEN_OPTIONS
     call   eax
@@ -115,7 +119,7 @@ do_continue:
     ret    0x4
 
 ; void __stdcall PauseBgm()
-pause_bgm:
+pause_bgm:  ; HEADER: AUTO
     prologue_sd
 
     push    0

@@ -9,12 +9,9 @@ binhacks:
       # a line of important code embedded in the block we're skipping
       - "8995DC020000      " # mov     dword [ebp+0x2dc], edx
 
-      - "E8 [codecave:ExpHP.continue.pause-bgm]" # call
+      - "E8[codecave:ExpHP.continue.pause-bgm]" # call pause_bgm
 
-      # abs_jmp_hack 0x42d66e
-      - "E800000000        " # <1>  call %%next
-      - "C704246ED64200    " # <1>  mov dword [esp], %1
-      - "C3                " # <1>  ret
+      - "E9[0x42d66e]" # jmp near ADDRESS
 
   continue patch::Fix the continue option:
     addr: "0x42e5a5"
@@ -24,29 +21,23 @@ binhacks:
     codecave:
       - "833D28574A0007    " # cmp    dword [CURRENT_STAGE], 0x7
       - "7402              " # je     .retry
-      - "EB15              " # jmp    .continue
+      - "EB0D              " # jmp    .continue
 
       # .retry:
       # original code
       - "31D2              " # xor     edx, edx
       - "3985F4010000      " # cmp     dword [ebp+0x1f4], eax
-      # abs_jmp_hack 0x42e5ad
-      - "E800000000        " # <1>  call %%next
-      - "C70424ADE54200    " # <1>  mov dword [esp], %1
-      - "C3                " # <1>  ret
+      - "E9[0x42e5ad]" # jmp near ADDRESS
 
       # .continue:
       - "55                " # push   ebp ; PauseMenu*
-      - "E8 [codecave:ExpHP.continue.do-continue]" # call
+      - "E8[codecave:ExpHP.continue.do-continue]" # call   do_continue
       # original code, skipping stuff related to restarting stage
       - "5F                " # pop    edi
       - "5E                " # pop    esi
       - "5B                " # pop    ebx
       - "5D                " # pop    ebp
-      # abs_jmp_hack 0x42e5c1
-      - "E800000000        " # <1>  call %%next
-      - "C70424C1E54200    " # <1>  mov dword [esp], %1
-      - "C3                " # <1>  ret
+      - "E9[0x42e5c1]" # jmp near ADDRESS
 
 codecaves:
   # void __stdcall PauseBgm()
@@ -77,7 +68,7 @@ codecaves:
     - "FFD0              " # call   eax
 
     - "C705E4564A0000000000" # mov    dword [CURRENT_SCORE], 0x0
-  
+
     # In SA you spawn so many power items on death (often including an F) that
     # we won't even worry about power.
 

@@ -6,11 +6,8 @@ binhacks:
     expected:
       - "6834104a00"
     codecave:
-      - "E8 [codecave:ExpHP.continue.pause-bgm]" # call
-      # abs_jmp_hack 0x43382c
-      - "E800000000        " # <1>  call %%next
-      - "C704242C384300    " # <1>  mov dword [esp], %1
-      - "C3                " # <1>  ret
+      - "E8[codecave:ExpHP.continue.pause-bgm]" # call pause_bgm
+      - "E9[0x43382c]" # jmp near ADDRESS
 
   continue patch::Fix the continue option:
     addr: "0x4347e5"
@@ -20,29 +17,23 @@ binhacks:
     codecave:
       - "833DB00C4B0007    " # cmp    dword [CURRENT_STAGE], 0x7
       - "7402              " # je     .retry
-      - "EB15              " # jmp    .continue
+      - "EB0D              " # jmp    .continue
 
       # .retry:
       # original code
       - "31C0              " # xor     eax, eax
       - "3985F4010000      " # cmp     dword [ebp+0x1f4], eax
-      # abs_jmp_hack 0x4347ed
-      - "E800000000        " # <1>  call %%next
-      - "C70424ED474300    " # <1>  mov dword [esp], %1
-      - "C3                " # <1>  ret
+      - "E9[0x4347ed]" # jmp near ADDRESS
 
       # .continue:
-      - "55                " # push   ebp
-      - "E8 [codecave:ExpHP.continue.do-continue]" # call
+      - "55                " # push   ebp ; PauseMenu*
+      - "E8[codecave:ExpHP.continue.do-continue]" # call   do_continue
       # original code, skipping stuff related to restarting stage
       - "5F                " # pop    edi
       - "5E                " # pop    esi
       - "5B                " # pop    ebx
       - "5D                " # pop    ebp
-      # abs_jmp_hack 0x434800
-      - "E800000000        " # <1>  call %%next
-      - "C7042400484300    " # <1>  mov dword [esp], %1
-      - "C3                " # <1>  ret
+      - "E9[0x434800]" # jmp near ADDRESS
 
 codecaves:
   # void __stdcall PauseBgm()
