@@ -15,5 +15,6 @@
     "th15_scorefile_fn": "scoreth15_alt.dat",
     "th16_scorefile_fn": "scoreth16_alt.dat",
     "th165_scorefile_fn": "scoreth165_alt.dat",
-    "th17_scorefile_fn": "scoreth17_alt.dat"
+    "th17_scorefile_fn": "scoreth17_alt.dat",
+    "th18_scorefile_fn": "scoreth18_alt.dat"
 }
