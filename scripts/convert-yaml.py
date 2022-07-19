@@ -149,8 +149,10 @@ def process_local_caves(json):
             if expected_len > 10:
                 binhack['code'].append(filler * (expected_len // 2 - 5))
 
-        for i in range(len(binhack['code'])):
-            binhack['code'][i] = binhack['code'][i].replace('[CAVE]', f'[codecave:{cave_name}]').replace('<CAVE>', f'<codecave:{cave_name}>')
+        code = binhack['code']
+        for i in range(len(code)):
+            code[i] = code[i].replace('[CAVE]', f'[codecave:{cave_name}]')
+            code[i] = code[i].replace('<CAVE>', f'<codecave:{cave_name}>')
 
     for key, binhack in binhacks.items():
         if 'expected' in binhack:

@@ -30,6 +30,9 @@ binhacks:
     /fields-if(th17):
       addr: "0x44e627"
       expected: "7568"
+    /fields-if(th18):
+      addr: "0x461dc7"
+      expected: "7568"
 
   # In TH128 and TH13+, the C key also speeds up replays.
   # In TH13 and beyond, this further extends to the Z key, making all of the games
@@ -71,10 +74,14 @@ binhacks:
       code: "00"
 
   # These have an instruction like:  test dword [INPUT], 0x201
-  /fields-if(any(th16,th17)):
+  /fields-if(any(th16,th17,th18)):
     ctrl_speedup::Don't speed up on shoot key:
       addr:
         /value-if(th16): "0x448e5e"
         /value-if(th17): "0x44e62f"
+        /value-if(th18): "0x461dcf"
       expected: "01020000"
       code: "00020000"
+
+  # FIXME: TH18 is still unusable because Ctrl is unbound in that game!
+  #        It doesn't show up in the INPUT mask!!

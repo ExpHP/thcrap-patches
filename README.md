@@ -11,3 +11,9 @@ For a while, I just maintained these YAML files directly, but as time progressed
 On the bright side, these days some files which only include codecaves (i.e. no regular binhacks) have the ASM -> JSON process fully automated by `make`, and the intermediate YAML files don't even need to be checked into version control, which is admittedly pretty dope considering that all I had to do was sell my soul to the devil.
 
 Binhacks in some patches also now have a fully automated compilation process beginning from python scripts that use [keystone](https://github.com/keystone-engine/keystone) to assemble.  They're not the prettiest thing around (at least, not without highlighting of assembly in string literals), but if you stare hard enough you almost may find some semblance of sanity in them.
+
+The scripts have a couple of dependencies.  To install them, do:
+
+```python3
+python3 -m pip install --user -r requirements.txt
+```

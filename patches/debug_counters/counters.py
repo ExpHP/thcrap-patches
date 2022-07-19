@@ -1,11 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
-try:
-    import binhack_helper
-except ImportError:
-    print('To run this script, you must add scripts/ to PYTHONPATH!', file=sys.stderr)
-    sys.exit(1)
+import binhack_helper
 
 from functools import partial
 

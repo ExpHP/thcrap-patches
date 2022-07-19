@@ -140,7 +140,16 @@ DIR=$(REPO)/ctrl_speedup
 
 .PHONY: ctrl-speedup
 ctrl-speedup: \
-	$(call glob-th-js-from-yaml,$(DIR)) \
+	$(DIR)/$(TH10_VER).js \
+	$(DIR)/$(TH11_VER).js \
+	$(DIR)/$(TH12_VER).js \
+	$(DIR)/$(TH128_VER).js \
+	$(DIR)/$(TH13_VER).js \
+	$(DIR)/$(TH14_VER).js \
+	$(DIR)/$(TH15_VER).js \
+	$(DIR)/$(TH16_VER).js \
+	$(DIR)/$(TH17_VER).js \
+	# FIXME: TH18 still needs another binhack to rebind Ctrl to 0x200
 
 $(DIR)/th%.js: $(DIR)/binhacks.yaml
 	scripts/convert-yaml.py $< >$@ --cfg $$(echo "$(@F)" | cut -f1 -d.)
